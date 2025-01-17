@@ -2,10 +2,9 @@ import { useEffect } from 'react';
 import { sessionKeepAlive } from '../../services/ApiService';
 
 export default function useVaultSessionKeepAlive() {
-
     const vaultSessionKeepAlive = async () => {
         await sessionKeepAlive();
-    }
+    };
 
     /**
      * Call the session keep alive endpoint once very five minutes

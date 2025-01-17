@@ -1,18 +1,19 @@
-import {Box, Flex, IconButton, Spacer, VStack} from '@chakra-ui/react';
+import { Box, Flex, IconButton, Spacer, VStack } from '@chakra-ui/react';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import { PiTreeStructureBold } from 'react-icons/pi';
 import OutstandingAsyncJobWarning from '../components/component-editor/OutstandingAsyncJobWarning';
 import ComponentEditorIsland from '../components/component-editor/ComponentEditorIsland';
 import ComponentEditorHeaderRow from '../components/component-editor/ComponentEditorHeaderRow';
 import ComponentDirectoryPanel from '../components/component-editor/ComponentDirectoryPanel';
-import ContextualHelpButton from "../components/shared/ContextualHelpButton";
+import ContextualHelpButton from '../components/shared/ContextualHelpButton';
 import TelemetryData from '../components/shared/TelemetryData';
 import VaultInfoIsland from '../components/shared/VaultInfoIsland';
 import useComponentTree from '../hooks/component-editor/useComponentTree';
 import useComponentEditor from '../hooks/component-editor/useComponentEditor';
 
 export default function ComponentEditorPage() {
-    const { componentTree, componentTreeError, retrieveComponentTree, loadingComponentTree } = useComponentTree();
+    const { componentTree, componentTreeError, retrieveComponentTree, loadingComponentTree } =
+        useComponentTree();
     const {
         code,
         setCode,
@@ -33,7 +34,10 @@ export default function ComponentEditorPage() {
         showOutstandingAsyncJobWarning,
         selectedComponentPendingConfirmation,
         displayComponentTree,
-    } = useComponentEditor();    
+        sidePanelCollapsed,
+        setSidePanelCollapsed,
+        componentDirectoryPanelRef,
+    } = useComponentEditor();
 
     return (
         <>
@@ -60,19 +64,20 @@ export default function ComponentEditorPage() {
                             </VaultInfoIsland>
                         </VStack>
                     </Panel>
-                    { displayComponentTree
-                        ? (
-                            <ComponentDirectoryPanel
-                                retrieveComponentTree={retrieveComponentTree}
-                                loadingComponentTree={loadingComponentTree}
-                                selectedComponent={selectedComponent}
-                                setSelectedComponent={setSelectedComponent}
-                                componentTree={componentTree}
-                                onSelect={onSelect}
-                                componentTreeError={componentTreeError}
-                            />
-                        )
-                        : null}
+                    {displayComponentTree ? (
+                        <ComponentDirectoryPanel
+                            retrieveComponentTree={retrieveComponentTree}
+                            loadingComponentTree={loadingComponentTree}
+                            selectedComponent={selectedComponent}
+                            setSelectedComponent={setSelectedComponent}
+                            componentTree={componentTree}
+                            onSelect={onSelect}
+                            componentTreeError={componentTreeError}
+                            sidePanelCollapsed={sidePanelCollapsed}
+                            setSidePanelCollapsed={setSidePanelCollapsed}
+                            componentDirectoryPanelRef={componentDirectoryPanelRef}
+                        />
+                    ) : null}
                 </PanelGroup>
                 <Box height='100vh' flex='0 0 auto'>
                     <Flex flexDirection='column' height='100%'>
@@ -83,17 +88,23 @@ export default function ComponentEditorPage() {
                             borderRadius='6px'
                             margin='5px'
                             color={displayComponentTree ? 'white' : 'veeva_orange.color_mode'}
-                            backgroundColor={displayComponentTree ? 'veeva_orange.color_mode' : 'transparent'}
+                            backgroundColor={
+                                displayComponentTree ? 'veeva_orange.color_mode' : 'transparent'
+                            }
                         />
                         <Spacer />
-                        <ContextualHelpButton
-                            tooltip='MDL Documentation'
-                            url='https://developer.veevavault.com/mdl/'
-                        />
+                        <ContextualHelpButton tooltip='MDL Documentation' url='https://developer.veevavault.com/mdl/' />
                     </Flex>
                 </Box>
             </Flex>
-            {showOutstandingAsyncJobWarning && <OutstandingAsyncJobWarning isOpen={showOutstandingAsyncJobWarning} onClose={closeOutstandingAsyncJobWarning} onConfirm={updateSelectedComponent} currentComponent={selectedComponentPendingConfirmation} />}
+            {showOutstandingAsyncJobWarning && (
+                <OutstandingAsyncJobWarning
+                    isOpen={showOutstandingAsyncJobWarning}
+                    onClose={closeOutstandingAsyncJobWarning}
+                    onConfirm={updateSelectedComponent}
+                    currentComponent={selectedComponentPendingConfirmation}
+                />
+            )}
         </>
     );
 }

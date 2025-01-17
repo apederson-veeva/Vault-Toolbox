@@ -1,8 +1,25 @@
-import { Modal, ModalOverlay, ModalContent, ModalBody, Button, ModalFooter, Flex, Spacer, Box, ModalHeader, ModalCloseButton, Text
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalBody,
+    Button,
+    ModalFooter,
+    Flex,
+    Spacer,
+    Box,
+    ModalHeader,
+    ModalCloseButton,
+    Text,
 } from '@chakra-ui/react';
-import {useRef} from 'react';
+import { useRef } from 'react';
 
-export default function VqlConfirmQueryDeletionModal({ isOpen, onClose, onSubmit, savedQueryName }) {
+export default function VqlConfirmQueryDeletionModal({
+    isOpen,
+    onClose,
+    onSubmit,
+    savedQueryName,
+}) {
     const deleteQueryButtonRef = useRef(null);
     const submitQueryDeletion = () => {
         onClose();
@@ -10,12 +27,7 @@ export default function VqlConfirmQueryDeletionModal({ isOpen, onClose, onSubmit
     };
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            size='sm'
-            initialFocusRef={deleteQueryButtonRef}
-        >
+        <Modal isOpen={isOpen} onClose={onClose} size='sm' initialFocusRef={deleteQueryButtonRef}>
             <ModalOverlay />
             <ModalContent backgroundColor='white.color_mode'>
                 <ModalHeader paddingY='10px'>Delete Saved Query?</ModalHeader>
@@ -27,8 +39,14 @@ export default function VqlConfirmQueryDeletionModal({ isOpen, onClose, onSubmit
                     <Flex width='100%'>
                         <Spacer />
                         <Box>
-                            <Button onClick={onClose} {...CancelButtonStyle}>Cancel</Button>
-                            <Button onClick={submitQueryDeletion} ref={deleteQueryButtonRef} {...DeleteButtonStyle}>
+                            <Button onClick={onClose} {...CancelButtonStyle}>
+                                Cancel
+                            </Button>
+                            <Button
+                                onClick={submitQueryDeletion}
+                                ref={deleteQueryButtonRef}
+                                {...DeleteButtonStyle}
+                            >
                                 Delete
                             </Button>
                         </Box>
@@ -42,15 +60,15 @@ export default function VqlConfirmQueryDeletionModal({ isOpen, onClose, onSubmit
 const ModelCloseButtonStyle = {
     position: 'absolute',
     top: '10px',
-    right: '24px'
-}
+    right: '24px',
+};
 
 const CancelButtonStyle = {
     marginRight: '5px',
-    size: 'sm'
-}
+    size: 'sm',
+};
 
 const DeleteButtonStyle = {
     size: 'sm',
-    colorScheme: 'red'
-}
+    colorScheme: 'red',
+};

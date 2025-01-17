@@ -1,8 +1,8 @@
 import { VAULT_CLIENT_ID, getVaultDNS } from '../ApiService.js';
 import { getVaultApiVersion } from '../SharedServices';
 
-export const VAULT_API_VERSION = 'v24.2';
-export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v24.2.0';
+export const VAULT_API_VERSION = 'v24.3';
+export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v24.3.0';
 
 export const HTTP_HEADER_CONTENT_TYPE = 'Content-Type';
 export const HTTP_HEADER_ACCEPT = 'Accept';
@@ -12,12 +12,12 @@ export const HTTP_HEADER_AUTHORIZATION = 'Authorization';
 
 export const HTTP_CONTENT_TYPE_JSON = 'application/json';
 export const HTTP_CONTENT_TYPE_XFORM = 'application/x-www-form-urlencoded';
-export const HTTP_CONTENT_TYPE_PLAINTEXT = 'text/plain'
+export const HTTP_CONTENT_TYPE_PLAINTEXT = 'text/plain';
 
 /**
  * Request wrapper that sets default headers and omits cookies.
- * @param {String} url 
- * @param {Object} options 
+ * @param {String} url
+ * @param {Object} options
  * @returns fetch response
  */
 export async function request(url, options = {}) {
@@ -27,7 +27,7 @@ export async function request(url, options = {}) {
             ...options.headers,
             ...getDefaultHeaders(),
         },
-        credentials: 'omit' // Prevents sending Vault's cookies
+        credentials: 'omit', // Prevents sending Vault's cookies
     });
 }
 
@@ -38,7 +38,7 @@ export async function request(url, options = {}) {
 const getDefaultHeaders = () => {
     return {
         [HTTP_HEADER_VAULT_CLIENT_ID]: VAULT_CLIENT_ID,
-        [HTTP_HEADER_REFERENCE_ID]: VAULT_DEVELOPER_TOOLBOX_VERSION
+        [HTTP_HEADER_REFERENCE_ID]: VAULT_DEVELOPER_TOOLBOX_VERSION,
     };
 };
 
@@ -55,6 +55,28 @@ export function getAPIEndpoint(endpoint, includeVersion = true, vaultDNS = null)
     } else {
         return `https://${vaultDNS}/api/${endpoint}`;
     }
+}
+
+/**
+ * Get a fully formed API URL consisting of the Vault DNS, API version, and the API endpoint
+ */
+export function getPaginationEndpoint(pageUrl) {
+    const vaultDns = getVaultDNS();
+    const vaultApiVersion = getVaultApiVersion();
+
+    if (pageUrl.startsWith(`https://${vaultDns}`)) {
+        return pageUrl;
+    }
+
+    if (pageUrl.startsWith(`/api/${vaultApiVersion}`)) {
+        return `https://${vaultDns}${pageUrl}`;
+    }
+
+    if (pageUrl.startsWith('/api/')) {
+        return getAPIEndpoint(pageUrl.slice(5), false);
+    }
+
+    return getAPIEndpoint(pageUrl);
 }
 
 export const RequestMethod = Object.freeze({

@@ -13,9 +13,20 @@ export default function Sidebar() {
 
     return (
         <>
-            { isOpen
-                && <DrawerSidebar isOpen={isOpen} onClose={onClose} currentRoute={currentRoute} logout={logout} />}
-            <CollapsedSidebar onOpen={onOpen} onClose={onClose} currentRoute={currentRoute} logout={logout} />
+            {isOpen && (
+                <DrawerSidebar
+                    isOpen={isOpen}
+                    onClose={onClose}
+                    currentRoute={currentRoute}
+                    logout={logout}
+                />
+            )}
+            <CollapsedSidebar
+                onOpen={onOpen}
+                onClose={onClose}
+                currentRoute={currentRoute}
+                logout={logout}
+            />
         </>
     );
 }

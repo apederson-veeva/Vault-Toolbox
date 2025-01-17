@@ -1,27 +1,42 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import VqlDefinitions from '../../components/vql-editor/query-builder/VqlDefinitions';
-import { retrieveObjectCollection, retrieveObjectMetadata, retrievePicklistValues } from '../../services/ApiService';
+import {
+    retrieveComponentRecordXmlJson,
+    retrieveObjectCollection,
+    retrieveObjectMetadata,
+    retrievePicklistValues,
+} from '../../services/ApiService';
 
 export default function useQueryBuilder({ setCode }) {
     const [displayQueryBuilder, setDisplayQueryBuilder] = useState(true);
+    const [sidePanelCollapsed, setSidePanelCollapsed] = useState(false);
     const [vaultObjects, setVaultObjects] = useState([]);
     const [vaultObjectsError, setVaultObjectsError] = useState('');
     const [loadingVaultObjects, setLoadingVaultObjects] = useState(false);
     const [selectedObject, setSelectedObject] = useState();
     const [selectedFields, setSelectedFields] = useState();
-    const [selectedFilters, setSelectedFilters] = useState([])
+    const [selectedFilters, setSelectedFilters] = useState([]);
     const [fieldOptions, setFieldOptions] = useState();
     const [fieldOptionsError, setFieldOptionsError] = useState('');
     const [loadingObjectMetadata, setLoadingObjectMetadata] = useState(false);
     const [logicalOperator, setLogicalOperator] = useState('AND');
     const [picklistValueOptions, setPicklistValueOptions] = useState([]);
+    const [objectLifecycleStateOptions, setObjectLifecycleStateOptions] = useState([]);
 
-    const { defaultOperators, booleanValues, attachmentsQueryTarget } = VqlDefinitions();
+    const queryBuilderPanelRef = useRef(null);
+
+    const { supportedQueryFilterOperators, booleanValues, attachmentsQueryTarget } =
+        VqlDefinitions();
 
     /**
      * Opens/closes the query builder panel
      */
     const toggleQueryBuilder = () => {
+        if (displayQueryBuilder) {
+            setSidePanelCollapsed(true);
+        } else {
+            setSidePanelCollapsed(false);
+        }
         setDisplayQueryBuilder(!displayQueryBuilder);
     };
 
@@ -36,7 +51,7 @@ export default function useQueryBuilder({ setCode }) {
         if (objectResponse?.responseStatus === 'FAILURE') {
             let error = '';
             if (objectResponse?.errors?.length > 0) {
-                error = `${objectResponse.errors[0].type} : ${objectResponse.errors[0].message}`
+                error = `${objectResponse.errors[0].type} : ${objectResponse.errors[0].message}`;
             }
             setVaultObjectsError(error);
             setLoadingVaultObjects(false);
@@ -48,8 +63,8 @@ export default function useQueryBuilder({ setCode }) {
             vaultObjectArray.push({
                 label: `${object?.label} (${object?.name})`,
                 value: object?.name,
-            })
-        })
+            });
+        });
 
         setVaultObjects(vaultObjectArray.sort((a, b) => a?.label.localeCompare(b?.label)));
 
@@ -67,24 +82,53 @@ export default function useQueryBuilder({ setCode }) {
         const { response } = await retrieveObjectMetadata(selectedObject?.value);
 
         if (response?.responseStatus === 'SUCCESS') {
-            const objectFields = response?.object?.fields?.map(field => ({
-                value: field.name,
-                label: field.label,
-                fieldType: field.type,
-                picklist: field?.picklist
-            }));
+            const lifecycle = response?.object?.available_lifecycles?.toString();
+            const objectFields = response?.object?.fields?.map((field) => {
+                return {
+                    value: field.name,
+                    label: field.label,
+                    fieldType: field.type,
+                    picklist: field?.picklist,
+                    formula: field?.formula, // Captured so we can exclude formula fields from the WHERE clause
+                    isLookupField: isLookupField(field),
+                    isSearchable: field?.searchable,
+                    isObjectLifecycleStateField: isObjectLifecycleStateField(field),
+                    lifecycle: isObjectLifecycleStateField(field) ? lifecycle : null,
+                };
+            });
 
             const objectRelationships = response?.object?.relationships;
             const allowsAttachments = response?.object?.allow_attachments;
 
             let relationshipFieldOptions = [];
             if (objectRelationships) {
-                const outboundRelationshipOptions = createRelationshipOptions(objectRelationships, 'reference_outbound', false);
-                const parentRelationshipOptions = createRelationshipOptions(objectRelationships, 'parent', false);
-                const inboundRelationshipOptions = createRelationshipOptions(objectRelationships, 'reference_inbound', true);
-                const childRelationshipOptions = createRelationshipOptions(objectRelationships, 'child', true);
-                const objectAttachmentOptions = allowsAttachments ?
-                    createQueryFieldOptions(attachmentsQueryTarget.queryTarget, attachmentsQueryTarget.objectAttachmentFields, true, 'Attachments')
+                const outboundRelationshipOptions = createRelationshipOptions(
+                    objectRelationships,
+                    'reference_outbound',
+                    false,
+                );
+                const parentRelationshipOptions = createRelationshipOptions(
+                    objectRelationships,
+                    'parent',
+                    false,
+                );
+                const inboundRelationshipOptions = createRelationshipOptions(
+                    objectRelationships,
+                    'reference_inbound',
+                    true,
+                );
+                const childRelationshipOptions = createRelationshipOptions(
+                    objectRelationships,
+                    'child',
+                    true,
+                );
+                const objectAttachmentOptions = allowsAttachments
+                    ? createQueryFieldOptions(
+                          attachmentsQueryTarget.queryTarget,
+                          attachmentsQueryTarget.objectAttachmentFields,
+                          true,
+                          'Attachments',
+                      )
                     : [];
 
                 relationshipFieldOptions = [
@@ -107,28 +151,44 @@ export default function useQueryBuilder({ setCode }) {
                     {
                         label: 'Attachments',
                         options: objectAttachmentOptions,
-                    }
-                ]
+                    },
+                ];
             }
 
             const allFieldOptions = [
                 {
                     label: 'Fields',
-                    options: objectFields
+                    options: objectFields,
                 },
-                ...relationshipFieldOptions
-            ]
+                ...relationshipFieldOptions,
+            ];
 
             setFieldOptions(allFieldOptions);
         } else if (response?.responseStatus === 'FAILURE') {
             let error = '';
             if (response?.errors?.length > 0) {
-                error = `${response.errors[0].type} : ${response.errors[0].message}`
+                error = `${response.errors[0].type} : ${response.errors[0].message}`;
             }
             setFieldOptionsError(error);
         }
 
         setLoadingObjectMetadata(false);
+    };
+
+    /**
+     * Helper function that determines if provided object field is a lookup field. Used to exclude
+     * unsearchable lookup fields from the WHERE clause builder
+     */
+    const isLookupField = (field) => {
+        return field?.lookup_source_field !== null && field?.lookup_source_field !== undefined;
+    };
+
+    /**
+     * Helper function that determines if provided object field is an Object LC state field. Used to exclude
+     * unsearchable lookup fields from the WHERE clause builder
+     */
+    const isObjectLifecycleStateField = (field) => {
+        return field?.type === 'Component' && field?.component === 'Objectlifecyclestate';
     };
 
     /**
@@ -139,15 +199,36 @@ export default function useQueryBuilder({ setCode }) {
         let { response } = await retrievePicklistValues(picklistName);
 
         if (response?.responseStatus === 'SUCCESS') {
-            const picklistOptions = response?.picklistValues?.map((picklistValue) => (
-                { value: picklistValue.name, label: picklistValue.label }
-            ));
+            const picklistOptions = response?.picklistValues?.map((picklistValue) => ({
+                value: picklistValue.name,
+                label: picklistValue.label,
+            }));
 
             setPicklistValueOptions(picklistOptions);
         } else {
             setPicklistValueOptions([]);
         }
-    }
+    };
+
+    /**
+     * Retrieves Object LC state values for the selected Object lifecycle. Creates selectable options and loads them
+     * into state.
+     * @param objectLifecycleName
+     */
+    const fetchObjectLifecycleStateValues = async (objectLifecycleName) => {
+        let { response } = await retrieveComponentRecordXmlJson(objectLifecycleName);
+
+        if (response?.responseStatus === 'SUCCESS') {
+            const lifecycleStateOptions = response?.data?.states?.map((lifecycleState) => ({
+                value: lifecycleState.name,
+                label: lifecycleState.label,
+            }));
+
+            setObjectLifecycleStateOptions(lifecycleStateOptions);
+        } else {
+            setObjectLifecycleStateOptions([]);
+        }
+    };
 
     /**
      * Helper function that creates array of the default selectable options for an object relationship.
@@ -156,95 +237,132 @@ export default function useQueryBuilder({ setCode }) {
      * @param includeSubqueryTarget - if a relationship type will be a subquery, includes subquery target in the options
      * @returns {Array} default selection fields for given relationship type
      */
-    const createRelationshipOptions = (relationships, relationshipType, includeSubqueryTarget = false) => {
+    const createRelationshipOptions = (
+        relationships,
+        relationshipType,
+        includeSubqueryTarget = false,
+    ) => {
         return relationships
-            .filter(relationship => relationship?.relationship_type === relationshipType)
-            .flatMap(relationship => {
-                const idFields = [ includeSubqueryTarget ?
-                    {
-                        label: `${relationship?.relationship_label}: ID`,
-                        value: `${relationship?.relationship_name}.id`,
-                        fieldType: 'ID'
-                    } :
-                    {
-                        label: `${relationship?.relationship_label}: ID`,
-                        value: `${relationship?.field}`,
-                        fieldType: 'ID'
-                    }];
+            .filter((relationship) => relationship?.relationship_type === relationshipType)
+            .flatMap((relationship) => {
+                const idFields = [
+                    includeSubqueryTarget
+                        ? {
+                              label: `${relationship?.relationship_label}: ID`,
+                              value: `${relationship?.relationship_name}.id`,
+                              fieldType: 'ID',
+                          }
+                        : {
+                              label: `${relationship?.relationship_label}: ID`,
+                              value: `${relationship?.field}`,
+                              fieldType: 'ID',
+                          },
+                ];
 
                 const commonFields = [
                     {
-                        label: `${relationship?.relationship_label}: Name`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Name (name__v)`,
                         value: `${relationship?.relationship_name}.name__v`,
-                        fieldType: 'String'
+                        fieldType: 'String',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Created By`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Created By (created_by__v)`,
                         value: `${relationship?.relationship_name}.created_by__v`,
-                        fieldType: 'Object'
-                    }
-                ]
+                        fieldType: 'Object',
+                    },
+                ];
 
                 const objectFields = [
                     {
-                        label: `${relationship?.relationship_label}: Created Date`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Created Date (created_date__v)`,
                         value: `${relationship?.relationship_name}.created_date__v`,
-                        fieldType: 'DateTime'
+                        fieldType: 'DateTime',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Status`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Status (status__v)`,
                         value: `${relationship?.relationship_name}.status__v`,
                         fieldType: 'Picklist',
-                        picklist: 'default_status__v'
+                        picklist: 'default_status__v',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Last Modified By`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Last Modified By (modified_by__v)`,
                         value: `${relationship?.relationship_name}.modified_by__v`,
-                        fieldType: 'Object'
+                        fieldType: 'Object',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Last Modified Date`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Last Modified Date (modified_date__v)`,
                         value: `${relationship?.relationship_name}.modified_date__v`,
-                        fieldType: 'DateTime'
-                    }
+                        fieldType: 'DateTime',
+                    },
                 ];
 
                 const documentFields = [
                     {
-                        label: `${relationship?.relationship_label}: Created Date`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Title (title__v)`,
+                        value: `${relationship?.relationship_name}.title__v`,
+                        fieldType: 'String',
+                    },
+                    {
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Type (type__v)`,
+                        value: `${relationship?.relationship_name}.type__v`,
+                        fieldType: 'String',
+                    },
+                    {
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Subtype (subtype__v)`,
+                        value: `${relationship?.relationship_name}.subtype__v`,
+                        fieldType: 'String',
+                    },
+                    {
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Classification (classification__v)`,
+                        value: `${relationship?.relationship_name}.classification__v`,
+                        fieldType: 'String',
+                    },
+                    {
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Document Number (document_number__v)`,
+                        value: `${relationship?.relationship_name}.document_number__v`,
+                        fieldType: 'String',
+                    },
+                    {
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Lifecycle (lifecycle__v)`,
+                        value: `${relationship?.relationship_name}.lifecycle__v`,
+                        fieldType: 'String',
+                    },
+                    {
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Created Date (document_creation_date__v)`,
                         value: `${relationship?.relationship_name}.document_creation_date__v`,
-                        fieldType: 'DateTime'
+                        fieldType: 'DateTime',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Status`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Status (status__v)`,
                         value: `${relationship?.relationship_name}.status__v`,
-                        fieldType: 'String'
+                        fieldType: 'String',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Last Modified By`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Last Modified By (last_modified_by__v)`,
                         value: `${relationship?.relationship_name}.last_modified_by__v`,
-                        fieldType: 'Object'
+                        fieldType: 'Object',
                     },
                     {
-                        label: `${relationship?.relationship_label}: Last Modified Date`,
+                        label: `${relationship?.relationship_label} (${relationship?.relationship_name}): Last Modified Date (version_modified_date__v)`,
                         value: `${relationship?.relationship_name}.version_modified_date__v`,
-                        fieldType: 'DateTime'
-                    }
+                        fieldType: 'DateTime',
+                    },
                 ];
 
                 const fields = [
                     ...idFields,
                     ...commonFields,
-                    ...(relationship?.object?.name === 'documents' ? documentFields : objectFields)
+                    ...(relationship?.object?.name === 'documents' ? documentFields : objectFields),
                 ];
 
-                return fields.map(fieldOption => ({
+                return fields.map((fieldOption) => ({
                     ...fieldOption,
-                    ...(includeSubqueryTarget && { subqueryTarget: relationship?.relationship_name })
-                }))
-            }
-        )
-    }
+                    ...(includeSubqueryTarget && {
+                        subqueryTarget: relationship?.relationship_name,
+                    }),
+                }));
+            });
+    };
 
     /**
      * Helper function that creates array of selectable options for a given query target and fields.
@@ -257,22 +375,29 @@ export default function useQueryBuilder({ setCode }) {
     const createQueryFieldOptions = (queryTarget, fields, isSubquery = false, labelPrefix = '') => {
         // Subqueries (e.g. attachments) need the react-select options to have the subquery target and field type
         if (isSubquery) {
-            return fields.map(field => ({
-                label: `${labelPrefix}: ${field.label}`,
+            return fields.map((field) => ({
+                label: field.label
+                    ? `${labelPrefix} (${queryTarget}): ${field.label} (${field.field})`
+                    : `${labelPrefix} (${queryTarget}): ${field.field}`,
                 value: `${queryTarget}.${field.field}`,
                 subqueryTarget: queryTarget,
                 fieldType: field.fieldType,
-            }))
+            }));
+        } else {
+            return fields.map((field) => ({
+                label: field.label ? `${field.label} (${field.field})` : `${field.field}`,
+                value: field.field,
+                fieldType: field.fieldType,
+            }));
         }
-    }
+    };
 
     /**
      * Builds a VQL query based on the users current selections
      */
     const buildQuery = () => {
-
-        const primaryFields = selectedFields?.filter(field => !field?.subqueryTarget);
-        const subqueryFields = selectedFields?.filter(field => field?.subqueryTarget);
+        const primaryFields = selectedFields?.filter((field) => !field?.subqueryTarget);
+        const subqueryFields = selectedFields?.filter((field) => field?.subqueryTarget);
 
         const dataGroupedBySubquery = subqueryFields.reduce((groupedBySubqueryTarget, field) => {
             const subqueryTarget = field.subqueryTarget;
@@ -286,21 +411,23 @@ export default function useQueryBuilder({ setCode }) {
         // Transform the grouped subquery data into a consistent structure
         const subqueryData = Object.entries(dataGroupedBySubquery).map(([key, values]) => ({
             subqueryTarget: key,
-            values: values
+            values: values,
         }));
 
         // Gather primary fields in comma-delimited string
         let fieldsString = '';
         if (primaryFields.length > 0) {
-            fieldsString += primaryFields?.map(field => field?.value)?.join(', ');
+            fieldsString += primaryFields?.map((field) => field?.value)?.join(', ');
         }
 
         // Append subqueries to the primary fields string
         if (subqueryData.length > 0) {
-            subqueryData.forEach(subqueryObject => {
-                const subqueryValues = subqueryObject?.values?.map(value => value?.substring(value?.indexOf('.') + 1))
-                fieldsString += `, \n\t(SELECT ${subqueryValues.join(', ')} FROM ${subqueryObject.subqueryTarget})`
-            })
+            subqueryData.forEach((subqueryObject) => {
+                const subqueryValues = subqueryObject?.values?.map((value) =>
+                    value?.substring(value?.indexOf('.') + 1),
+                );
+                fieldsString += `, \n\t(SELECT ${subqueryValues.join(', ')} FROM ${subqueryObject.subqueryTarget})`;
+            });
         }
 
         // Create where clause string
@@ -308,36 +435,50 @@ export default function useQueryBuilder({ setCode }) {
         if (selectedFilters?.length > 0) {
             whereClause = '\nWHERE ';
             selectedFilters.forEach((filter, index) => {
-                if (!filter?.field) { return } // Don't build empty filters without a field specified
-                if (index !== 0) { whereClause += ` ${logicalOperator} `;}
+                if (!filter?.field) {
+                    return;
+                } // Don't build empty filters without a field specified
+                if (index !== 0) {
+                    whereClause += ` ${logicalOperator} `;
+                }
 
                 if (filter?.operator.value === 'CONTAINS') {
                     let filterValue = '';
                     if (Array.isArray(filter?.value)) {
                         // Multi-select picklists are in an array and should be comma-delimited & wrapped in a string
-                        filterValue = `${filter.value.map(value => `'${value.value}'`).join(', ')}`;
+                        filterValue = `${filter.value.map((value) => `'${value.value}'`).join(', ')}`;
                     } else if (filter?.value?.includes(',')) {
                         // Values with a comma are the user passing multiple values so comma-delimit & wrap each in a string
-                        filterValue = filter.value?.split(',').map((value) => `'${value.trim()}'`).join(',');
+                        filterValue = filter.value
+                            ?.split(',')
+                            .map((value) => `'${value.trim()}'`)
+                            .join(',');
                     } else {
                         // All other values are simply wrapped in a string
-                        filterValue = `'${filter.value}'`
+                        filterValue = `'${filter.value}'`;
                     }
 
-                    whereClause += `(${filter?.field?.value} ${filter.operator.value} (${filterValue}))`
+                    whereClause += `(${filter?.field?.value} ${filter.operator.value} (${filterValue}))`;
                 } else {
-                    if (filter?.field.fieldType === 'String' || filter?.field.fieldType === 'Date' || filter?.field.fieldType === 'DateTime' || filter?.field.fieldType === 'ID') {
-                        // Wrap all String/Date/DateTime/ID values in a string
-                        whereClause += `(${filter?.field?.value} ${filter.operator.value} '${filter.value}')`
-                    } else if (filter?.field.fieldType === 'Picklist') {
-                        // Wrap all Picklists values in their own string
-                        whereClause += `(${filter?.field?.value} ${filter.operator.value} '${filter.value.value}')`
+                    if (
+                        filter?.field.fieldType === 'String' ||
+                        filter?.field.fieldType === 'Date' ||
+                        filter?.field.fieldType === 'DateTime' ||
+                        filter?.field.fieldType === 'ID' ||
+                        filter?.field.fieldType === 'Object' ||
+                        (filter?.field.fieldType === 'Component' && !filter?.field?.isObjectLifecycleStateField)
+                    ) {
+                        // Wrap all String/Date/DateTime/ID/Object values in a string
+                        whereClause += `(${filter?.field?.value} ${filter.operator.value} '${filter.value}')`;
+                    } else if (filter?.field.fieldType === 'Picklist' || filter?.field?.isObjectLifecycleStateField) {
+                        // Wrap all Picklists and ObjectLCState values in their own string
+                        whereClause += `(${filter?.field?.value} ${filter.operator.value} '${filter.value.value}')`;
                     } else {
                         // Everything else gets the raw value
-                        whereClause += `(${filter?.field?.value} ${filter.operator.value} ${filter.value})`
+                        whereClause += `(${filter?.field?.value} ${filter.operator.value} ${filter.value})`;
                     }
                 }
-            })
+            });
         }
 
         const queryString = `SELECT ${fieldsString} \nFROM ${selectedObject?.value} ${whereClause}`;
@@ -363,12 +504,14 @@ export default function useQueryBuilder({ setCode }) {
 
         if (selectedFilters?.length > 0) {
             selectedFilters.forEach((filter, index) => {
-                if (!filter?.field || !filter?.operator || !filter?.value) { canBuild = false; }
-            })
+                if (!filter?.field || !filter?.operator || !filter?.value) {
+                    canBuild = false;
+                }
+            });
         }
 
         return canBuild;
-    }
+    };
 
     /**
      * Converts an array of values to an array of options in the format supported by React-Select components.
@@ -377,13 +520,22 @@ export default function useQueryBuilder({ setCode }) {
      * @returns {Array}
      */
     const convertArrayToSelectOptions = (array) => {
-        return array.map(item => ({
+        return array.map((item) => ({
             value: item,
             label: item,
-        }))
-    }
+        }));
+    };
 
-    const operatorOptions = convertArrayToSelectOptions(defaultOperators);
+    /**
+     * Returns the supported operator options for a provided field type
+     * @param fieldType
+     */
+    const getOperatorOptions = (fieldType) => {
+        const supportedOperators =
+            supportedQueryFilterOperators[fieldType] || supportedQueryFilterOperators['Default'];
+        return convertArrayToSelectOptions(supportedOperators);
+    };
+
     const booleanValueOptions = convertArrayToSelectOptions(booleanValues);
 
     /**
@@ -393,7 +545,7 @@ export default function useQueryBuilder({ setCode }) {
         const newFilterRow = {
             field: '',
             operator: '',
-            value: ''
+            value: '',
         };
 
         setSelectedFilters((prevFilters) => [...prevFilters, newFilterRow]);
@@ -422,30 +574,57 @@ export default function useQueryBuilder({ setCode }) {
         const previousFilterRow = selectedFilters[rowIndexAsNumber];
 
         const updatedSelectedFilters = [...selectedFilters];
-        updatedSelectedFilters[rowIndexAsNumber] = {...updatedSelectedFilters[rowIndexAsNumber], [field]: newValue};
+        updatedSelectedFilters[rowIndexAsNumber] = {
+            ...updatedSelectedFilters[rowIndexAsNumber],
+            [field]: newValue,
+        };
 
-        // If the field has been updated to a Picklist, load the picklist options
+        // If the field has been updated to a Picklist or LC State, load the appropriate options
         if (field === 'field' && newValue?.fieldType === 'Picklist' && newValue?.picklist) {
-            fetchPicklistValues(newValue.picklist)
+            fetchPicklistValues(newValue.picklist);
+        } else if (field === 'field' && newValue?.isObjectLifecycleStateField) {
+            fetchObjectLifecycleStateValues(`Objectlifecycle.${newValue.lifecycle}`);
         }
 
         /*
              Clear existing values if:
-             - The field was a Picklist and operator changed from CONTAINS to anything else (or vice versa)
+             - The field was a Picklist (or Obj LC State) and operator changed from CONTAINS to anything else (or vice versa)
              - The field type changed (e.g. String to Picklist)
+             - The field changed to or from an Object LC State field
              - The field was changed to a different Picklist
          */
-        if ((previousFilterRow?.field?.fieldType === 'Picklist' &&
-               (previousFilterRow?.operator?.value === 'CONTAINS' && updatedSelectedFilters[rowIndexAsNumber]?.operator?.value !== 'CONTAINS')
-            || (previousFilterRow?.operator?.value !== 'CONTAINS' && updatedSelectedFilters[rowIndexAsNumber]?.operator?.value === 'CONTAINS'))
-            || (updatedSelectedFilters[rowIndexAsNumber]?.field?.fieldType !== previousFilterRow?.field?.fieldType)
-            || (field === 'field' && newValue?.picklist && newValue?.picklist !== previousFilterRow?.field?.picklist)
+        if (
+            ((previousFilterRow?.field?.fieldType === 'Picklist' ||
+                previousFilterRow?.field?.isObjectLifecycleStateField) &&
+                previousFilterRow?.operator?.value === 'CONTAINS' &&
+                updatedSelectedFilters[rowIndexAsNumber]?.operator?.value !== 'CONTAINS') ||
+            (previousFilterRow?.operator?.value !== 'CONTAINS' &&
+                updatedSelectedFilters[rowIndexAsNumber]?.operator?.value === 'CONTAINS') ||
+            updatedSelectedFilters[rowIndexAsNumber]?.field?.fieldType !==
+                previousFilterRow?.field?.fieldType ||
+            updatedSelectedFilters[rowIndexAsNumber]?.field?.isObjectLifecycleStateField !==
+                previousFilterRow?.field?.isObjectLifecycleStateField ||
+            (field === 'field' &&
+                newValue?.picklist &&
+                newValue?.picklist !== previousFilterRow?.field?.picklist)
         ) {
-            updatedSelectedFilters[rowIndexAsNumber] = {...updatedSelectedFilters[rowIndexAsNumber], 'value': ''};
+            updatedSelectedFilters[rowIndexAsNumber] = {
+                ...updatedSelectedFilters[rowIndexAsNumber],
+                value: '',
+            };
         }
 
         setSelectedFilters(updatedSelectedFilters);
     };
+
+    useEffect(() => {
+        if (sidePanelCollapsed) {
+            queryBuilderPanelRef.current?.collapse();
+            setDisplayQueryBuilder(false);
+        } else {
+            queryBuilderPanelRef.current?.expand();
+        }
+    }, [sidePanelCollapsed]);
 
     /**
      * When the selected object changes, clear the fields and re-load them for the new object.
@@ -482,14 +661,18 @@ export default function useQueryBuilder({ setCode }) {
         displayQueryBuilder,
         logicalOperator,
         setLogicalOperator,
-        operatorOptions,
+        getOperatorOptions,
         booleanValueOptions,
         picklistValueOptions,
+        objectLifecycleStateOptions,
         handleSelectedFilterEdits,
         addNewFilterRow,
         removeFilterRow,
         toggleQueryBuilder,
         buildQuery,
         canBuildQuery,
-    }
+        sidePanelCollapsed,
+        setSidePanelCollapsed,
+        queryBuilderPanelRef,
+    };
 }

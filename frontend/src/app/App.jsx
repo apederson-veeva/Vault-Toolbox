@@ -7,6 +7,7 @@ import ProtectedRoutes from './utils/ProtectedRoute';
 import ComponentEditorPage from './pages/ComponentEditorPage';
 import VaultDataToolsPage from './pages/VaultDataToolsPage';
 import VqlEditorPage from './pages/VqlEditorPage';
+import FileStagingBrowserPage from './pages/FileStagingBrowserPage';
 
 function App() {
     return (
@@ -18,6 +19,7 @@ function App() {
                         <Route path='component-editor' element={<ComponentEditorPage />} />
                         <Route path='vql-editor' element={<VqlEditorPage />} />
                         <Route path='vault-data-tools' element={<VaultDataToolsPage />} />
+                        <Route path='file-staging-browser' element={<FileStagingBrowserPage />} />
                     </Route>
                 </Route>
                 <Route path='/login' element={<LoginPage />} />

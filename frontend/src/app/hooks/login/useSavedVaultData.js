@@ -1,25 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
+import { VAULT_SUBDOMAINS } from '../../services/SharedServices';
 
-export default function useSavedVaultData({ setUserName, setVaultDNS, setFocusToPasswordInput, setFocusToUsernameInput }) {
+const SAVED_VAULTS = 'savedVaults';
+const DEFAULT = 'default';
+const VAULT_DNS = 'vaultDNS';
+const USERNAME = 'username';
+
+export default function useSavedVaultData({
+    setUserName,
+    setVaultDNS,
+    setFocusToPasswordInput,
+    setFocusToUsernameInput,
+}) {
     const [savedVaultData, setSavedVaultData] = useState([]);
     const savedVaultDataRef = useRef(savedVaultData);
 
-    const SAVED_VAULTS = 'savedVaults';
-    const DEFAULT = 'default';
-    const VAULT_DNS = 'vaultDNS';
-    const USERNAME = 'username';
-    const VAULT_SUBDOMAINS = [
-        'veevavault.com',
-        'veevavault.cn',
-        'vaultdev.com',
-        'vaultpvm.com'
-    ]
-
-     /**
+    /**
      * Loads the Saved Vaults table from Chrome storage into state.
      * If a default is set, loads those values into input fields.
      */
-     const loadSavedVaults = async () => {
+    const loadSavedVaults = async () => {
         await chrome.storage.local.get(SAVED_VAULTS).then((result) => {
             setSavedVaultData(result[SAVED_VAULTS] ? result[SAVED_VAULTS] : []);
 
@@ -46,14 +46,20 @@ export default function useSavedVaultData({ setUserName, setVaultDNS, setFocusTo
         await loadSavedVaults();
 
         // If launched from a Vault, load that DNS instead of default
-        chrome.runtime.sendMessage({ action: 'getOriginatingUrl' }, (response) => {
+        await chrome.runtime.sendMessage({ action: 'getOriginatingUrl' }, (response) => {
             if (response && response.originatingUrl) {
-                if (VAULT_SUBDOMAINS.some(subdomain => response.originatingUrl.includes(subdomain))) {
+                if (
+                    VAULT_SUBDOMAINS.some((subdomain) =>
+                        response.originatingUrl.includes(subdomain),
+                    )
+                ) {
                     const parsedURL = new URL(response.originatingUrl);
                     setVaultDNS(parsedURL.hostname.trim());
 
                     if (savedVaultDataRef.current.length > 0) {
-                        const vaultIndex = savedVaultDataRef.current.findIndex((row) => row[VAULT_DNS] === parsedURL.hostname);
+                        const vaultIndex = savedVaultDataRef.current.findIndex(
+                            (row) => row[VAULT_DNS] === parsedURL.hostname,
+                        );
 
                         // If the originating Vault is in the saved Vault table, load its username
                         if (vaultIndex !== -1) {
@@ -80,5 +86,5 @@ export default function useSavedVaultData({ setUserName, setVaultDNS, setFocusTo
         setDefaultsOnLoad();
     }, []);
 
-    return { savedVaultData, setSavedVaultData }
+    return { savedVaultData, setSavedVaultData };
 }

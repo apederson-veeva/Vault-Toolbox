@@ -14,5 +14,5 @@ export default function useDataFileModal() {
         setIsModalOpen(false);
     };
 
-    return { isModalOpen, selectedCellData, closeModal, handleFileClick }
+    return { isModalOpen, selectedCellData, closeModal, handleFileClick };
 }

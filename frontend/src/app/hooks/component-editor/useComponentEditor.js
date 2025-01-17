@@ -1,17 +1,28 @@
-import { useState, useEffect } from 'react';
-import { executeMdlScript, executeMdlScriptAsync, retrieveAsyncMdlScriptResults, retrieveComponentRecordMdl } from '../../services/ApiService';
+import { useState, useEffect, useRef } from 'react';
+import {
+    executeMdlScript,
+    executeMdlScriptAsync,
+    retrieveAsyncMdlScriptResults,
+    retrieveComponentRecordMdl,
+} from '../../services/ApiService';
 
 export default function useComponentEditor() {
-    const [code, setCode] = useState('Select a component record from the tree to view its MDL code');
+    const [code, setCode] = useState(
+        'Select a component record from the tree to view its MDL code',
+    );
     const [selectedComponent, setSelectedComponent] = useState('');
     const [consoleOutput, setConsoleOutput] = useState();
     const [isExecutingApiCall, setIsExecutingApiCall] = useState(false);
     const [isExecutingMdl, setIsExecutingMdl] = useState(false);
     const [asyncJobId, setAsyncJobId] = useState('');
     const [showOutstandingAsyncJobWarning, setShowOutstandingAsyncJobWarning] = useState(false);
-    const [selectedComponentPendingConfirmation, setSelectedComponentPendingConfirmation] = useState('');
+    const [selectedComponentPendingConfirmation, setSelectedComponentPendingConfirmation] =
+        useState('');
     const [displayComponentTree, setDisplayComponentTree] = useState(true);
+    const [sidePanelCollapsed, setSidePanelCollapsed] = useState(false);
     const [mdlTelemetryData, setMdlTelemetryData] = useState({});
+
+    const componentDirectoryPanelRef = useRef(null);
 
     /**
      * Retrieve MDL code for current component record
@@ -26,7 +37,7 @@ export default function useComponentEditor() {
             setCode('Error. Could not retrieve MDL code for this component.');
         }
 
-        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {})
+        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
     };
 
     /**
@@ -44,7 +55,7 @@ export default function useComponentEditor() {
             setConsoleOutput(response);
         }
 
-        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {})
+        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
     };
 
     /**
@@ -61,7 +72,7 @@ export default function useComponentEditor() {
             setAsyncJobId(response.job_id);
         }
 
-        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {})
+        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
     };
 
     /**
@@ -78,7 +89,7 @@ export default function useComponentEditor() {
             setAsyncJobId('');
         }
 
-        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {})
+        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
     };
 
     // Store the currently selected component in state
@@ -106,8 +117,23 @@ export default function useComponentEditor() {
     };
 
     const toggleComponentTree = () => {
+        if (displayComponentTree) {
+            setSidePanelCollapsed(true);
+        } else {
+            setSidePanelCollapsed(false);
+        }
+
         setDisplayComponentTree(!displayComponentTree);
     };
+
+    useEffect(() => {
+        if (sidePanelCollapsed) {
+            componentDirectoryPanelRef.current?.collapse();
+            setDisplayComponentTree(false);
+        } else {
+            componentDirectoryPanelRef.current?.expand();
+        }
+    }, [sidePanelCollapsed]);
 
     // When a component record is selected, clear out the previously-selected code/console and fetch the current code
     useEffect(() => {
@@ -138,5 +164,8 @@ export default function useComponentEditor() {
         showOutstandingAsyncJobWarning,
         selectedComponentPendingConfirmation,
         displayComponentTree,
-    }
+        sidePanelCollapsed,
+        setSidePanelCollapsed,
+        componentDirectoryPanelRef,
+    };
 }

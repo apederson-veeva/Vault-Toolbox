@@ -1,5 +1,5 @@
-import {Flex, Spacer, Box, Link, Tooltip, useDisclosure} from '@chakra-ui/react';
-import {getVaultApiVersion, getVaultDns, getVaultName} from '../../services/SharedServices';
+import { Flex, Spacer, Box, Link, Tooltip, useDisclosure } from '@chakra-ui/react';
+import { getVaultApiVersion, getVaultDns, getVaultName } from '../../services/SharedServices';
 import EditApiVersionModal from './EditApiVersionModal';
 
 export default function VaultInfoIsland({ children }) {
@@ -26,10 +26,7 @@ export default function VaultInfoIsland({ children }) {
                     </Link>
                 </Tooltip>
             </Box>
-            { isOpen ?
-                <EditApiVersionModal isOpen={isOpen} onClose={onClose} />
-                : null
-            }
+            {isOpen ? <EditApiVersionModal isOpen={isOpen} onClose={onClose} /> : null}
         </Flex>
     );
 }
@@ -42,7 +39,7 @@ const ParentFlexStyle = {
     borderRadius: '8px',
     align: 'center',
     backgroundColor: 'white.color_mode',
-    boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+    boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
 const BoxStyle = {
@@ -50,12 +47,12 @@ const BoxStyle = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    textDecoration: 'underline'
-}
+    textDecoration: 'underline',
+};
 
 const ApiVersionTextStyle = {
     textDecoration: 'underline',
     display: 'inline',
     marginLeft: '5px',
     color: 'veeva_orange.color_mode',
-}
+};

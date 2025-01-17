@@ -9,9 +9,9 @@ export default function useDataFiles() {
     const [secondsRemaining, setSecondsRemaining] = useState(30);
 
     /**
-     * Retrieves Vault Data Tools files from File Staging. If necessary, creates 
+     * Retrieves Vault Data Tools files from File Staging. If necessary, creates
      * required file staging folders for current user.
-     * @param {boolean} hasBeenCalledRecursively 
+     * @param {boolean} hasBeenCalledRecursively
      */
     const fetchFileData = async (hasBeenCalledRecursively) => {
         setFetchFilesError({ hasError: false, errorMessage: '' }); // Clear existing errors
@@ -28,7 +28,7 @@ export default function useDataFiles() {
             if (countResponse?.data) {
                 tmpCountFiles = countResponse.data.map((item) => ({
                     fileTimestamp: item.modified_date,
-                    filePath: item.path
+                    filePath: item.path,
                 }));
             }
         } else if (countResponse?.errors) {
@@ -39,14 +39,17 @@ export default function useDataFiles() {
                     if (createFoldersResponse && !hasBeenCalledRecursively) {
                         fetchFileData(true);
                     } else {
-                        setFetchFilesError({ hasError: true, errorMessage: 'Error creating necessary file staging folders' });
+                        setFetchFilesError({
+                            hasError: true,
+                            errorMessage: 'Error creating necessary file staging folders',
+                        });
                     }
                 } else {
-                    let error = 'Error retrieving count data files'
+                    let error = 'Error retrieving count data files';
                     if (countResponse?.errors?.length > 0) {
-                        error = `${countResponse?.errors[0]?.type} : ${countResponse?.errors[0]?.message}`
+                        error = `${countResponse?.errors[0]?.type} : ${countResponse?.errors[0]?.message}`;
                     }
-                    setFetchFilesError({ hasError: true, errorMessage: error })
+                    setFetchFilesError({ hasError: true, errorMessage: error });
                 }
             });
         }
@@ -58,7 +61,7 @@ export default function useDataFiles() {
             if (deleteResponse?.data) {
                 tmpDeleteFiles = deleteResponse.data.map((item) => ({
                     fileTimestamp: item.modified_date,
-                    filePath: item.path
+                    filePath: item.path,
                 }));
             }
         } else if (deleteResponse?.errors) {
@@ -69,14 +72,17 @@ export default function useDataFiles() {
                     if (createFoldersResponse && !hasBeenCalledRecursively) {
                         fetchFileData(true);
                     } else {
-                        setFetchFilesError({ hasError: true, errorMessage: 'Error creating necessary file staging folders' });
+                        setFetchFilesError({
+                            hasError: true,
+                            errorMessage: 'Error creating necessary file staging folders',
+                        });
                     }
                 } else {
-                    let error = 'Error retrieving delete data files'
+                    let error = 'Error retrieving delete data files';
                     if (deleteResponse?.errors?.length > 0) {
-                        error = `${deleteResponse?.errors[0]?.type} : ${deleteResponse?.errors[0]?.message}`
+                        error = `${deleteResponse?.errors[0]?.type} : ${deleteResponse?.errors[0]?.message}`;
                     }
-                    setFetchFilesError({ hasError: true, errorMessage: error })
+                    setFetchFilesError({ hasError: true, errorMessage: error });
                 }
             });
         }
@@ -138,12 +144,12 @@ export default function useDataFiles() {
         return () => clearInterval(interval);
     }, [secondsRemaining]);
 
-    return { 
+    return {
         countFiles,
         deleteFiles,
         loadingFiles,
         fetchFilesError,
         secondsRemaining,
-        handleFileRefresh
-    }
+        handleFileRefresh,
+    };
 }

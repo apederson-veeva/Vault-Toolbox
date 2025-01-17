@@ -1,13 +1,47 @@
-import { Flex, Box, Tabs, TabList, Tab, TabIndicator, Divider, Skeleton, Text, Spacer, useColorMode} from '@chakra-ui/react';
+import {
+    Flex,
+    Box,
+    Tabs,
+    TabList,
+    Tab,
+    TabIndicator,
+    Divider,
+    Skeleton,
+    Text,
+    Spacer,
+    useColorMode,
+} from '@chakra-ui/react';
 import { PanelGroup, Panel } from 'react-resizable-panels';
 import { useState } from 'react';
 import CodeEditor from '../shared/CodeEditor';
 import VqlSavedQueriesContainer from './VqlSavedQueriesContainer';
-import { setupVqlLanguage, vqlLanguageID, VqlLightModeTheme, VqlDarkModeTheme } from './VqlLanguageDefinition';
+import {
+    setupVqlLanguage,
+    vqlLanguageID,
+    VqlLightModeTheme,
+    VqlDarkModeTheme,
+} from './VqlLanguageDefinition';
 import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
 import VqlConsole from './VqlConsole';
 
-export default function VqlEditorIsland({ consoleOutput, code, setCode, queryDescribe, getSubqueryFieldCount, isPicklist, isPrimaryFieldRichText, getMaxRowSize, isDownloading, isExecutingApiCall, nextPage, previousPage, queryNextPage, queryPreviousPage, isPrimaryFieldString, isSubqueryObject }) {
+export default function VqlEditorIsland({
+    consoleOutput,
+    code,
+    setCode,
+    queryDescribe,
+    getSubqueryFieldCount,
+    isPicklist,
+    isPrimaryFieldRichText,
+    getMaxRowSize,
+    isDownloading,
+    isExecutingApiCall,
+    nextPage,
+    previousPage,
+    queryNextPage,
+    queryPreviousPage,
+    isPrimaryFieldString,
+    isSubqueryObject,
+}) {
     const [isConsoleCollapsed, setIsConsoleCollapsed] = useState(false);
     const { colorMode } = useColorMode();
 
@@ -17,26 +51,21 @@ export default function VqlEditorIsland({ consoleOutput, code, setCode, queryDes
     return (
         <Flex {...ParentFlexStyle}>
             <PanelGroup direction='vertical' autoSaveId='VqlEditorIsland-PanelGroup'>
-                <Panel defaultSizePercentage={40} minSizePercentage={10}>
+                <Panel defaultSize={40} minSize={10}>
                     <Flex flexDirection='column' height='100%' width='100%'>
                         <Flex alignItems='center' {...TabListStyle}>
                             <Tabs {...TabsStyle}>
                                 <TabList>
                                     <Flex flexGrow={1} alignItems='center'>
                                         <Box width='180px'>
-                                            <Tab {...TabStyle}>
-                                                VQL
-                                            </Tab>
+                                            <Tab {...TabStyle}>VQL</Tab>
                                         </Box>
                                     </Flex>
                                 </TabList>
                                 <TabIndicator {...TabIndicatorStyle} />
                             </Tabs>
                             <Spacer />
-                            <VqlSavedQueriesContainer
-                                code={code}
-                                setCode={setCode}
-                            />
+                            <VqlSavedQueriesContainer code={code} setCode={setCode} />
                         </Flex>
                         <Box flex={1} overflow={'auto'}>
                             <CodeEditor
@@ -53,7 +82,13 @@ export default function VqlEditorIsland({ consoleOutput, code, setCode, queryDes
                     backgroundColor='veeva_sunset_yellow.ten_percent_opacity'
                     isCollapsed={isConsoleCollapsed}
                 />
-                <Panel collapsible collapsedSizePercentage={0} minSizePercentage={10} onCollapse={() => setIsConsoleCollapsed(true)} onExpand={() => setIsConsoleCollapsed(false)}>
+                <Panel
+                    collapsible
+                    collapsedSize={0}
+                    minSize={10}
+                    onCollapse={() => setIsConsoleCollapsed(true)}
+                    onExpand={() => setIsConsoleCollapsed(false)}
+                >
                     <Flex flexDirection='column' height='100%'>
                         <Box {...ConsoleBoxStyle}>
                             <Skeleton isLoaded={!isExecutingApiCall} height='100%'>
@@ -73,7 +108,9 @@ export default function VqlEditorIsland({ consoleOutput, code, setCode, queryDes
                                     queryPreviousPage={queryPreviousPage}
                                 />
                             </Skeleton>
-                            {isExecutingApiCall && <Text {...SendingRequestTextStyle}>Sending request...</Text>}
+                            {isExecutingApiCall && (
+                                <Text {...SendingRequestTextStyle}>Sending request...</Text>
+                            )}
                         </Box>
                     </Flex>
                 </Panel>
@@ -88,7 +125,7 @@ const ParentFlexStyle = {
     margin: '0px',
     borderRadius: '8px',
     backgroundColor: 'white.color_mode',
-    boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+    boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
 const TabsStyle = {
@@ -97,25 +134,25 @@ const TabsStyle = {
     variant: 'unstyled',
     size: 'lg',
     minHeight: 'auto',
-    height: '100%'
+    height: '100%',
 };
 
 const TabListStyle = {
     height: '60px',
     borderBottom: 'solid 3px',
-    borderBottomColor: 'gray.400'
+    borderBottomColor: 'gray.400',
 };
 
 const TabStyle = {
     color: 'veeva_orange.color_mode',
     fontSize: 'xl',
-    width: '180px'
+    width: '180px',
 };
 
 const TabIndicatorStyle = {
     marginTop: '3px',
     height: '3px',
-    backgroundColor: 'veeva_orange.color_mode'
+    backgroundColor: 'veeva_orange.color_mode',
 };
 
 const ConsoleBoxStyle = {
@@ -124,7 +161,7 @@ const ConsoleBoxStyle = {
     fontSize: 'medium',
     position: 'relative',
     overflow: 'auto',
-    borderBottomRadius: '8px'
+    borderBottomRadius: '8px',
 };
 
 const SendingRequestTextStyle = {
@@ -133,5 +170,5 @@ const SendingRequestTextStyle = {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     fontWeight: 'bold',
-    fontSize: 'large'
+    fontSize: 'large',
 };

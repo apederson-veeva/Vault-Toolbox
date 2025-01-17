@@ -1,4 +1,15 @@
-import { Flex, Box, TabIndicator, Tabs, TabList, Tab, TabPanels, TabPanel, Spacer, useColorMode } from '@chakra-ui/react';
+import {
+    Flex,
+    Box,
+    TabIndicator,
+    Tabs,
+    TabList,
+    Tab,
+    TabPanels,
+    TabPanel,
+    Spacer,
+    useColorMode,
+} from '@chakra-ui/react';
 import JsonSyntaxHighlighter from '../shared/JsonSyntaxHighlighter';
 
 export default function ComponentConsole({ consoleOutput }) {
@@ -6,15 +17,13 @@ export default function ComponentConsole({ consoleOutput }) {
     return (
         <Tabs {...ComponentConsoleTabsStyle}>
             <Flex flexDirection='column' height='100%'>
-                { consoleOutput
-                    ? (
-                        <TabPanels>
-                            <TabPanel backgroundColor='veeva_sunset_yellow.five_percent_opacity'>
-                                <JsonSyntaxHighlighter dataToDisplay={consoleOutput} />
-                            </TabPanel>
-                        </TabPanels>
-                    )
-                    : null}
+                {consoleOutput ? (
+                    <TabPanels>
+                        <TabPanel backgroundColor='veeva_sunset_yellow.five_percent_opacity'>
+                            <JsonSyntaxHighlighter dataToDisplay={consoleOutput} />
+                        </TabPanel>
+                    </TabPanels>
+                ) : null}
                 <Spacer backgroundColor='veeva_sunset_yellow.five_percent_opacity' />
                 <Box {...TabBoxStyle}>
                     <TabList {...TabListStyle}>
@@ -34,7 +43,7 @@ const ComponentConsoleTabsStyle = {
     position: 'relative',
     colorScheme: 'veeva_orange',
     size: 'lg',
-    height: '100%'
+    height: '100%',
 };
 
 const TabListStyle = {
@@ -42,14 +51,14 @@ const TabListStyle = {
     height: '60px',
     borderTop: 'solid 3px',
     borderTopColor: 'gray.400',
-    borderBottomRadius: '8px'
+    borderBottomRadius: '8px',
 };
 
 const TabBoxStyle = {
     backgroundColor: 'white.color_mode',
     position: 'sticky',
     bottom: '0',
-    borderBottomRadius: '8px'
+    borderBottomRadius: '8px',
 };
 
 const TabLabelStyle = {
@@ -57,11 +66,11 @@ const TabLabelStyle = {
     color: 'veeva_orange.color_mode',
     borderBottom: 'none',
     borderBottomRadius: '8px',
-    width: '180px'
+    width: '180px',
 };
 
 const TabIndicatorStyle = {
     marginTop: '-3px',
     height: '3px',
-    backgroundColor: 'veeva_orange.color_mode'
+    backgroundColor: 'veeva_orange.color_mode',
 };

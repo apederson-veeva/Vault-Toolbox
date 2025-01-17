@@ -9,20 +9,20 @@ export default function WhereClauseBuilder({
     handleSelectedFilterEdits,
     logicalOperator,
     setLogicalOperator,
-    operatorOptions,
+    getOperatorOptions,
     booleanValueOptions,
     addNewFilterRow,
     removeFilterRow,
-    picklistValueOptions
+    picklistValueOptions,
+    objectLifecycleStateOptions,
 }) {
-
     return (
         <Flex {...FlexStyle}>
             <Box minWidth='75px' marginRight='5px'>
                 <Heading size='xs'>Where: </Heading>
             </Box>
             <VStack {...VStackStyle}>
-                {selectedFilters.length > 1 ?
+                {selectedFilters.length > 1 ? (
                     <Flex width='100%' align='center'>
                         <RadioGroup
                             onChange={setLogicalOperator}
@@ -34,8 +34,8 @@ export default function WhereClauseBuilder({
                                 <Radio value='OR'>OR</Radio>
                             </HStack>
                         </RadioGroup>
-                    </Flex> : null
-                }
+                    </Flex>
+                ) : null}
                 {selectedFilters.map((filter, filterRowIndex) => {
                     return (
                         <Fragment key={`fragment-${filterRowIndex}`}>
@@ -44,19 +44,16 @@ export default function WhereClauseBuilder({
                                 handleSelectedFilterEdits={handleSelectedFilterEdits}
                                 filter={filter}
                                 filterRowIndex={filterRowIndex}
-                                operatorOptions={operatorOptions}
+                                getOperatorOptions={getOperatorOptions}
                                 booleanValueOptions={booleanValueOptions}
                                 picklistValueOptions={picklistValueOptions}
+                                objectLifecycleStateOptions={objectLifecycleStateOptions}
                                 removeFilterRow={removeFilterRow}
                             />
                         </Fragment>
-                    )
+                    );
                 })}
-                <Button
-                    {...AddFilterButtonStyle}
-                    leftIcon={<PiPlus/>}
-                    onClick={addNewFilterRow}
-                >
+                <Button {...AddFilterButtonStyle} leftIcon={<PiPlus />} onClick={addNewFilterRow}>
                     Add Filter
                 </Button>
             </VStack>
@@ -67,14 +64,14 @@ export default function WhereClauseBuilder({
 const FlexStyle = {
     marginX: '5px',
     marginY: '10px',
-    align: 'top'
-}
+    align: 'top',
+};
 
 const VStackStyle = {
     width: '100%',
     align: 'left',
-    flexGrow: 1
-}
+    flexGrow: 1,
+};
 
 const AddFilterButtonStyle = {
     maxWidth: 'max-content',
@@ -83,4 +80,4 @@ const AddFilterButtonStyle = {
     colorScheme: 'blue',
     size: 'sm',
     'aria-label': 'Add filter row button',
-}
+};

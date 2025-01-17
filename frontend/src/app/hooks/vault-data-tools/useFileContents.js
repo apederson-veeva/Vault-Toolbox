@@ -17,15 +17,15 @@ export default function useFileContents({ cellData }) {
         if (fetchFileResponse?.responseStatus === 'FAILURE') {
             let errorString = '';
             if (fetchFileResponse?.errors?.length > 0) {
-                errorString = `${fetchFileResponse.errors[0].type} : ${fetchFileResponse.errors[0].message}`
+                errorString = `${fetchFileResponse.errors[0].type} : ${fetchFileResponse.errors[0].message}`;
             }
-            setError({ hasError: true, errorMessage: errorString});
+            setError({ hasError: true, errorMessage: errorString });
             return;
         }
 
-        setLoading(false);
-
-        const responseArray = fetchFileResponse.trim().replace(/"/g, '').split('\n'); // Remove quotes and split on newlines
+        // Convert the response (Blob) to text
+        const fetchFileResponseText = await new Response(fetchFileResponse).text();
+        const responseArray = fetchFileResponseText.trim().replace(/"/g, '').split('\n'); // Remove quotes and split on newlines
 
         const fileHeaders = responseArray[0].split(',');
         setHeaderData(fileHeaders);
@@ -46,17 +46,19 @@ export default function useFileContents({ cellData }) {
             // Sort the count data arrays by largest value
             tmpFileDataArray.sort((a, b) => b[sortColumnIndex] - a[sortColumnIndex]);
         }
+
         setFileData(tmpFileDataArray);
+        setLoading(false);
     };
 
     useEffect(() => {
         fetchFileData();
     }, [cellData]);
 
-    return { 
-        loading, 
+    return {
+        loading,
         headerData,
         fileData,
-        error
-    }
+        error,
+    };
 }

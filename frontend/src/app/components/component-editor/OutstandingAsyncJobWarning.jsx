@@ -1,16 +1,26 @@
-import { AlertDialog, AlertDialogHeader, AlertDialogOverlay, AlertDialogContent, AlertDialogBody, AlertDialogFooter, Button } from '@chakra-ui/react';
+import {
+    AlertDialog,
+    AlertDialogHeader,
+    AlertDialogOverlay,
+    AlertDialogContent,
+    AlertDialogBody,
+    AlertDialogFooter,
+    Button,
+} from '@chakra-ui/react';
 
-export default function OutstandingAsyncJobWarning({ isOpen, onClose, onConfirm, currentComponent }) {
+export default function OutstandingAsyncJobWarning({
+    isOpen,
+    onClose,
+    onConfirm,
+    currentComponent,
+}) {
     const clearAsyncJob = () => {
         onClose();
         onConfirm(currentComponent);
     };
 
     return (
-        <AlertDialog
-            isOpen={isOpen}
-            onClose={onClose}
-        >
+        <AlertDialog isOpen={isOpen} onClose={onClose}>
             <AlertDialogOverlay>
                 <AlertDialogContent>
                     <AlertDialogHeader fontSize='lg' fontWeight='bold'>
@@ -18,13 +28,12 @@ export default function OutstandingAsyncJobWarning({ isOpen, onClose, onConfirm,
                     </AlertDialogHeader>
 
                     <AlertDialogBody fontSize='lg'>
-                        You have an outstanding asynchrynous MDL job request. If you continue, your job results will be cleared.
+                        You have an outstanding asynchrynous MDL job request. If you continue, your
+                        job results will be cleared.
                     </AlertDialogBody>
 
                     <AlertDialogFooter>
-                        <Button onClick={onClose}>
-                            Cancel
-                        </Button>
+                        <Button onClick={onClose}>Cancel</Button>
                         <Button colorScheme='red' onClick={clearAsyncJob} ml={3}>
                             Continue
                         </Button>

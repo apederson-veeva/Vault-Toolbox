@@ -6,9 +6,9 @@ export default function useVaultInfo() {
     const [loadingVaultInfo, setLoading] = useState(false);
 
     /**
-     * Retrieves Vault info via the Retrieve Domain Information and Validate Session 
+     * Retrieves Vault info via the Retrieve Domain Information and Validate Session
      * User endpoints.
-     */ 
+     */
     const getVaultInfo = async () => {
         setVaultInfoError({ hasError: false, errorMessage: '' });
         setLoading(true);
@@ -29,19 +29,21 @@ export default function useVaultInfo() {
         } else {
             let error = '';
             if (domainInfoResponse?.errors?.length > 0) {
-                error = `${domainInfoResponse.errors[0].type} : ${domainInfoResponse.errors[0].message}`
+                error = `${domainInfoResponse.errors[0].type} : ${domainInfoResponse.errors[0].message}`;
             }
             setVaultInfoError({ hasError: true, errorMessage: error });
         }
 
         if (!vaultInfoError.hasError) {
-            const { queryResponse } = await query(`SELECT username__sys FROM user__sys WHERE id = '${sessionStorage.getItem('userId')}'`);
+            const { queryResponse } = await query(
+                `SELECT username__sys FROM user__sys WHERE id = '${sessionStorage.getItem('userId')}'`,
+            );
             if (queryResponse?.responseStatus !== 'FAILURE') {
                 sessionStorage.setItem('userName', queryResponse?.data[0]?.username__sys);
             } else {
                 let error = '';
                 if (queryResponse?.errors?.length > 0) {
-                    error = `${queryResponse.errors[0].type} : ${queryResponse.errors[0].message}`
+                    error = `${queryResponse.errors[0].type} : ${queryResponse.errors[0].message}`;
                 }
                 setVaultInfoError({ hasError: true, errorMessage: error });
             }
@@ -61,6 +63,6 @@ export default function useVaultInfo() {
 
     return {
         vaultInfoError,
-        loadingVaultInfo
-    }
+        loadingVaultInfo,
+    };
 }

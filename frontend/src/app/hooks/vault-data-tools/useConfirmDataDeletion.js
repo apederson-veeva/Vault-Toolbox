@@ -8,5 +8,11 @@ export default function useConfirmDataDeletion() {
         setIsConfirmDeleteModalOpen(false);
     };
 
-    return { isConfirmDeleteModalOpen, setIsConfirmDeleteModalOpen, closeConfirmDeleteModal, deleteConfirmationText, setDeleteConfirmationText }
+    return {
+        isConfirmDeleteModalOpen,
+        setIsConfirmDeleteModalOpen,
+        closeConfirmDeleteModal,
+        deleteConfirmationText,
+        setDeleteConfirmationText,
+    };
 }

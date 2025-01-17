@@ -1,4 +1,5 @@
 import { Box, Flex, Heading, Spacer } from '@chakra-ui/react';
+import ApiErrorMessageCard from '../../shared/ApiErrorMessageCard';
 import CustomSelect from '../../shared/CustomSelect';
 
 export default function QueryTargetSelector() {
@@ -11,12 +12,9 @@ export default function QueryTargetSelector() {
                 <Heading size='xs'>Target:</Heading>
             </Box>
             <Box width='100%'>
-                <CustomSelect
-                    options={queryTargetOptions}
-                    value={queryTargetOptions[0]}
-                />
+                <CustomSelect options={queryTargetOptions} value={queryTargetOptions[0]} />
             </Box>
-            <Spacer/>
+            <Spacer />
         </Flex>
     );
 }

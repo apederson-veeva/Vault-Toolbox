@@ -1,21 +1,46 @@
-import {Box, Button, Divider, Flex, IconButton, Menu, MenuButton, MenuItem, MenuList, Text, Tooltip, useDisclosure} from '@chakra-ui/react';
-import {PiCaretLeft, PiDotsThreeBold, PiTrash} from 'react-icons/pi';
+import {
+    Box,
+    Button,
+    Divider,
+    Flex,
+    IconButton,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    Text,
+    Tooltip,
+    useDisclosure,
+} from '@chakra-ui/react';
+import { PiCaretLeft, PiDotsThreeBold, PiTrash } from 'react-icons/pi';
 import VqlConfirmQueryDeletionModal from './VqlConfirmQueryDeletionModal';
 
-export default function VqlActionsMenu ({ savedQueryOptions, insertSavedQuery, deleteSavedQuery, selectedQueryName, setSelectedQueryName }) {
+export default function VqlActionsMenu({
+    savedQueryOptions,
+    insertSavedQuery,
+    deleteSavedQuery,
+    selectedQueryName,
+    setSelectedQueryName,
+}) {
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     return (
         <>
             <Menu>
-                <MenuButton as={IconButton} icon={<PiDotsThreeBold size={24} />} {...VqlActionsMenuButtonStyle} />
+                <MenuButton
+                    as={IconButton}
+                    icon={<PiDotsThreeBold size={24} />}
+                    {...VqlActionsMenuButtonStyle}
+                />
                 <MenuList {...MenuListStyle} paddingY='0px'>
-                    <Text {...TextStyle} fontSize='md'>Insert Saved Query</Text>
+                    <Text {...TextStyle} fontSize='md'>
+                        Insert Saved Query
+                    </Text>
                     <Divider />
-                    { savedQueryOptions?.length > 0 ?
+                    {savedQueryOptions?.length > 0 ? (
                         <>
                             <Box overflowY='auto' maxHeight='30vh'>
-                                { savedQueryOptions.map((savedQuery) => {
+                                {savedQueryOptions.map((savedQuery) => {
                                     return (
                                         <MenuItem
                                             {...MenuItemStyle}
@@ -39,12 +64,16 @@ export default function VqlActionsMenu ({ savedQueryOptions, insertSavedQuery, d
                                     {...DeleteQueryButtonStyle}
                                 >
                                     <Flex alignItems='center' justifyContent='center'>
-                                        <Text fontSize='md' marginRight='5px'>Delete Saved Query</Text>
+                                        <Text fontSize='md' marginRight='5px'>
+                                            Delete Saved Query
+                                        </Text>
                                         <PiTrash size={16} />
                                     </Flex>
                                 </MenuButton>
                                 <MenuList {...MenuListStyle} paddingTop='0px'>
-                                    <Text {...TextStyle} fontSize='md'>Delete Saved Query</Text>
+                                    <Text {...TextStyle} fontSize='md'>
+                                        Delete Saved Query
+                                    </Text>
                                     <Divider />
                                     <Box overflowY='auto' maxHeight='30vh'>
                                         {savedQueryOptions.map((savedQuery) => {
@@ -55,8 +84,8 @@ export default function VqlActionsMenu ({ savedQueryOptions, insertSavedQuery, d
                                                     onClick={() => {
                                                         setSelectedQueryName(savedQuery?.label);
                                                         onOpen();
-                                                    }
-                                                }>
+                                                    }}
+                                                >
                                                     <Tooltip label={savedQuery?.label}>
                                                         <Text isTruncated maxWidth='100%'>
                                                             {savedQuery?.label}
@@ -69,49 +98,51 @@ export default function VqlActionsMenu ({ savedQueryOptions, insertSavedQuery, d
                                 </MenuList>
                             </Menu>
                         </>
-                        : <Flex {...TextStyle} justifyContent='center'>No Saved Queries</Flex>
-                    }
+                    ) : (
+                        <Flex {...TextStyle} justifyContent='center'>
+                            No Saved Queries
+                        </Flex>
+                    )}
                 </MenuList>
             </Menu>
-            { isOpen ?
+            {isOpen ? (
                 <VqlConfirmQueryDeletionModal
                     isOpen={isOpen}
                     onClose={onClose}
                     onSubmit={deleteSavedQuery}
                     savedQueryName={selectedQueryName}
                 />
-                : null
-            }
+            ) : null}
         </>
-    )
+    );
 }
 
 const VqlActionsMenuButtonStyle = {
     variant: 'ghost',
     size: 'sm',
     margin: '10px 10px 10px 0px',
-    padding: '5px'
+    padding: '5px',
 };
 
 const MenuListStyle = {
     backgroundColor: 'white.color_mode',
     maxWidth: '30vw',
-}
+};
 
 const MenuItemStyle = {
     fontSize: 'medium',
     _hover: {
         backgroundColor: 'veeva_twilight_blue.500',
-        color: 'white'
-    }
+        color: 'white',
+    },
 };
 
 const DeleteMenuItemStyle = {
     fontSize: 'medium',
     _hover: {
         backgroundColor: 'veeva_sunset_red.color_mode',
-        color: 'white'
-    }
+        color: 'white',
+    },
 };
 
 const DeleteQueryButtonStyle = {
@@ -119,10 +150,10 @@ const DeleteQueryButtonStyle = {
     size: 'sm',
     margin: '10px',
     padding: '5px',
-    maxWidth: '100%'
+    maxWidth: '100%',
 };
 
 const TextStyle = {
     margin: '10px',
-    color: 'gray.500'
-}
+    color: 'gray.500',
+};

@@ -4,22 +4,27 @@ import useSavedQueries from '../../hooks/vql-editor/useSavedQueries';
 import VqlSaveQueryModal from './VqlSaveQueryModal';
 import VqlActionsMenu from './VqlActionsMenu';
 
-export default function VqlSavedQueriesContainer ({ code, setCode }) {
+export default function VqlSavedQueriesContainer({ code, setCode }) {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const {
         selectedQueryName,
         setSelectedQueryName,
+        isDefaultQuery,
+        setIsDefaultQuery,
         savedQueries,
         savedQueryOptions,
         handleSave,
         handleModalClose,
         insertSavedQuery,
-        deleteSavedQuery
-    } = useSavedQueries({ onClose, setCode })
+        deleteSavedQuery,
+    } = useSavedQueries({ onClose, setCode });
 
     return (
         <>
-            <Tooltip placement='left' label={savedQueries?.length < 20 ? 'Save Query' : 'Max saved queries reached (20)'}>
+            <Tooltip
+                placement='left'
+                label={savedQueries?.length < 20 ? 'Save Query' : 'Max saved queries reached (20)'}
+            >
                 <IconButton
                     onClick={onOpen}
                     isDisabled={savedQueries?.length >= 20}
@@ -34,7 +39,7 @@ export default function VqlSavedQueriesContainer ({ code, setCode }) {
                 selectedQueryName={selectedQueryName}
                 setSelectedQueryName={setSelectedQueryName}
             />
-            { isOpen ?
+            {isOpen ? (
                 <VqlSaveQueryModal
                     code={code}
                     isOpen={isOpen}
@@ -44,12 +49,12 @@ export default function VqlSavedQueriesContainer ({ code, setCode }) {
                     setSelectedQueryName={setSelectedQueryName}
                     savedQueryOptions={savedQueryOptions}
                     savedQueries={savedQueries}
+                    isDefaultQuery={isDefaultQuery}
+                    setIsDefaultQuery={setIsDefaultQuery}
                 />
-                : null
-            }
+            ) : null}
         </>
-        
-    )
+    );
 }
 
 const SaveQueryButtonStyle = {
@@ -58,8 +63,8 @@ const SaveQueryButtonStyle = {
     colorScheme: 'blue',
     _hover: {
         backgroundColor: 'blue.400',
-        color: 'white'
+        color: 'white',
     },
     margin: '10px',
-    padding: '5px'
+    padding: '5px',
 };

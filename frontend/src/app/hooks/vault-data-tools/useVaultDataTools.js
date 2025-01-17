@@ -1,4 +1,5 @@
 import { useToast } from '@chakra-ui/react';
+import { useAuth } from '../../context/AuthContext';
 import { invokeAwsLambdaFunction } from '../../services/ApiService';
 import { useState } from 'react';
 
@@ -10,6 +11,8 @@ export default function useVaultDataTools() {
     const [submittingCountJob, setSubmittingCountJob] = useState(false);
     const [submittingDeleteJob, setSubmittingDeleteJob] = useState(false);
 
+    const { sessionId } = useAuth();
+
     /**
      * Initiates a Count Data job via the AWS Lambda backend
      */
@@ -19,7 +22,8 @@ export default function useVaultDataTools() {
             dataTypeSelections: selectedOptions.toString(),
             isAsync: true,
             tool: 'VAULT_DATA_TOOLS',
-            action: 'COUNT_DATA'
+            action: 'COUNT_DATA',
+            sessionId,
         };
 
         setSubmittingCountJob(true);
@@ -33,7 +37,7 @@ export default function useVaultDataTools() {
                 status: 'success',
                 duration: 3000,
                 isClosable: true,
-                position: 'top'
+                position: 'top',
             });
         } else {
             toast({
@@ -42,7 +46,7 @@ export default function useVaultDataTools() {
                 status: 'error',
                 duration: 10000,
                 isClosable: true,
-                position: 'top'
+                position: 'top',
             });
         }
     };
@@ -56,7 +60,8 @@ export default function useVaultDataTools() {
             dataTypeSelections: selectedOptions.toString(),
             isAsync: true,
             tool: 'VAULT_DATA_TOOLS',
-            action: 'DELETE_DATA'
+            action: 'DELETE_DATA',
+            sessionId,
         };
 
         setSubmittingDeleteJob(true);
@@ -70,7 +75,7 @@ export default function useVaultDataTools() {
                 status: 'success',
                 duration: 3000,
                 isClosable: true,
-                position: 'top'
+                position: 'top',
             });
         } else {
             toast({
@@ -79,13 +84,13 @@ export default function useVaultDataTools() {
                 status: 'error',
                 duration: 10000,
                 isClosable: true,
-                position: 'top'
+                position: 'top',
             });
         }
     };
 
-    return { 
-        countData, 
+    return {
+        countData,
         deleteData,
         dataType,
         setDataType,
@@ -94,6 +99,6 @@ export default function useVaultDataTools() {
         submittingCountJob,
         setSubmittingCountJob,
         submittingDeleteJob,
-        setSubmittingDeleteJob 
-    }
+        setSubmittingDeleteJob,
+    };
 }

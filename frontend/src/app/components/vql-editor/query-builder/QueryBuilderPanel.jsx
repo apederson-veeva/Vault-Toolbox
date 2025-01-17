@@ -23,22 +23,29 @@ export default function QueryBuilderPanel({
     handleSelectedFilterEdits,
     logicalOperator,
     setLogicalOperator,
-    operatorOptions,
+    getOperatorOptions,
     booleanValueOptions,
     addNewFilterRow,
     picklistValueOptions,
-    removeFilterRow
+    objectLifecycleStateOptions,
+    removeFilterRow,
+    sidePanelCollapsed,
+    setSidePanelCollapsed,
+    queryBuilderPanelRef,
 }) {
-
     return (
         <>
-            <VerticalResizeHandle/>
+            <VerticalResizeHandle sidePanelCollapsed={sidePanelCollapsed} />
             <Panel
                 id='query-builder-panel'
                 order={2}
-                defaultSizePercentage={50}
-                minSizePercentage={10}
-                maxSizePercentage={50}
+                defaultSize={50}
+                minSize={10}
+                maxSize={50}
+                collapsible
+                onCollapse={() => setSidePanelCollapsed(true)}
+                onExpand={() => setSidePanelCollapsed(false)}
+                ref={queryBuilderPanelRef}
             >
                 <Stack {...ParentStackStyle}>
                     <Box position='sticky'>
@@ -46,16 +53,12 @@ export default function QueryBuilderPanel({
                         <Divider {...HorizontalDividerStyle} />
                     </Box>
                     <Box position='sticky' marginRight='5px'>
-                        <Button
-                            {...BuildQueryButtonStyle}
-                            onClick={buildQuery}
-                            isDisabled={!canBuildQuery()}
-                        >
+                        <Button {...BuildQueryButtonStyle} onClick={buildQuery} isDisabled={!canBuildQuery()}>
                             Build Query in Editor
                         </Button>
                     </Box>
                     <Box {...QueryBuilderBoxStyle}>
-                        <QueryTargetSelector/>
+                        <QueryTargetSelector />
                         <QueryObjectSelector
                             vaultObjects={vaultObjects}
                             selectedObject={selectedObject}
@@ -63,7 +66,7 @@ export default function QueryBuilderPanel({
                             loadingVaultObjects={loadingVaultObjects}
                             vaultObjectsError={vaultObjectsError}
                         />
-                        {selectedObject &&
+                        {selectedObject && (
                             <>
                                 <QueryFieldsSelector
                                     selectedFields={selectedFields}
@@ -78,14 +81,15 @@ export default function QueryBuilderPanel({
                                     handleSelectedFilterEdits={handleSelectedFilterEdits}
                                     logicalOperator={logicalOperator}
                                     setLogicalOperator={setLogicalOperator}
-                                    operatorOptions={operatorOptions}
+                                    getOperatorOptions={getOperatorOptions}
                                     booleanValueOptions={booleanValueOptions}
                                     addNewFilterRow={addNewFilterRow}
                                     picklistValueOptions={picklistValueOptions}
+                                    objectLifecycleStateOptions={objectLifecycleStateOptions}
                                     removeFilterRow={removeFilterRow}
                                 />
                             </>
-                        }
+                        )}
                     </Box>
                 </Stack>
             </Panel>
@@ -97,18 +101,18 @@ export default function QueryBuilderPanel({
 const ParentStackStyle = {
     height: '100%',
     flex: '0 0',
-    backgroundColor: 'white.color_mode'
+    backgroundColor: 'white.color_mode',
 };
 
 const HeadingStyle = {
     color: 'veeva_orange.color_mode',
     size: 'md',
-    margin: '5px'
+    margin: '5px',
 };
 
 const HorizontalDividerStyle = {
     borderColor: 'veeva_light_gray.500',
-    borderWidth: '1px'
+    borderWidth: '1px',
 };
 
 const BuildQueryButtonStyle = {
@@ -118,16 +122,16 @@ const BuildQueryButtonStyle = {
     color: 'white',
     backgroundColor: 'veeva_orange.color_mode',
     fontWeight: 'bold',
-}
+};
 
 const QueryBuilderBoxStyle = {
     height: '100%',
-    overflow: 'auto'
+    overflow: 'auto',
 };
 
 const VerticalDividerStyle = {
     orientation: 'vertical',
     borderColor: 'veeva_light_gray.500',
     height: 'auto',
-    borderWidth: '1px'
+    borderWidth: '1px',
 };

@@ -25,7 +25,7 @@ export default function CodeEditor({ code, setCode, language, theme }) {
         minimap: { enabled: false },
         scrollbar: {
             horizontalSliderSize: 8,
-            verticalSliderSize: 18
+            verticalSliderSize: 18,
         },
         selectOnLineNumbers: true,
         roundedSelection: false,
@@ -56,12 +56,10 @@ export default function CodeEditor({ code, setCode, language, theme }) {
 
     // If the code state changes (e.g. due to selecting a new component), update the code in the editor
     useEffect(() => {
-        if (editorRef.current && (code !== editorRef.current.getValue())) {
+        if (editorRef.current && code !== editorRef.current.getValue()) {
             editorRef.current.setValue(code);
         }
     }, [code]);
 
-    return (
-        <div ref={containerRef} style={{ height: '99%' }} />
-    );
+    return <div ref={containerRef} style={{ height: '99%' }} />;
 }

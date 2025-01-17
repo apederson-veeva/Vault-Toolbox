@@ -5,34 +5,58 @@ import VerticalResizeHandle from '../shared/VerticalResizeHandle';
 import ComponentTree from './ComponentTree';
 import ApiErrorMessageCard from '../shared/ApiErrorMessageCard';
 
-export default function ComponentDirectoryPanel({ retrieveComponentTree, loadingComponentTree, selectedComponent, setSelectedComponent, componentTree, onSelect, componentTreeError }) {
-
+export default function ComponentDirectoryPanel({
+    retrieveComponentTree,
+    loadingComponentTree,
+    selectedComponent,
+    setSelectedComponent,
+    componentTree,
+    onSelect,
+    componentTreeError,
+    sidePanelCollapsed,
+    setSidePanelCollapsed,
+    componentDirectoryPanelRef,
+}) {
     return (
         <>
-            <VerticalResizeHandle />
-            <Panel 
-                id='component-tree-panel' 
+            <VerticalResizeHandle sidePanelCollapsed={sidePanelCollapsed} />
+            <Panel
+                id='component-tree-panel'
                 order={2}
-                defaultSizePercentage={30}
-                minSizePercentage={10}
-                maxSizePercentage={50}
+                defaultSize={30}
+                minSize={10}
+                maxSize={50}
+                collapsible
+                onCollapse={() => setSidePanelCollapsed(true)}
+                onExpand={() => setSidePanelCollapsed(false)}
+                ref={componentDirectoryPanelRef}
             >
                 <Stack {...ParentStackStyle}>
                     <Box position='sticky'>
                         <Heading {...HeadingStyle}>Component Directory</Heading>
                         <Divider {...HorizontalDividerStyle} />
                         <Tooltip label='Reload Component Directory' placement='right'>
-                            <IconButton icon={<PiArrowClockwise size={20} style={{ margin: '4px' }} />} onClick={retrieveComponentTree} {...RefreshIconButtonStyle} />
+                            <IconButton
+                                icon={<PiArrowClockwise size={20} style={{ margin: '4px' }} />}
+                                onClick={retrieveComponentTree}
+                                {...RefreshIconButtonStyle}
+                            />
                         </Tooltip>
                     </Box>
-                    { componentTreeError ? <ApiErrorMessageCard content='component directory' errorMessage={componentTreeError} />
-                        : loadingComponentTree ? <Progress size='sm' isIndeterminate />
-                            : (
-                                <Box {...ComponentTreeBoxStyle}>
-                                    <ComponentTree selectedComponent={selectedComponent} setSelectedComponent={setSelectedComponent} componentTree={componentTree[0]} onSelect={onSelect} />
-                                </Box>
-                            )
-                    }
+                    {componentTreeError ? (
+                        <ApiErrorMessageCard content='component directory' errorMessage={componentTreeError} />
+                    ) : loadingComponentTree ? (
+                        <Progress size='sm' isIndeterminate />
+                    ) : (
+                        <Box {...ComponentTreeBoxStyle}>
+                            <ComponentTree
+                                selectedComponent={selectedComponent}
+                                setSelectedComponent={setSelectedComponent}
+                                componentTree={componentTree[0]}
+                                onSelect={onSelect}
+                            />
+                        </Box>
+                    )}
                 </Stack>
             </Panel>
             <Divider {...VerticalDividerStyle} />
@@ -43,34 +67,34 @@ export default function ComponentDirectoryPanel({ retrieveComponentTree, loading
 const ParentStackStyle = {
     height: '100%',
     flex: '0 0',
-    backgroundColor: 'white.color_mode'
+    backgroundColor: 'white.color_mode',
 };
 
 const HeadingStyle = {
     color: 'veeva_orange.color_mode',
     size: 'md',
-    margin: '5px'
+    margin: '5px',
 };
 
 const HorizontalDividerStyle = {
     borderColor: 'veeva_light_gray.500',
-    borderWidth: '1px'
+    borderWidth: '1px',
 };
 
 const RefreshIconButtonStyle = {
     size: 'auto',
     borderRadius: '6px',
-    margin: '5px'
+    margin: '5px',
 };
 
 const ComponentTreeBoxStyle = {
     paddingX: 3,
-    overflow: 'auto'
+    overflow: 'auto',
 };
 
 const VerticalDividerStyle = {
     orientation: 'vertical',
     borderColor: 'veeva_light_gray.500',
     height: 'auto',
-    borderWidth: '1px'
+    borderWidth: '1px',
 };

@@ -1,21 +1,21 @@
-import {VStack, Flex, Box, Spacer} from '@chakra-ui/react';
+import { VStack, Flex, Box, Spacer } from '@chakra-ui/react';
 import { PanelGroup, Panel } from 'react-resizable-panels';
-import ContextualHelpButton from "../components/shared/ContextualHelpButton";
+import ContextualHelpButton from '../components/shared/ContextualHelpButton';
 import VaultInfoIsland from '../components/shared/VaultInfoIsland';
 import DataToolsHeaderRow from '../components/vault-data-tools/DataToolsHeaderRow';
 import DataToolsIsland from '../components/vault-data-tools/DataToolsIand';
 import useVaultDataTools from '../hooks/vault-data-tools/useVaultDataTools';
 
 export default function VaultDataToolsPage() {
-    const { 
-        countData, 
-        deleteData, 
-        submittingCountJob, 
-        submittingDeleteJob, 
-        dataType, 
-        setDataType, 
-        selectedOptions, 
-        setSelectedOptions 
+    const {
+        countData,
+        deleteData,
+        submittingCountJob,
+        submittingDeleteJob,
+        dataType,
+        setDataType,
+        selectedOptions,
+        setSelectedOptions,
     } = useVaultDataTools();
 
     return (
@@ -41,7 +41,7 @@ export default function VaultDataToolsPage() {
                     </VStack>
                 </Panel>
             </PanelGroup>
-            <Box height='100vh' flex='0 0' >
+            <Box height='100vh' flex='0 0'>
                 <Flex flexDirection='column' height='100%'>
                     <Spacer />
                     <ContextualHelpButton
@@ -59,5 +59,5 @@ const DataToolsStackStyle = {
     backgroundColor: 'veeva_light_gray.color_mode',
     flex: 1,
     boxShadow: 'inset -5px 0 8px -8px rgba(0,0,0,0.3), inset 5px 0 8px -8px rgba(0,0,0,0.3)',
-    spacing: 0
+    spacing: 0,
 };

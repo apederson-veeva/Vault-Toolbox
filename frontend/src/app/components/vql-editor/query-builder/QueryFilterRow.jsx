@@ -8,21 +8,30 @@ export default function QueryFilterRow({
     removeFilterRow,
     filter,
     filterRowIndex,
-    operatorOptions,
+    getOperatorOptions,
     booleanValueOptions,
-    picklistValueOptions
+    picklistValueOptions,
+    objectLifecycleStateOptions,
 }) {
     const fieldType = filter?.field?.fieldType;
+    const operatorOptions = getOperatorOptions(fieldType);
     const operator = filter?.operator;
 
-    const primaryFields = fieldOptions.find(option => option.label === 'Fields')?.options;
-    const referenceOutboundFields = fieldOptions.find(option => option.label === 'Outbound Relationships')?.options;
-    const referenceParentFields = fieldOptions.find(option => option.label === 'Parent Relationships')?.options;
+    const primaryFields = fieldOptions.find((option) => option.label === 'Fields')?.options;
+    const referenceOutboundFields = fieldOptions.find((option) => option.label === 'Outbound Relationships')?.options;
+    const referenceParentFields = fieldOptions.find((option) => option.label === 'Parent Relationships')?.options;
     const objectFields = [
         ...primaryFields,
         ...(referenceOutboundFields || []),
-        ...(referenceParentFields || [])
-    ]?.filter(field => (field.fieldType !== 'RichText' && field.fieldType !== 'LongText'));
+        ...(referenceParentFields || []),
+    ]?.filter(
+        (field) =>
+            (field.fieldType !== 'RichText' &&
+                field.fieldType !== 'LongText' &&
+                !field?.formula &&
+                !field.isLookupField) ||
+            (field.isLookupField && field.isSearchable),
+    );
 
     return (
         <Flex key={filterRowIndex} {...FlexStyle}>
@@ -45,7 +54,7 @@ export default function QueryFilterRow({
                     onChange={(newValue) => handleSelectedFilterEdits(newValue, filterRowIndex, 'operator')}
                 />
             </Box>
-            {fieldType === 'Boolean' ?
+            {fieldType === 'Boolean' ? (
                 <Box {...SelectValueBoxStyle}>
                     <CustomSelect
                         options={booleanValueOptions}
@@ -55,9 +64,10 @@ export default function QueryFilterRow({
                         value={filter.value?.value}
                         onChange={(newValue) => handleSelectedFilterEdits(newValue?.value, filterRowIndex, 'value')}
                     />
-                </Box> :
+                </Box>
+            ) : (
                 <>
-                    { fieldType === 'Picklist' ?
+                    {fieldType === 'Picklist' ? (
                         <Box {...SelectValueBoxStyle}>
                             <CustomSelect
                                 options={picklistValueOptions}
@@ -69,18 +79,59 @@ export default function QueryFilterRow({
                                 onChange={(newValue) => handleSelectedFilterEdits(newValue, filterRowIndex, 'value')}
                             />
                         </Box>
-                        : <Input
-                            placeholder={operator.value === 'CONTAINS' ? `Enter comma-separated values (${fieldType})` : (fieldType) ? `Value (${fieldType})` : 'Value'}
-                            value={filter.value}
-                            onChange={(event) => handleSelectedFilterEdits(event.target.value, filterRowIndex, 'value')}
-                            {...InputStyle}
-                        />
-                    }
+                    ) : (
+                        <>
+                            {filter?.field?.isObjectLifecycleStateField ? (
+                                <Box {...SelectValueBoxStyle}>
+                                    <CustomSelect
+                                        options={objectLifecycleStateOptions}
+                                        isMulti={operator.value === 'CONTAINS'}
+                                        placeholder={fieldType ? `Value (${fieldType})` : 'Value'}
+                                        variant='filled'
+                                        displayDropdown={false}
+                                        value={filter.value}
+                                        onChange={(newValue) =>
+                                            handleSelectedFilterEdits(newValue, filterRowIndex, 'value')
+                                        }
+                                    />
+                                </Box>
+                            ) : (
+                                <>
+                                    {operator.value === 'CONTAINS' ? (
+                                        <Box {...SelectValueBoxStyle}>
+                                            <CustomSelect
+                                                isMulti={true}
+                                                isCreatable={true}
+                                                placeholder={`Enter multiple values (${fieldType})`}
+                                                formatCreateLabel={(filter) => `Add: ${filter}`}
+                                                noOptionsMessage={() => 'Press enter to add values...'}
+                                                variant='filled'
+                                                displayDropdown={false}
+                                                value={filter.value}
+                                                onChange={(newValue) =>
+                                                    handleSelectedFilterEdits(newValue, filterRowIndex, 'value')
+                                                }
+                                            />
+                                        </Box>
+                                    ) : (
+                                        <Input
+                                            placeholder={fieldType ? `Value (${fieldType})` : 'Value'}
+                                            value={filter.value}
+                                            onChange={(event) =>
+                                                handleSelectedFilterEdits(event.target.value, filterRowIndex, 'value')
+                                            }
+                                            {...InputStyle}
+                                        />
+                                    )}
+                                </>
+                            )}
+                        </>
+                    )}
                 </>
-            }
+            )}
             <IconButton
                 {...DeleteRowButtonStyle}
-                icon={<PiMinusCircleBold size={18}/>}
+                icon={<PiMinusCircleBold size={18} />}
                 onClick={() => removeFilterRow(filterRowIndex)}
             />
         </Flex>
@@ -90,25 +141,25 @@ export default function QueryFilterRow({
 const FlexStyle = {
     align: 'center',
     width: '100%',
-}
+};
 
 const FieldBoxStyle = {
     marginRight: '5px',
     height: '100%',
-    minWidth: '200px'
-}
+    minWidth: '200px',
+};
 
 const OperatorBoxStyle = {
     marginRight: '5px',
     height: '100%',
-    minWidth: '110px'
-}
+    minWidth: '110px',
+};
 
 const SelectValueBoxStyle = {
     marginRight: '5px',
     height: '100%',
-    flexGrow: 1
-}
+    flexGrow: 1,
+};
 
 const DeleteRowButtonStyle = {
     variant: 'ghost',
@@ -118,11 +169,11 @@ const DeleteRowButtonStyle = {
     color: 'veeva_sunset_red.color_mode',
     size: 'sm',
     'aria-label': 'Delete filter row',
-}
+};
 
 const InputStyle = {
     height: '100%',
     size: 'sm',
     variant: 'filled',
-    marginRight: '5px'
-}
+    marginRight: '5px',
+};

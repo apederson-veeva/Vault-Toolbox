@@ -19,31 +19,35 @@ export default function useSavedQueries({ onClose, setCode }) {
     const handleSave = async (code) => {
         const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
 
-        const selectedQueryIndex = currentSavedQueries.findIndex(savedQuery => savedQuery.name === selectedQueryName?.label);
+        const selectedQueryIndex = currentSavedQueries.findIndex(
+            (savedQuery) => savedQuery.name === selectedQueryName?.label,
+        );
         if (selectedQueryIndex === -1) {
             currentSavedQueries.push({
                 name: selectedQueryName?.label,
-                queryString: code
-            })
+                queryString: code,
+            });
         } else {
             currentSavedQueries[selectedQueryIndex] = {
                 name: selectedQueryName?.label,
-                queryString: code
-            }
+                queryString: code,
+            };
         }
 
         await localStorage.setItem('savedQueries', JSON.stringify(currentSavedQueries));
         setSavedQueries(currentSavedQueries);
         handleModalClose();
-    }
+    };
 
     const deleteSavedQuery = async () => {
         const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
-        const updatedSavedQueries = currentSavedQueries.filter(savedQuery => savedQuery?.name !== selectedQueryName);
+        const updatedSavedQueries = currentSavedQueries.filter(
+            (savedQuery) => savedQuery?.name !== selectedQueryName,
+        );
 
         await localStorage.setItem('savedQueries', JSON.stringify(updatedSavedQueries));
         setSavedQueries(updatedSavedQueries);
-    }
+    };
 
     /**
      * Helper function to keep the selectable options when saving a query in-sync with the currently saved queries.
@@ -52,9 +56,9 @@ export default function useSavedQueries({ onClose, setCode }) {
         const currentSavedQueryOptions = [];
         savedQueries?.forEach((savedQuery) => {
             currentSavedQueryOptions.push(createSavedQueryOption(savedQuery));
-        })
+        });
         setSavedQueryOptions(currentSavedQueryOptions);
-    }
+    };
 
     /**
      * Helper function to generate selectable options for react-select
@@ -65,8 +69,8 @@ export default function useSavedQueries({ onClose, setCode }) {
         return {
             value: savedQuery?.name,
             label: savedQuery?.name,
-        }
-    }
+        };
+    };
 
     /**
      * Loads a saved query into the query editor
@@ -77,8 +81,8 @@ export default function useSavedQueries({ onClose, setCode }) {
             if (query.name === savedQuery) {
                 setCode(query?.queryString);
             }
-        })
-    }
+        });
+    };
 
     /**
      * Read in the saved queries from local storage on page load
@@ -104,5 +108,5 @@ export default function useSavedQueries({ onClose, setCode }) {
         handleModalClose,
         insertSavedQuery,
         deleteSavedQuery,
-    }
+    };
 }

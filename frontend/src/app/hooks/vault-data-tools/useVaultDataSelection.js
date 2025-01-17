@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 
-export default function useVaultDataSelection({ dataType, selectedOptions, setSelectedOptions, vaultObjects, vaultDocumentTypes }) {
+export default function useVaultDataSelection({
+    dataType,
+    selectedOptions,
+    setSelectedOptions,
+    vaultObjects,
+    vaultDocumentTypes,
+}) {
     const [disableObjectSelection, setDisableObjectSelection] = useState(false);
     const [disableDocTypeSelection, setDisableDocTypeSelection] = useState(false);
 
@@ -14,7 +20,8 @@ export default function useVaultDataSelection({ dataType, selectedOptions, setSe
                 const match = str.match(/\(([^)]+)\)/);
                 return match ? match[1] : null;
             });
-        } if (typeof input === 'string') {
+        }
+        if (typeof input === 'string') {
             // If it's a single string
             const match = input.match(/\(([^)]+)\)/);
             return match ? match[1] : null;
@@ -34,7 +41,7 @@ export default function useVaultDataSelection({ dataType, selectedOptions, setSe
             setSelectedOptions([...selectedOptions, extractVaultNames(event.target.name)]);
         } else {
             setSelectedOptions(
-                selectedOptions.filter((item) => item !== extractVaultNames(event.target.name))
+                selectedOptions.filter((item) => item !== extractVaultNames(event.target.name)),
             );
         }
     };
@@ -58,5 +65,11 @@ export default function useVaultDataSelection({ dataType, selectedOptions, setSe
         }
     }, [dataType]);
 
-    return { disableObjectSelection, disableDocTypeSelection, extractVaultNames, handleAllChecked, handleSingleChecked }
+    return {
+        disableObjectSelection,
+        disableDocTypeSelection,
+        extractVaultNames,
+        handleAllChecked,
+        handleSingleChecked,
+    };
 }

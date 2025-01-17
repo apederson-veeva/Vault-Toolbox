@@ -30,5 +30,5 @@ export default function useQueryEditorTabs({ consoleOutput, setConsoleOutput }) 
         setQueryEditorTabIndex(index - 1);
     };
 
-    return { queryEditorTabs, queryEditorTabIndex }
+    return { queryEditorTabs, queryEditorTabIndex };
 }

@@ -4,7 +4,10 @@ import { retrieveAllDocumentTypes, retrieveObjectCollection } from '../../servic
 export default function useVaultData() {
     const [vaultObjects, setVaultObjects] = useState([]);
     const [vaultDocumentTypes, setVaultDocumentTypes] = useState([]);
-    const [fetchObjAndDocTypeError, setFetchObjAndDocTypeError] = useState({ hasError: false, errorMessage: '' });
+    const [fetchObjAndDocTypeError, setFetchObjAndDocTypeError] = useState({
+        hasError: false,
+        errorMessage: '',
+    });
 
     /**
      * Retrieves Vault Objects and Document Types
@@ -15,10 +18,15 @@ export default function useVaultData() {
         const objectResponse = await retrieveObjectCollection();
 
         if (objectResponse?.responseStatus === 'SUCCESS') {
-            const vaultObjectsArray = objectResponse.objects.map((object) => `${object.label} (${object.name})`);
+            const vaultObjectsArray = objectResponse.objects.map(
+                (object) => `${object.label} (${object.name})`,
+            );
             setVaultObjects(vaultObjectsArray.sort());
         } else {
-            setFetchObjAndDocTypeError({ hasError: true, errorMessage: `${objectResponse?.errors[0]?.type} : ${objectResponse?.errors[0]?.message}` });
+            setFetchObjAndDocTypeError({
+                hasError: true,
+                errorMessage: `${objectResponse?.errors[0]?.type} : ${objectResponse?.errors[0]?.message}`,
+            });
         }
 
         const docTypesResponse = await retrieveAllDocumentTypes();
@@ -31,7 +39,10 @@ export default function useVaultData() {
             });
             setVaultDocumentTypes(vaultDocTypesArray.sort());
         } else {
-            setFetchObjAndDocTypeError({ hasError: true, errorMessage: `${docTypesResponse?.errors[0]?.type} : ${docTypesResponse?.errors[0]?.message}` });
+            setFetchObjAndDocTypeError({
+                hasError: true,
+                errorMessage: `${docTypesResponse?.errors[0]?.type} : ${docTypesResponse?.errors[0]?.message}`,
+            });
         }
     };
 
@@ -40,5 +51,5 @@ export default function useVaultData() {
         fetchVaultObjectsAndDocTypes();
     }, []);
 
-    return { vaultObjects, vaultDocumentTypes, fetchObjAndDocTypeError }
+    return { vaultObjects, vaultDocumentTypes, fetchObjAndDocTypeError };
 }

@@ -1,6 +1,11 @@
 import { List, ListItem, Flex, Text, Icon, useColorMode } from '@chakra-ui/react';
 import { useMemo } from 'react';
-import { UncontrolledTreeEnvironment, Tree, StaticTreeDataProvider, InteractionMode } from 'react-complex-tree';
+import {
+    UncontrolledTreeEnvironment,
+    Tree,
+    StaticTreeDataProvider,
+    InteractionMode,
+} from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
 import { PiFolder, PiCaretDownBold, PiCaretRightBold, PiGear, PiCode } from 'react-icons/pi';
 
@@ -9,27 +14,30 @@ export default function ComponentTree({ componentTree, onSelect }) {
     const selectedColor = colorMode === 'light' ? 'blue.100' : 'gray.500';
 
     const handleItemClick = (item) => {
-        onSelect(item.index)
+        onSelect(item.index);
     };
 
-    const dataProvider = useMemo(() => new StaticTreeDataProvider(componentTree, (item, data) => ({
-        ...item,
-        data
-    })), [componentTree]);
+    const dataProvider = useMemo(
+        () =>
+            new StaticTreeDataProvider(componentTree, (item, data) => ({
+                ...item,
+                data,
+            })),
+        [componentTree],
+    );
 
     /**
-     * Provides custom syling and sets the appropriate icon for expand/collapse options.
+     * Provides custom styling and sets the appropriate icon for expand/collapse options.
      */
-    const itemArrowRenderer = ({ item, context }) => (item.children.length > 0
-        ? (
+    const itemArrowRenderer = ({ item, context }) =>
+        item.children.length > 0 ? (
             <Icon
                 as={context.isExpanded ? PiCaretDownBold : PiCaretRightBold}
                 marginRight='5px'
                 width='20px'
                 height='20px'
             />
-        )
-        : null);
+        ) : null;
 
     /**
      * Provides custom styling and dynamically sets the appropriate icon for each item.
@@ -41,24 +49,23 @@ export default function ComponentTree({ componentTree, onSelect }) {
                     alignItems='center'
                     justifyContent='left'
                     width='min-content'
-                    backgroundColor={(context.isSelected && !item.children.length > 0) ? selectedColor : undefined}
-                    {...(context.itemContainerWithoutChildrenProps)}
-                    {...(context.interactiveElementProps)}
+                    backgroundColor={
+                        context.isSelected && !item.children.length > 0 ? selectedColor : undefined
+                    }
+                    {...context.itemContainerWithoutChildrenProps}
+                    {...context.interactiveElementProps}
                 >
                     {arrow}
                     <Icon
-                        as={item.isCode ? PiCode : (item.isFolder ? PiFolder : PiGear)}
+                        as={item.isCode ? PiCode : item.isFolder ? PiFolder : PiGear}
                         marginLeft={item.isFolder ? '0' : '25px'}
                         width='20px'
                         height='20px'
-                        style={{ transform: (!item.isCode && !item.isFolder) ? 'rotate(20deg)' : null }}
+                        style={{
+                            transform: !item.isCode && !item.isFolder ? 'rotate(20deg)' : null,
+                        }}
                     />
-                    <Text
-                        marginY={2}
-                        marginX='5px'
-                        fontSize='15px'
-                        _hover={{ cursor: 'pointer' }}
-                    >
+                    <Text marginY={2} marginX='5px' fontSize='15px' _hover={{ cursor: 'pointer' }}>
                         {title}
                     </Text>
                 </Flex>
@@ -70,11 +77,12 @@ export default function ComponentTree({ componentTree, onSelect }) {
     /**
      * Provides custom syling if the item is a match for the current search
      */
-    const itemTitleRenderer = (props) => (props.info.isSearching && props.context.isSearchMatching ? (
-        <span className='rct-tree-item-search-highlight'>{props.title}</span>
-    ) : (
-        props.title
-    ));
+    const itemTitleRenderer = (props) =>
+        props.info.isSearching && props.context.isSearchMatching ? (
+            <span className='rct-tree-item-search-highlight'>{props.title}</span>
+        ) : (
+            props.title
+        );
 
     return (
         <>
@@ -106,10 +114,16 @@ export default function ComponentTree({ componentTree, onSelect }) {
                 renderItemTitle={itemTitleRenderer}
                 renderItemArrow={itemArrowRenderer}
                 renderItem={itemRenderer}
-                renderTreeContainer={({ children, containerProps }) => <div {...containerProps}>{children}</div>}
-                renderItemsContainer={({ children, containerProps }) => <ul {...containerProps}>{children}</ul>}
+                renderTreeContainer={({ children, containerProps }) => (
+                    <div {...containerProps}>{children}</div>
+                )}
+                renderItemsContainer={({ children, containerProps }) => (
+                    <ul {...containerProps}>{children}</ul>
+                )}
             >
-                { componentTree && <Tree treeId='component-tree' rootItem='root' treeLabel='Component Tree' />}
+                {componentTree && (
+                    <Tree treeId='component-tree' rootItem='root' treeLabel='Component Tree' />
+                )}
             </UncontrolledTreeEnvironment>
         </>
     );

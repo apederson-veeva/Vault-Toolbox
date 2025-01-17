@@ -6,12 +6,8 @@ export default function LoginPage() {
         <Flex {...PageFlexStyle}>
             <Stack {...PageStackStyle}>
                 <Stack align='center'>
-                    <Heading {...PageHeaderStyle}>
-                        Welcome to Vault Toolbox
-                    </Heading>
-                    <Text {...TextStyle}>
-                        To get started, login to a Vault.
-                    </Text>
+                    <Heading {...PageHeaderStyle}>Welcome to Vault Toolbox</Heading>
+                    <Text {...TextStyle}>To get started, login to a Vault.</Text>
                 </Stack>
                 <LoginCard />
             </Stack>
@@ -24,23 +20,23 @@ const PageFlexStyle = {
     align: 'center',
     justify: 'center',
     backgroundColor: 'veeva_light_gray.color_mode',
-    flexDirection: 'column'
+    flexDirection: 'column',
 };
 
 const PageStackStyle = {
     spacing: 8,
     marginX: 'auto',
-    maxWidth: 'xl',
     paddingY: 12,
-    paddingX: 6
+    paddingX: 6,
+    align: 'center',
 };
 
 const PageHeaderStyle = {
     fontSize: '2xl',
-    color: 'veeva_orange.color_mode'
+    color: 'veeva_orange.color_mode',
 };
 
 const TextStyle = {
     fontSize: 'lg',
-    color: 'text.color_mode'
+    color: 'text.color_mode',
 };

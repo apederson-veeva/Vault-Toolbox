@@ -1,11 +1,21 @@
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, Text, UnorderedList, ListItem } from '@chakra-ui/react';
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalCloseButton,
+    Text,
+    UnorderedList,
+    ListItem,
+} from '@chakra-ui/react';
 import FileContentTable from './FileContentTable';
 import ApiErrorMessageCard from '../shared/ApiErrorMessageCard';
 import useFileContents from '../../hooks/vault-data-tools/useFileContents';
 
 export default function FileContentsModal({ isOpen, onClose, cellData }) {
     const { loading, headerData, fileData, error } = useFileContents({ cellData });
-    
+
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
@@ -23,9 +33,19 @@ export default function FileContentsModal({ isOpen, onClose, cellData }) {
                             {cellData}
                         </ListItem>
                     </UnorderedList>
-                    { !error.hasError
-                        ? <FileContentTable size='sm' headers={headerData} data={fileData} loading={loading} />
-                        : <ApiErrorMessageCard content='file content' errorMessage={error.errorMessage} />}
+                    {!error.hasError ? (
+                        <FileContentTable
+                            size='sm'
+                            headers={headerData}
+                            data={fileData}
+                            loading={loading}
+                        />
+                    ) : (
+                        <ApiErrorMessageCard
+                            content='file content'
+                            errorMessage={error.errorMessage}
+                        />
+                    )}
                 </ModalBody>
             </ModalContent>
         </Modal>
@@ -39,10 +59,10 @@ const ModalContentStyle = {
     minH: '80vh',
     overflow: 'auto',
     fontSize: 'md',
-    backgroundColor: 'white.color_mode'
+    backgroundColor: 'white.color_mode',
 };
 
 const ModalHeaderTextStyle = {
     display: 'inline',
-    fontWeight: 'bold'
+    fontWeight: 'bold',
 };

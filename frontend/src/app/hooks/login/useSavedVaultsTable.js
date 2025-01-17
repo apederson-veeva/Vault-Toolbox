@@ -1,6 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function useSavedVaultsTable({ savedVaultData, setSavedVaultData, setVaultDNS, setUsername, setFocusToPasswordInput, isEditable }) {
+export default function useSavedVaultsTable({
+    savedVaultData,
+    setSavedVaultData,
+    setVaultDNS,
+    setUsername,
+    setFocusToPasswordInput,
+    isEditable,
+}) {
     const [defaultVaultRowIndex, setDefaultVaultRowIndex] = useState(-1);
     const newEditableRowRef = useRef(null);
 
@@ -32,7 +39,10 @@ export default function useSavedVaultsTable({ savedVaultData, setSavedVaultData,
         const rowIndexAsNumber = Number(rowIndex);
 
         const updatedSavedVaults = [...savedVaultData];
-        updatedSavedVaults[rowIndexAsNumber] = { ...updatedSavedVaults[rowIndexAsNumber], [field]: newValue };
+        updatedSavedVaults[rowIndexAsNumber] = {
+            ...updatedSavedVaults[rowIndexAsNumber],
+            [field]: newValue,
+        };
 
         // If we updated the default field, change the default value on all other rows to false
         if (field === DEFAULT) {
@@ -69,7 +79,7 @@ export default function useSavedVaultsTable({ savedVaultData, setSavedVaultData,
         const newEditableRow = {
             [VAULT_DNS]: '',
             [USERNAME]: '',
-            [DEFAULT]: false
+            [DEFAULT]: false,
         };
 
         setSavedVaultData((prevSavedVaultData) => [...prevSavedVaultData, newEditableRow]);
@@ -80,7 +90,9 @@ export default function useSavedVaultsTable({ savedVaultData, setSavedVaultData,
      * @param {Number} rowToRemove - index of the row to remove
      */
     const removeRow = (rowToRemove) => {
-        setSavedVaultData(savedVaultData.filter((_, savedVaultRowIndex) => savedVaultRowIndex !== rowToRemove));
+        setSavedVaultData(
+            savedVaultData.filter((_, savedVaultRowIndex) => savedVaultRowIndex !== rowToRemove),
+        );
     };
 
     /**
@@ -99,7 +111,6 @@ export default function useSavedVaultsTable({ savedVaultData, setSavedVaultData,
         setDefaultVaultRowIndex(savedVaultData?.findIndex((row) => row[DEFAULT] === true));
     }, [savedVaultData]);
 
-
     return {
         defaultVaultRowIndex,
         newEditableRowRef,
@@ -108,6 +119,6 @@ export default function useSavedVaultsTable({ savedVaultData, setSavedVaultData,
         handleDefaultRowChanged,
         addNewEditableRow,
         removeRow,
-        focusOnNewRow
-    }
+        focusOnNewRow,
+    };
 }

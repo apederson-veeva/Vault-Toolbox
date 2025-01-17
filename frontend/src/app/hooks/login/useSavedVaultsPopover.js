@@ -31,5 +31,5 @@ export default function useSavedVaultsPopover({ savedVaultData, setSavedVaultDat
         onClose();
     };
 
-    return { isEditable, toggleEditMode, handlePopoverClosed }
+    return { isEditable, toggleEditMode, handlePopoverClosed };
 }

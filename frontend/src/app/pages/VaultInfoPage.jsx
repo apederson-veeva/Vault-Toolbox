@@ -12,14 +12,22 @@ export default function VaultInfoPage() {
         <Flex {...PageFlexStyle}>
             <Stack {...PageStackStyle}>
                 <VaultInfoHeader />
-                { loadingVaultInfo ? <Center><Spinner /></Center>
-                    : (
-                        <Box>
-                            { vaultInfoError.hasError
-                                ? <ApiErrorMessageCard content='Vault Information' errorMessage={vaultInfoError.errorMessage} />
-                                : <VaultInfoTable />}
-                        </Box>
-                    )}
+                {loadingVaultInfo ? (
+                    <Center>
+                        <Spinner />
+                    </Center>
+                ) : (
+                    <Box>
+                        {vaultInfoError.hasError ? (
+                            <ApiErrorMessageCard
+                                content='Vault Information'
+                                errorMessage={vaultInfoError.errorMessage}
+                            />
+                        ) : (
+                            <VaultInfoTable />
+                        )}
+                    </Box>
+                )}
                 <NotOfficialVeevaProductAlert />
             </Stack>
         </Flex>
@@ -40,5 +48,5 @@ const PageStackStyle = {
     maxWidth: '80%',
     paddingY: 12,
     paddingX: 6,
-    align: 'center'
+    align: 'center',
 };

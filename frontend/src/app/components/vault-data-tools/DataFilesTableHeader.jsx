@@ -7,13 +7,19 @@ export default function DataFilesTableHeader() {
     return (
         <Thead {...ThStyle}>
             <Tr>
-                {
-                    headerData.map((headerValue, headerCount) => (
-                        <Th key={headerCount} {...ThStyle} backgroundColor={isSandboxVault() ? 'veeva_sandbox_green.500' : 'veeva_midnight_indigo.500'}>
-                            {headerValue}
-                        </Th>
-                    ))
-                }
+                {headerData.map((headerValue, headerCount) => (
+                    <Th
+                        key={headerCount}
+                        {...ThStyle}
+                        backgroundColor={
+                            isSandboxVault()
+                                ? 'veeva_sandbox_green.500'
+                                : 'veeva_midnight_indigo.500'
+                        }
+                    >
+                        {headerValue}
+                    </Th>
+                ))}
             </Tr>
         </Thead>
     );
@@ -28,5 +34,5 @@ const ThStyle = {
     position: 'sticky',
     top: 0,
     border: 'none',
-    zIndex: 10
+    zIndex: 10,
 };

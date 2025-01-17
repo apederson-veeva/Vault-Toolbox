@@ -1,11 +1,17 @@
-import {useEffect, useState} from 'react';
-import {getVaultApiVersion, getVaultDns} from '../../services/SharedServices';
-import {retrieveApiVersions} from '../../services/vapil/AuthenticationRequest';
+import { useEffect, useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { getVaultApiVersion, getVaultDns } from '../../services/SharedServices';
+import { retrieveApiVersions } from '../../services/vapil/AuthenticationRequest';
 
 export default function useEditApiVersion({ onClose }) {
+    const { sessionId } = useAuth();
+
     const [selectedApiVersion, setSelectedApiVersion] = useState(getVaultApiVersion());
     const [apiVersions, setApiVersions] = useState([]);
-    const [vaultApiVersionsError, setVaultApiVersionsError] = useState({ hasError: false, errorMessage: '' });
+    const [vaultApiVersionsError, setVaultApiVersionsError] = useState({
+        hasError: false,
+        errorMessage: '',
+    });
     const [loadingVaultApiVersions, setLoadingVaultApiVersions] = useState(false);
 
     /**
@@ -16,22 +22,22 @@ export default function useEditApiVersion({ onClose }) {
         setVaultApiVersionsError({ hasError: false, errorMessage: '' });
         setLoadingVaultApiVersions(true);
 
-        const { response } = await retrieveApiVersions(sessionStorage.getItem('sessionId'), getVaultDns());
+        const { response } = await retrieveApiVersions(sessionId, getVaultDns());
         if (response?.responseStatus === 'SUCCESS') {
             if (response?.values) {
-                const apiVersionsArray = Object.keys(response.values).map(key => key);
+                const apiVersionsArray = Object.keys(response.values).map((key) => key);
                 setApiVersions(apiVersionsArray.reverse());
             }
         } else {
             let error = '';
             if (response?.errors?.length > 0) {
-                error = `${response.errors[0].type} : ${response.errors[0].message}`
+                error = `${response.errors[0].type} : ${response.errors[0].message}`;
             }
             setVaultApiVersionsError({ hasError: true, errorMessage: error });
         }
 
         setLoadingVaultApiVersions(false);
-    }
+    };
 
     /**
      * Handles closing the select API version modal.
@@ -39,7 +45,7 @@ export default function useEditApiVersion({ onClose }) {
     const handleModalClose = () => {
         setSelectedApiVersion('');
         onClose();
-    }
+    };
 
     /**
      * Handles saving the selected API version.
@@ -47,7 +53,7 @@ export default function useEditApiVersion({ onClose }) {
     const handleSave = () => {
         sessionStorage.setItem('vaultApiVersion', selectedApiVersion);
         onClose();
-    }
+    };
 
     /**
      * Retrieve the Vault's API Versions when the Modal is rendered
@@ -63,6 +69,6 @@ export default function useEditApiVersion({ onClose }) {
         vaultApiVersionsError,
         loadingVaultApiVersions,
         handleSave,
-        handleModalClose
-    }
+        handleModalClose,
+    };
 }

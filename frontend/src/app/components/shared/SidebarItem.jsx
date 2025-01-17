@@ -9,11 +9,19 @@ export default function SidebarItem({ item, currentRoute, children, onClose }) {
 
     return (
         <Tooltip label={item.name} placement='right'>
-            <Link as={RouteLink} to={item.route} onClick={onClose} _hover={{ textDecoration: 'none' }}>
-                <Flex {...SidebarItemStyle} borderColor={thisItemsRoute === currentRoute ? 'veeva_orange.color_mode' : 'transparent'}>
-                    {item.icon && (
-                        <Icon {...IconStyle} as={item.icon} />
-                    )}
+            <Link
+                as={RouteLink}
+                to={item.route}
+                onClick={onClose}
+                _hover={{ textDecoration: 'none' }}
+            >
+                <Flex
+                    {...SidebarItemStyle}
+                    borderColor={
+                        thisItemsRoute === currentRoute ? 'veeva_orange.color_mode' : 'transparent'
+                    }
+                >
+                    {item.icon && <Icon {...IconStyle} as={item.icon} />}
                     {children}
                 </Flex>
             </Link>
@@ -33,13 +41,13 @@ const SidebarItemStyle = {
     cursor: 'pointer',
     _hover: {
         bg: 'veeva_orange.color_mode',
-        color: 'white'
+        color: 'white',
     },
     borderColor: 'veeva_orange.color_mode',
-    fontSize: 'md'
+    fontSize: 'md',
 };
 
 const IconStyle = {
     boxSize: 8,
-    _hover: { color: 'white' }
+    _hover: { color: 'white' },
 };

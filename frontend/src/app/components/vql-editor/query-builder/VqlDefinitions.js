@@ -1,6 +1,18 @@
 export default function VqlDefinitions() {
+    const supportedQueryFilterOperators = {
+        Default: ['=', '!=', '<', '>', '<=', '>=', 'CONTAINS', 'LIKE'],
+        String: ['=', '!=', 'LIKE', 'CONTAINS'],
+        Number: ['=', '!=', '<', '>', '<=', '>=', 'CONTAINS'],
+        Date: ['=', '!=', '<', '>', '<=', '>='],
+        DateTime: ['=', '!=', '<', '>', '<=', '>=', 'CONTAINS'],
+        Boolean: ['=', '!='],
+        Picklist: ['=', '!=', 'CONTAINS'],
+        Object: ['=', '!=', 'LIKE', 'CONTAINS'],
+        ID: ['=', '!=', 'LIKE', 'CONTAINS'],
+        Currency: ['=', '!=', '<', '>', '<=', '>=', 'CONTAINS'],
+        // TODO - add lifecycle state options
+    };
 
-    const defaultOperators = ['=', '!=', '<', '>', '<=', '>=', 'CONTAINS', 'LIKE'];
     const booleanValues = ['true', 'false'];
 
     const attachmentsQueryTarget = {
@@ -9,74 +21,74 @@ export default function VqlDefinitions() {
             {
                 field: 'attachment_id__sys',
                 label: 'ID',
-                fieldType: 'ID'
+                fieldType: 'ID',
             },
             {
                 field: 'attachment_version__sys',
                 label: 'Version',
-                fieldType: 'Number'
+                fieldType: 'Number',
             },
             {
                 field: 'attachment_name__sys',
                 label: 'Name',
-                fieldType: 'String'
+                fieldType: 'String',
             },
             {
                 field: 'file_name__sys',
                 label: 'File Name',
-                fieldType: 'String'
+                fieldType: 'String',
             },
             {
                 field: 'description__sys',
                 label: 'Description',
-                fieldType: 'String'
+                fieldType: 'String',
             },
             {
                 field: 'md5checksum__sys',
                 label: 'MD5 Checksum',
-                fieldType: 'String'
+                fieldType: 'String',
             },
             {
                 field: 'latest_version__sys',
                 label: 'Latest Version',
-                fieldType: 'Number'
+                fieldType: 'Number',
             },
             {
                 field: 'modified_date__sys',
                 label: 'Modified Date',
-                fieldType: 'DateTime'
+                fieldType: 'DateTime',
             },
             {
                 field: 'modified_by__sys',
                 label: 'Modified By',
-                fieldType: 'Object'
+                fieldType: 'Object',
             },
             {
                 field: 'created_date__sys',
                 label: 'Created Date',
-                fieldType: 'DateTime'
+                fieldType: 'DateTime',
             },
             {
                 field: 'created_by__sys',
                 label: 'Created By',
-                fieldType: 'Object'
+                fieldType: 'Object',
             },
             {
                 field: 'format__sys',
                 label: 'Format',
-                fieldType: 'String'
+                fieldType: 'String',
             },
             {
                 field: 'size__sys',
                 label: 'Size',
-                fieldType: 'Number'
-            }
-        ]
-    }
+                fieldType: 'Number',
+            },
+        ],
+    };
 
     return {
-        defaultOperators,
+        supportedQueryFilterOperators,
         booleanValues,
         attachmentsQueryTarget,
-    }
+    };
 }

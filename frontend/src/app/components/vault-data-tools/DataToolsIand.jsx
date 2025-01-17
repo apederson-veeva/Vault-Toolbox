@@ -5,20 +5,23 @@ import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
 import DataFilesPanel from './DataFilesPanel';
 import DataSelectionPanel from './DataSelectionPanel';
 
-export default function DataToolsIsland({ dataType, setDataType, selectedOptions, setSelectedOptions }) {
+export default function DataToolsIsland({
+    dataType,
+    setDataType,
+    selectedOptions,
+    setSelectedOptions,
+}) {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
         <Flex {...ParentFlexStyle}>
             <PanelGroup direction='vertical'>
-                <Panel defaultSizePercentage={60} minSizePercentage={10}>
+                <Panel defaultSize={60} minSize={10}>
                     <Flex flexDirection='column' height='100%' width='100%'>
                         <Tabs {...TabsStyle}>
                             <TabList {...TabListStyle}>
                                 <Box width='180px'>
-                                    <Tab {...TabStyle}>
-                                        Select Data
-                                    </Tab>
+                                    <Tab {...TabStyle}>Select Data</Tab>
                                 </Box>
                             </TabList>
                             <TabIndicator {...TabIndicatorStyle} />
@@ -38,7 +41,13 @@ export default function DataToolsIsland({ dataType, setDataType, selectedOptions
                     backgroundColor='veeva_sunset_yellow.ten_percent_opacity'
                     isCollapsed={isCollapsed}
                 />
-                <Panel collapsible collapsedSizePercentage={0} minSizePercentage={10} onCollapse={() => setIsCollapsed(true)} onExpand={() => setIsCollapsed(false)}>
+                <Panel
+                    collapsible
+                    collapsedSize={0}
+                    minSize={10}
+                    onCollapse={() => setIsCollapsed(true)}
+                    onExpand={() => setIsCollapsed(false)}
+                >
                     <Flex flexDirection='column' height='100%'>
                         <Box style={ConsoleBoxStyle}>
                             <DataFilesPanel />
@@ -56,32 +65,32 @@ const ParentFlexStyle = {
     margin: '0px',
     borderRadius: '8px',
     backgroundColor: 'white.color_mode',
-    boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+    boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
 const TabsStyle = {
     flex: '0 0 auto',
     position: 'relative',
     variant: 'unstyled',
-    size: 'lg'
+    size: 'lg',
 };
 
 const TabListStyle = {
     height: '60px',
     borderBottom: 'solid 3px',
-    borderBottomColor: 'gray.400'
+    borderBottomColor: 'gray.400',
 };
 
 const TabStyle = {
     color: 'veeva_orange.color_mode',
     fontSize: 'xl',
-    width: '180px'
+    width: '180px',
 };
 
 const TabIndicatorStyle = {
     marginTop: '-3px',
     height: '3px',
-    backgroundColor: 'veeva_orange.color_mode'
+    backgroundColor: 'veeva_orange.color_mode',
 };
 
 const ConsoleBoxStyle = {
@@ -90,5 +99,5 @@ const ConsoleBoxStyle = {
     fontSize: 'medium',
     position: 'relative',
     overflow: 'auto',
-    borderBottomRadius: '8px'
+    borderBottomRadius: '8px',
 };

@@ -18,26 +18,27 @@ export default function useComponentTree() {
                 index: 'root',
                 data: 'root',
                 isFolder: true,
-                children: new Array()
-            }
+                children: new Array(),
+            },
         };
 
         const allComponentMetadata = await retrieveAllComponentMetadata();
         if (allComponentMetadata?.responseStatus === 'FAILURE') {
             let error = '';
             if (allComponentMetadata?.errors?.length > 0) {
-                error = `${allComponentMetadata.errors[0].type} : ${allComponentMetadata.errors[0].message}`
+                error = `${allComponentMetadata.errors[0].type} : ${allComponentMetadata.errors[0].message}`;
             }
             setComponentTreeError(error);
             return;
         }
 
-        const queryString = 'SELECT label__v,component_name__v, component_type__v, status__v FROM vault_component__v';
+        const queryString =
+            'SELECT label__v,component_name__v, component_type__v, status__v FROM vault_component__v';
         let { queryResponse } = await query(queryString);
         if (queryResponse?.responseStatus === 'FAILURE') {
             let error = '';
             if (queryResponse?.errors?.length > 0) {
-                error = `${queryResponse.errors[0].type} : ${queryResponse.errors[0].message}`
+                error = `${queryResponse.errors[0].type} : ${queryResponse.errors[0].message}`;
             }
             setComponentTreeError(error);
             return;
@@ -53,7 +54,7 @@ export default function useComponentTree() {
                 if (queryResponse?.responseStatus === 'FAILURE') {
                     let error = '';
                     if (queryResponse?.errors?.length > 0) {
-                        error = `${queryResponse.errors[0].type} : ${queryResponse.errors[0].message}`
+                        error = `${queryResponse.errors[0].type} : ${queryResponse.errors[0].message}`;
                     }
                     setComponentTreeError(error);
                 }
@@ -92,9 +93,9 @@ export default function useComponentTree() {
 
     /**
      * Helper for building the component tree
-     * @param {Object} queryResponse 
-     * @param {Object} tmpComponentTree 
-     * @param {Object} allComponentMetadata 
+     * @param {Object} queryResponse
+     * @param {Object} tmpComponentTree
+     * @param {Object} allComponentMetadata
      */
     const buildComponentTree = (queryResponse, tmpComponentTree, allComponentMetadata) => {
         queryResponse.data.map((dataRow) => {
@@ -102,7 +103,9 @@ export default function useComponentTree() {
             const componentTypeStatus = dataRow?.status__v?.length > 0 && dataRow.status__v[0];
 
             // Exclude legacy workflows (their MDL can't be retrieved)
-            if (componentType === 'Workflow') { return null }
+            if (componentType === 'Workflow') {
+                return null;
+            }
 
             if (componentTypeStatus !== 'inactive__v') {
                 // If this component type isn't already in the tree, add it
@@ -112,16 +115,23 @@ export default function useComponentTree() {
                     let componentTypeLabel = componentType;
                     if (allComponentMetadata && allComponentMetadata.data) {
                         allComponentMetadata.data.map((componentTypeObject) => {
-                            if ((componentTypeObject?.name === componentType) && componentTypeObject.label) {
+                            if (
+                                componentTypeObject?.name === componentType &&
+                                componentTypeObject.label
+                            ) {
                                 componentTypeLabel = `${componentTypeObject?.label} (${componentTypeObject?.name})`;
 
-                                if (componentTypeObject?.class === 'code') { isCode = true; }
+                                if (componentTypeObject?.class === 'code') {
+                                    isCode = true;
+                                }
                             }
                         });
                     }
 
                     // Exclude code components for 24R1
-                    if (isCode) { return null }
+                    if (isCode) {
+                        return null;
+                    }
 
                     const newComponentType = {
                         index: componentType,
@@ -129,7 +139,7 @@ export default function useComponentTree() {
                         data: componentTypeLabel,
                         isFolder: true,
                         isCode,
-                        children: new Array()
+                        children: new Array(),
                     };
 
                     tmpComponentTree[componentType] = newComponentType;
@@ -138,7 +148,9 @@ export default function useComponentTree() {
 
                 // Add this component to its component type
                 const componentRecordName = `${dataRow?.component_name__v}`;
-                const componentLabel = dataRow?.label__v ? `${dataRow?.label__v} (${componentRecordName})` : componentRecordName;
+                const componentLabel = dataRow?.label__v
+                    ? `${dataRow?.label__v} (${componentRecordName})`
+                    : componentRecordName;
                 const componentKey = `${componentType}.${componentRecordName}`;
 
                 const newComponentRecord = {
@@ -146,7 +158,7 @@ export default function useComponentTree() {
                     title: componentLabel,
                     data: componentLabel,
                     isFolder: false,
-                    children: new Array()
+                    children: new Array(),
                 };
 
                 tmpComponentTree[componentType].children.push(newComponentRecord.index);
@@ -160,7 +172,10 @@ export default function useComponentTree() {
      */
     useEffect(() => {
         if (componentTree.length === 0) {
-            if (sessionStorage.getItem('componentTree') === null || sessionStorage.getItem('componentTree') === 'undefined') {
+            if (
+                sessionStorage.getItem('componentTree') === null ||
+                sessionStorage.getItem('componentTree') === 'undefined'
+            ) {
                 retrieveComponentTree();
             } else {
                 setComponentTree([JSON.parse(sessionStorage.getItem('componentTree'))]);
@@ -172,6 +187,6 @@ export default function useComponentTree() {
         componentTree,
         componentTreeError,
         retrieveComponentTree,
-        loadingComponentTree
-    }
+        loadingComponentTree,
+    };
 }

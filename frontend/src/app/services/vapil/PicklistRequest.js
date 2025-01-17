@@ -11,12 +11,12 @@ const URL_PICKLIST_NAME = '/objects/picklists/{PICKLIST_NAME}';
 export async function retrievePicklistValues(picklistName) {
     const url = getAPIEndpoint(URL_PICKLIST_NAME.replace('{PICKLIST_NAME}', picklistName));
 
-    const headers = getAuthorizationHeader();
+    const headers = await getAuthorizationHeader();
     const method = RequestMethod.GET;
 
     const requestOptions = {
         headers,
-        method
+        method,
     };
 
     const retrievePicklistValuesResponse = await request(url, requestOptions);

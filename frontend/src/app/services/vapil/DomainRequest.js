@@ -10,17 +10,17 @@ const URL_DOMAIN = '/objects/domain';
 export async function retrieveDomainInformation() {
     const url = getAPIEndpoint(URL_DOMAIN);
 
-    const headers = getAuthorizationHeader();
+    const headers = await getAuthorizationHeader();
     const method = RequestMethod.GET;
 
     const requestOptions = {
         headers,
-        method
-    }
+        method,
+    };
 
     const domainInformationResponse = await request(url, requestOptions);
     const responseHeaders = domainInformationResponse?.headers;
     const response = await domainInformationResponse.json();
-    
+
     return { response, responseHeaders };
 }

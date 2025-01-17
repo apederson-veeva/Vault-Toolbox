@@ -1,7 +1,17 @@
 import { VStack, Checkbox, CheckboxGroup } from '@chakra-ui/react';
 
-export default function DataSelectionCheckboxGroup({ type, selectedDataType, dataToDisplay, selectedOptions, setSelectedOptions, handleAllChecked, handleSingleChecked, isDisabled, extractVaultNames }) {
-    const isAllDataSelected = (selectedDataType === 'ALL');
+export default function DataSelectionCheckboxGroup({
+    type,
+    selectedDataType,
+    dataToDisplay,
+    selectedOptions,
+    setSelectedOptions,
+    handleAllChecked,
+    handleSingleChecked,
+    isDisabled,
+    extractVaultNames,
+}) {
+    const isAllDataSelected = selectedDataType === 'ALL';
 
     return (
         <VStack {...StackStyle}>
@@ -13,16 +23,20 @@ export default function DataSelectionCheckboxGroup({ type, selectedDataType, dat
                 colorScheme='veeva_midnight_indigo'
                 fontWeight='bold'
             >
-                Select All
-                {' '}
-                {type}
+                Select All {type}
             </Checkbox>
-            <CheckboxGroup value={selectedOptions} onChange={setSelectedOptions} isDisabled={isAllDataSelected || isDisabled}>
+            <CheckboxGroup
+                value={selectedOptions}
+                onChange={setSelectedOptions}
+                isDisabled={isAllDataSelected || isDisabled}
+            >
                 {dataToDisplay.map((option) => (
                     <Checkbox
                         key={option}
                         name={option}
-                        isChecked={isAllDataSelected || selectedOptions.includes(extractVaultNames(option))}
+                        isChecked={
+                            isAllDataSelected || selectedOptions.includes(extractVaultNames(option))
+                        }
                         onChange={handleSingleChecked}
                         colorScheme='veeva_midnight_indigo'
                         paddingInlineStart='30px'
@@ -43,5 +57,5 @@ const StackStyle = {
     borderRadius: '8px',
     overflow: 'auto',
     width: '50%',
-    fontSize: 'md'
+    fontSize: 'md',
 };

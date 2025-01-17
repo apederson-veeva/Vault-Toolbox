@@ -3,7 +3,7 @@ import { Tbody, Tr, Td, Link } from '@chakra-ui/react';
 export default function DataFilesTableBody({ countFiles, deleteFiles, handleClick }) {
     const OPERATIONS = {
         DELETE: 'DELETE',
-        COUNT: 'COUNT'
+        COUNT: 'COUNT',
     };
 
     const files = [...countFiles, ...deleteFiles];
@@ -11,8 +11,8 @@ export default function DataFilesTableBody({ countFiles, deleteFiles, handleClic
 
     return (
         <Tbody>
-            { (files.length !== 0)
-                ? files.map((dataFile, dataFileCount) => {
+            {files.length !== 0 ? (
+                files.map((dataFile, dataFileCount) => {
                     let operation = '';
                     if (dataFile?.filePath?.includes(OPERATIONS.DELETE.toLowerCase())) {
                         operation = OPERATIONS.DELETE;
@@ -23,16 +23,18 @@ export default function DataFilesTableBody({ countFiles, deleteFiles, handleClic
                         <Tr key={dataFileCount}>
                             <Td {...TdStyle}>{dataFile.fileTimestamp}</Td>
                             <Td {...TdStyle}>{operation}</Td>
-                            <Td {...HyperlinkStyle} onClick={() => handleClick(dataFile.filePath)}><Link>{dataFile.filePath.split('/')[4]}</Link></Td>
+                            <Td {...HyperlinkStyle} onClick={() => handleClick(dataFile.filePath)}>
+                                <Link>{dataFile.filePath.split('/')[4]}</Link>
+                            </Td>
                         </Tr>
                     );
                 })
-                : (
-                    <Tr>
-                        <Td>NO FILES FOUND</Td>
-                        <Td />
-                    </Tr>
-                )}
+            ) : (
+                <Tr>
+                    <Td>NO FILES FOUND</Td>
+                    <Td />
+                </Tr>
+            )}
         </Tbody>
     );
 }
@@ -40,7 +42,7 @@ export default function DataFilesTableBody({ countFiles, deleteFiles, handleClic
 const TdStyle = {
     borderBottom: 'solid thin',
     borderColor: 'gray.300',
-    verticalAlign: 'top'
+    verticalAlign: 'top',
 };
 
 const HyperlinkStyle = {
@@ -48,5 +50,5 @@ const HyperlinkStyle = {
     borderColor: 'gray.300',
     verticalAlign: 'top',
     textDecoration: 'underline',
-    color: 'hyperlink_blue.color_mode'
+    color: 'hyperlink_blue.color_mode',
 };

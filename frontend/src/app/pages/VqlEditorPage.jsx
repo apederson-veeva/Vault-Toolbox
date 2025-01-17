@@ -14,27 +14,27 @@ import { isProductionVault } from '../services/SharedServices';
 
 export default function VqlEditorPage() {
     const {
-        code, 
-        setCode, 
-        consoleOutput, 
-        queryEditorTabIndex, 
-        previousPage, 
-        nextPage, 
+        code,
+        setCode,
+        consoleOutput,
+        queryEditorTabIndex,
+        previousPage,
+        nextPage,
         queryDescribe,
-        isExecutingQuery, 
+        isExecutingQuery,
         isDownloading,
         queryTelemetryData,
-        submitVqlQuery, 
-        downloadQueryResults, 
+        submitVqlQuery,
+        downloadQueryResults,
         getMaxRowSize,
-        queryNextPage, 
-        queryPreviousPage, 
-        canDownload, 
-        getSubqueryFieldCount, 
-        isPicklist, 
-        isPrimaryFieldRichText, 
-        isPrimaryFieldString, 
-        isSubqueryObject
+        queryNextPage,
+        queryPreviousPage,
+        canDownload,
+        getSubqueryFieldCount,
+        isPicklist,
+        isPrimaryFieldRichText,
+        isPrimaryFieldString,
+        isSubqueryObject,
     } = useVqlQuery();
     const {
         vaultObjects,
@@ -52,14 +52,18 @@ export default function VqlEditorPage() {
         displayQueryBuilder,
         logicalOperator,
         setLogicalOperator,
-        operatorOptions,
+        getOperatorOptions,
         booleanValueOptions,
         picklistValueOptions,
+        objectLifecycleStateOptions,
         addNewFilterRow,
         removeFilterRow,
         toggleQueryBuilder,
         buildQuery,
         canBuildQuery,
+        sidePanelCollapsed,
+        setSidePanelCollapsed,
+        queryBuilderPanelRef,
     } = useQueryBuilder({ setCode });
 
     return (
@@ -99,35 +103,37 @@ export default function VqlEditorPage() {
                             </VaultInfoIsland>
                         </VStack>
                     </Panel>
-                    { displayQueryBuilder
-                        ? (
-                            <QueryBuilderPanel
-                                vaultObjects={vaultObjects}
-                                vaultObjectsError={vaultObjectsError}
-                                loadingVaultObjects={loadingVaultObjects}
-                                selectedObject={selectedObject}
-                                setSelectedObject={setSelectedObject}
-                                selectedFields={selectedFields}
-                                setSelectedFields={setSelectedFields}
-                                selectedFilters={selectedFilters}
-                                handleSelectedFilterEdits={handleSelectedFilterEdits}
-                                fieldOptions={fieldOptions}
-                                fieldOptionsError={fieldOptionsError}
-                                loadingObjectMetadata={loadingObjectMetadata}
-                                buildQuery={buildQuery}
-                                canBuildQuery={canBuildQuery}
-                                logicalOperator={logicalOperator}
-                                setLogicalOperator={setLogicalOperator}
-                                operatorOptions={operatorOptions}
-                                booleanValueOptions={booleanValueOptions}
-                                addNewFilterRow={addNewFilterRow}
-                                picklistValueOptions={picklistValueOptions}
-                                removeFilterRow={removeFilterRow}
-                            />
-                        )
-                        : null}
+                    {displayQueryBuilder ? (
+                        <QueryBuilderPanel
+                            vaultObjects={vaultObjects}
+                            vaultObjectsError={vaultObjectsError}
+                            loadingVaultObjects={loadingVaultObjects}
+                            selectedObject={selectedObject}
+                            setSelectedObject={setSelectedObject}
+                            selectedFields={selectedFields}
+                            setSelectedFields={setSelectedFields}
+                            selectedFilters={selectedFilters}
+                            handleSelectedFilterEdits={handleSelectedFilterEdits}
+                            fieldOptions={fieldOptions}
+                            fieldOptionsError={fieldOptionsError}
+                            loadingObjectMetadata={loadingObjectMetadata}
+                            buildQuery={buildQuery}
+                            canBuildQuery={canBuildQuery}
+                            logicalOperator={logicalOperator}
+                            setLogicalOperator={setLogicalOperator}
+                            getOperatorOptions={getOperatorOptions}
+                            booleanValueOptions={booleanValueOptions}
+                            addNewFilterRow={addNewFilterRow}
+                            picklistValueOptions={picklistValueOptions}
+                            objectLifecycleStateOptions={objectLifecycleStateOptions}
+                            removeFilterRow={removeFilterRow}
+                            sidePanelCollapsed={sidePanelCollapsed}
+                            setSidePanelCollapsed={setSidePanelCollapsed}
+                            queryBuilderPanelRef={queryBuilderPanelRef}
+                        />
+                    ) : null}
                 </PanelGroup>
-                <Box height='100vh' flex='0 0' >
+                <Box height='100vh' flex='0 0'>
                     <Flex flexDirection='column' height='100%'>
                         <IconButton
                             icon={<PiTreeStructureBold size={20} style={{ margin: '4px' }} />}
@@ -137,14 +143,11 @@ export default function VqlEditorPage() {
                             {...ToggleQueryBuilderButtonStyle}
                         />
                         <Spacer />
-                        <ContextualHelpButton
-                            tooltip='VQL Documentation'
-                            url='https://developer.veevavault.com/vql/'
-                        />
+                        <ContextualHelpButton tooltip='VQL Documentation' url='https://developer.veevavault.com/vql/' />
                     </Flex>
                 </Box>
             </Flex>
-            { isProductionVault() ? <VqlProdVaultWarningModal /> : null }
+            {isProductionVault() ? <VqlProdVaultWarningModal /> : null}
         </>
     );
 }
@@ -154,11 +157,11 @@ const VqlEditorStackStyle = {
     backgroundColor: 'veeva_light_gray.color_mode',
     flex: 1,
     boxShadow: 'inset -5px 0 8px -8px rgba(0,0,0,0.3), inset 5px 0 8px -8px rgba(0,0,0,0.3)',
-    spacing: 0
+    spacing: 0,
 };
 
 const ToggleQueryBuilderButtonStyle = {
     size: 'auto',
     borderRadius: '6px',
-    margin: '5px'
-}
+    margin: '5px',
+};

@@ -1,6 +1,7 @@
 import {
     Button,
-    Center, Icon,
+    Center,
+    Icon,
     Modal,
     ModalBody,
     ModalCloseButton,
@@ -9,9 +10,10 @@ import {
     ModalHeader,
     ModalOverlay,
     Select,
-    Spinner, Text
+    Spinner,
+    Text,
 } from '@chakra-ui/react';
-import {PiFloppyDisk} from 'react-icons/pi';
+import { PiFloppyDisk } from 'react-icons/pi';
 import useEditApiVersion from '../../hooks/shared/useEditApiVersion';
 import ApiErrorMessageCard from './ApiErrorMessageCard';
 
@@ -23,8 +25,8 @@ export default function EditApiVersionModal({ isOpen, onClose }) {
         vaultApiVersionsError,
         loadingVaultApiVersions,
         handleSave,
-        handleModalClose
-    } = useEditApiVersion({ onClose })
+        handleModalClose,
+    } = useEditApiVersion({ onClose });
 
     return (
         <Modal isOpen={isOpen} onClose={handleModalClose} size='sm'>
@@ -33,26 +35,34 @@ export default function EditApiVersionModal({ isOpen, onClose }) {
                 <ModalHeader>Set Vault API Version</ModalHeader>
                 <ModalCloseButton />
                 <ModalBody>
-                    { !vaultApiVersionsError.hasError
-                        ?
-                            <>
-                                { !loadingVaultApiVersions
-                                    ? (
-                                        <Select
-                                            size='sm'
-                                            value={selectedApiVersion}
-                                            onChange={(e) => setSelectedApiVersion(e.target.value)}
-                                        >
-                                            { apiVersions.map((apiVersion) => {
-                                                return <option value={apiVersion} key={apiVersion}>{apiVersion}</option>
-                                            })}
-                                        </Select>
-                                    )
-                                    : <Center><Spinner /></Center>
-                                }
-                            </>
-                        : <ApiErrorMessageCard content='Vault API Versions' errorMessage={vaultApiVersionsError.errorMessage} />
-                    }
+                    {!vaultApiVersionsError.hasError ? (
+                        <>
+                            {!loadingVaultApiVersions ? (
+                                <Select
+                                    size='sm'
+                                    value={selectedApiVersion}
+                                    onChange={(e) => setSelectedApiVersion(e.target.value)}
+                                >
+                                    {apiVersions.map((apiVersion) => {
+                                        return (
+                                            <option value={apiVersion} key={apiVersion}>
+                                                {apiVersion}
+                                            </option>
+                                        );
+                                    })}
+                                </Select>
+                            ) : (
+                                <Center>
+                                    <Spinner />
+                                </Center>
+                            )}
+                        </>
+                    ) : (
+                        <ApiErrorMessageCard
+                            content='Vault API Versions'
+                            errorMessage={vaultApiVersionsError.errorMessage}
+                        />
+                    )}
                 </ModalBody>
                 <ModalFooter>
                     <Button onClick={handleSave} {...SaveButtonStyle}>
@@ -70,6 +80,5 @@ const SaveButtonStyle = {
     size: 'sm',
     colorScheme: 'blue',
     margin: '5px',
-    padding: '10px'
+    padding: '10px',
 };
-

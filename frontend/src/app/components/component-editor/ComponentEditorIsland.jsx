@@ -1,12 +1,22 @@
-import { Flex, Box, Tabs, TabList, Tab, TabIndicator, Divider, Skeleton, Text , useColorMode} from '@chakra-ui/react';
+import { Flex, Box, Tabs, TabList, Tab, TabIndicator, Divider, Skeleton, Text, useColorMode } from '@chakra-ui/react';
 import { PanelGroup, Panel } from 'react-resizable-panels';
 import { useState } from 'react';
 import CodeEditor from '../shared/CodeEditor';
-import { setupMdlLanguage, mdlLanguageID, MdlLightModeTheme, MdlDarkModeTheme } from './MdlLanguageDefinition';
+import {
+    setupMdlLanguage,
+    mdlLanguageID,
+    MdlLightModeTheme,
+    MdlDarkModeTheme,
+} from './MdlLanguageDefinition';
 import ComponentConsole from './ComponentConsole';
 import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
 
-export default function ComponentEditorIsland({ consoleOutput, code, setCode, isExecutingApiCall }) {
+export default function ComponentEditorIsland({
+    consoleOutput,
+    code,
+    setCode,
+    isExecutingApiCall,
+}) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { colorMode } = useColorMode();
 
@@ -16,14 +26,12 @@ export default function ComponentEditorIsland({ consoleOutput, code, setCode, is
     return (
         <Flex {...ParentFlexStyle}>
             <PanelGroup direction='vertical' autoSaveId='ComponentEditorIsland-PanelGroup'>
-                <Panel defaultSizePercentage={70} minSizePercentage={30}>
+                <Panel defaultSize={70} minSize={30}>
                     <Flex flexDirection='column' height='100%' width='100%'>
                         <Tabs {...TabsStyle}>
                             <TabList {...TabListStyle}>
                                 <Box width='180px'>
-                                    <Tab {...TabStyle}>
-                                        MDL
-                                    </Tab>
+                                    <Tab {...TabStyle}>MDL</Tab>
                                 </Box>
                             </TabList>
                             <TabIndicator {...TabIndicatorStyle} />
@@ -43,13 +51,21 @@ export default function ComponentEditorIsland({ consoleOutput, code, setCode, is
                     backgroundColor='veeva_sunset_yellow.ten_percent_opacity'
                     isCollapsed={isCollapsed}
                 />
-                <Panel collapsible collapsedSizePercentage={0} minSizePercentage={10} onCollapse={() => setIsCollapsed(true)} onExpand={() => setIsCollapsed(false)}>
+                <Panel
+                    collapsible
+                    collapsedSize={0}
+                    minSize={10}
+                    onCollapse={() => setIsCollapsed(true)}
+                    onExpand={() => setIsCollapsed(false)}
+                >
                     <Flex flexDirection='column' height='100%'>
                         <Box {...ConsoleBoxStyle}>
                             <Skeleton isLoaded={!isExecutingApiCall} height='100%'>
                                 <ComponentConsole consoleOutput={consoleOutput} />
                             </Skeleton>
-                            {isExecutingApiCall && <Text {...SendingRequestTextStyle}>Sending request...</Text>}
+                            {isExecutingApiCall && (
+                                <Text {...SendingRequestTextStyle}>Sending request...</Text>
+                            )}
                         </Box>
                     </Flex>
                 </Panel>
@@ -64,7 +80,7 @@ const ParentFlexStyle = {
     margin: '0px',
     borderRadius: '8px',
     backgroundColor: 'white.color_mode',
-    boxShadow: '0 0 5px rgba(0,0,0,0.3)'
+    boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
 const TabsStyle = {
@@ -72,25 +88,25 @@ const TabsStyle = {
     position: 'relative',
     variant: 'unstyled',
     size: 'lg',
-    minHeight: 'auto'
+    minHeight: 'auto',
 };
 
 const TabListStyle = {
     height: '60px',
     borderBottom: 'solid 3px',
-    borderBottomColor: 'gray.400'
+    borderBottomColor: 'gray.400',
 };
 
 const TabStyle = {
     color: 'veeva_orange.color_mode',
     fontSize: 'xl',
-    width: '180px'
+    width: '180px',
 };
 
 const TabIndicatorStyle = {
     marginTop: '-3px',
     height: '3px',
-    backgroundColor: 'veeva_orange.color_mode'
+    backgroundColor: 'veeva_orange.color_mode',
 };
 
 const ConsoleBoxStyle = {
@@ -99,7 +115,7 @@ const ConsoleBoxStyle = {
     fontSize: 'medium',
     position: 'relative',
     overflow: 'auto',
-    borderBottomRadius: '8px'
+    borderBottomRadius: '8px',
 };
 
 const SendingRequestTextStyle = {
@@ -108,5 +124,5 @@ const SendingRequestTextStyle = {
     left: '50%',
     transform: 'translate(-50%, -50%)',
     fontWeight: 'bold',
-    fontSize: 'large'
+    fontSize: 'large',
 };

@@ -1,10 +1,20 @@
-import { Table, TableContainer, Tr, Td, Tbody, Card, CardBody, Box, Heading } from '@chakra-ui/react';
+import {
+    Table,
+    TableContainer,
+    Tr,
+    Td,
+    Tbody,
+    Card,
+    CardBody,
+    Box,
+    Heading,
+} from '@chakra-ui/react';
 import {
     getVaultDns,
     getVaultDomainType,
     getVaultId,
     getVaultName,
-    getVaultUsername
+    getVaultUsername,
 } from '../../services/SharedServices';
 
 export default function VaultInfoTable() {
@@ -12,9 +22,7 @@ export default function VaultInfoTable() {
         <Card {...VaultInfoCardStyle}>
             <CardBody>
                 <Box>
-                    <Heading {...TableHeaderStyle}>
-                        Vault Information
-                    </Heading>
+                    <Heading {...TableHeaderStyle}>Vault Information</Heading>
                     <TableContainer>
                         <Table variant='simple' size='sm'>
                             <Tbody>
@@ -50,17 +58,17 @@ export default function VaultInfoTable() {
 const VaultInfoCardStyle = {
     backgroundColor: 'white.color_mode',
     marginY: '25',
-    boxShadow: '0 0 5px rgba(0,0,0,0.2)'
+    boxShadow: '0 0 5px rgba(0,0,0,0.2)',
 };
 
 const TableHeaderStyle = {
     size: 'md',
     textTransform: 'capitalize',
     fontWeight: 'normal',
-    padding: '5px'
+    padding: '5px',
 };
 
 const TableColumnStyle = {
     fontWeight: 'bold',
-    textAlign: 'right'
+    textAlign: 'right',
 };

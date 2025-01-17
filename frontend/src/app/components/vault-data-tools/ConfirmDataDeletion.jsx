@@ -1,16 +1,50 @@
-import { Modal, ModalOverlay, ModalContent, ModalBody, Button, ModalFooter, Alert, AlertIcon, Card, CardBody, AlertTitle, AlertDescription, Flex, VStack, FormControl, FormHelperText, Input, Spacer, Heading, TableContainer, Table, Tbody, Tr, Td, Box } from '@chakra-ui/react';
+import {
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalBody,
+    Button,
+    ModalFooter,
+    Alert,
+    AlertIcon,
+    Card,
+    CardBody,
+    AlertTitle,
+    AlertDescription,
+    Flex,
+    VStack,
+    FormControl,
+    FormHelperText,
+    Input,
+    Spacer,
+    Heading,
+    TableContainer,
+    Table,
+    Tbody,
+    Tr,
+    Td,
+    Box,
+} from '@chakra-ui/react';
 import VaultInfoTable from '../vault-info/VaultInfoTable';
 import { getVaultId } from '../../services/SharedServices';
 
-function ConfirmDataDeletion({ isOpen, onClose, onSubmit, dataType, selectedData, deleteConfirmationText, setDeleteConfirmationText }) {
+function ConfirmDataDeletion({
+    isOpen,
+    onClose,
+    onSubmit,
+    dataType,
+    selectedData,
+    deleteConfirmationText,
+    setDeleteConfirmationText,
+}) {
     const submitDeletion = () => {
         onClose();
         onSubmit();
     };
 
     const canDelete = () => {
-		return deleteConfirmationText === getVaultId();
-	}
+        return deleteConfirmationText === getVaultId();
+    };
 
     return (
         <Modal isOpen={isOpen} onClose={onClose}>
@@ -21,14 +55,14 @@ function ConfirmDataDeletion({ isOpen, onClose, onSubmit, dataType, selectedData
                         <Alert {...AlertStyle}>
                             <AlertIcon color='white' />
                             <AlertTitle>Deleting Vault Data</AlertTitle>
-                            <AlertDescription>You are about to delete Vault data. THIS CANNOT BE UNDONE.</AlertDescription>
+                            <AlertDescription>
+                                You are about to delete Vault data. THIS CANNOT BE UNDONE.
+                            </AlertDescription>
                         </Alert>
                         <VaultInfoTable />
                         <Card {...CardStyle}>
                             <CardBody>
-                                <Heading {...TableHeaderStyle}>
-                                    Selections:
-                                </Heading>
+                                <Heading {...TableHeaderStyle}>Selections:</Heading>
                                 <TableContainer {...TableContainerStyle}>
                                     <Table {...TableStyle}>
                                         <Tbody>
@@ -42,15 +76,15 @@ function ConfirmDataDeletion({ isOpen, onClose, onSubmit, dataType, selectedData
                                             </Tr>
                                             <Tr {...SelectedDataRowStyle}>
                                                 <Td {...TableColumnStyle}>Selected Data: </Td>
-                                                {
-                                                    selectedData.toString()
-                                                        ? (
-                                                            <Td>
-                                                                {selectedData.map((value, i) => <Box key={i}>{value}</Box>)}
-                                                            </Td>
-                                                        )
-                                                        : <Td>All Objects and Documents</Td>
-                                                }
+                                                {selectedData.toString() ? (
+                                                    <Td>
+                                                        {selectedData.map((value, i) => (
+                                                            <Box key={i}>{value}</Box>
+                                                        ))}
+                                                    </Td>
+                                                ) : (
+                                                    <Td>All Objects and Documents</Td>
+                                                )}
                                             </Tr>
                                         </Tbody>
                                     </Table>
@@ -62,20 +96,31 @@ function ConfirmDataDeletion({ isOpen, onClose, onSubmit, dataType, selectedData
                         <Flex width='100%' alignItems='flex-end'>
                             <VStack width='max-content'>
                                 <FormControl>
-                                    <FormHelperText margin='5px'>Enter the Vault ID to enable deletion:</FormHelperText>
+                                    <FormHelperText margin='5px'>
+                                        Enter the Vault ID to enable deletion:
+                                    </FormHelperText>
                                     <Input
                                         isInvalid={!canDelete()}
                                         backgroundColor='white.color_mode'
                                         value={deleteConfirmationText}
-                                        onChange={(event) => setDeleteConfirmationText(event.currentTarget.value)}
+                                        onChange={(event) =>
+                                            setDeleteConfirmationText(event.currentTarget.value)
+                                        }
                                         placeholder='Vault ID'
                                     />
                                 </FormControl>
                             </VStack>
                             <Spacer />
                             <Box>
-                                <Button onClick={onClose} margin='5px'>Cancel</Button>
-                                <Button colorScheme='red' margin='5px' onClick={submitDeletion} isDisabled={!canDelete()}>
+                                <Button onClick={onClose} margin='5px'>
+                                    Cancel
+                                </Button>
+                                <Button
+                                    colorScheme='red'
+                                    margin='5px'
+                                    onClick={submitDeletion}
+                                    isDisabled={!canDelete()}
+                                >
                                     Delete
                                 </Button>
                             </Box>
@@ -91,7 +136,7 @@ const ModalStyle = {
     minWidth: '50vw',
     minHeight: 'min-content',
     fontSize: 'md',
-    backgroundColor: 'veeva_light_gray.color_mode'
+    backgroundColor: 'veeva_light_gray.color_mode',
 };
 
 const AlertStyle = {
@@ -99,8 +144,8 @@ const AlertStyle = {
     color: 'white',
     status: 'error',
     marginBottom: '10px',
-    borderRadius: '8px'
-}
+    borderRadius: '8px',
+};
 
 const CardStyle = {
     marginTop: '10px',
@@ -112,20 +157,20 @@ const CardStyle = {
 const TableContainerStyle = {
     maxHeight: '35vh',
     overflowX: 'unset',
-    overflowY: 'unset'
+    overflowY: 'unset',
 };
 
 const TableStyle = {
     variant: 'simple',
     size: 'sm',
-    overflowY: 'auto'
+    overflowY: 'auto',
 };
 
 const TableHeaderStyle = {
     size: 'md',
     textTransform: 'capitalize',
     fontWeight: 'normal',
-    padding: '5px'
+    padding: '5px',
 };
 
 const TableColumnStyle = {
@@ -134,12 +179,12 @@ const TableColumnStyle = {
     verticalAlign: 'top',
     width: '1%',
     whiteSpace: 'nowrap',
-    _last: { width: '100%' }
+    _last: { width: '100%' },
 };
 
 const SelectedDataRowStyle = {
     maxHeight: '20vh',
-    overflowY: 'auto'
+    overflowY: 'auto',
 };
 
 export default ConfirmDataDeletion;

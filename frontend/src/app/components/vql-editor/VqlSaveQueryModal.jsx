@@ -1,10 +1,29 @@
-import { Button, Icon, Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay, Text } from '@chakra-ui/react';
+import {
+    Button,
+    Icon,
+    Modal,
+    ModalBody,
+    ModalCloseButton,
+    ModalContent,
+    ModalFooter,
+    ModalHeader,
+    ModalOverlay,
+    Text,
+} from '@chakra-ui/react';
 import { useRef } from 'react';
 import { PiFloppyDisk } from 'react-icons/pi';
 import { CreatableSelect } from 'chakra-react-select';
 
-export default function VqlSaveQueryModal({ code, isOpen, handleModalClose, savedQueryOptions, selectedQueryName, setSelectedQueryName, handleSave }) {
-    const saveQueryInputRef = useRef(null)
+export default function VqlSaveQueryModal({
+    code,
+    isOpen,
+    handleModalClose,
+    savedQueryOptions,
+    selectedQueryName,
+    setSelectedQueryName,
+    handleSave,
+}) {
+    const saveQueryInputRef = useRef(null);
 
     return (
         <Modal
@@ -25,7 +44,7 @@ export default function VqlSaveQueryModal({ code, isOpen, handleModalClose, save
                         options={savedQueryOptions}
                         value={selectedQueryName}
                         onChange={(newValue) => setSelectedQueryName(newValue)}
-                        formatCreateLabel={selectedQueryName => `Save as: ${selectedQueryName}`}
+                        formatCreateLabel={(selectedQueryName) => `Save as: ${selectedQueryName}`}
                         ref={saveQueryInputRef}
                     />
                 </ModalBody>
@@ -43,13 +62,13 @@ export default function VqlSaveQueryModal({ code, isOpen, handleModalClose, save
 const ModelCloseButtonStyle = {
     position: 'absolute',
     top: '10px',
-    right: '24px'
-}
+    right: '24px',
+};
 
 const SaveButtonStyle = {
     variant: 'solid',
     size: 'sm',
     colorScheme: 'blue',
-    padding: '10px'
+    padding: '10px',
 };
 

@@ -13,7 +13,9 @@ export default function Layout() {
 
     return (
         <Flex height='100vh'>
-            <Box flex='none' width='auto'><Sidebar /></Box>
+            <Box flex='none' width='auto'>
+                <Sidebar />
+            </Box>
             <Box flex={1} overflow='auto'>
                 <ErrorBoundary fallbackRender={ErrorPage}>
                     <Outlet />

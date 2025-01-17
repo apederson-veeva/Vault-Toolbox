@@ -2,9 +2,7 @@ import { useState, useEffect } from 'react';
 import { query, queryByPage } from '../../services/ApiService';
 
 export default function useVqlQuery() {
-    const [code, setCode] = useState(
-        'SELECT id, name__v \nFROM ALLVERSIONS documents \nWHERE status__v = STEADYSTATE()'
-    );
+    const [code, setCode] = useState('SELECT id, name__v \nFROM person__sys');
     const [consoleOutput, setConsoleOutput] = useState([]);
     const [previousPage, setPreviousPage] = useState();
     const [nextPage, setNextPage] = useState();
@@ -40,7 +38,7 @@ export default function useVqlQuery() {
             }
         }
 
-        setQueryTelemetryData(responseTelemetry ? responseTelemetry : {})
+        setQueryTelemetryData(responseTelemetry ? responseTelemetry : {});
 
         setIsExecutingQuery(false);
     };
@@ -123,14 +121,13 @@ export default function useVqlQuery() {
             if (typeof rowArray === 'string') {
                 csvContent += `${rowArray}\r\n`;
             } else {
-                const tmpRow = rowArray
-                    .map((item) => {
-                        if (item !== null) {
-                            item = item.toString();
-                            item = item.replace(/"/g, '""') // Escape double quotes within a field
-                        }
-                        return item;
-                    });
+                const tmpRow = rowArray.map((item) => {
+                    if (item !== null) {
+                        item = item.toString();
+                        item = item.replace(/"/g, '""'); // Escape double quotes within a field
+                    }
+                    return item;
+                });
                 const row = '"' + tmpRow.join('","') + '"'; // Wrap each value in double quotes
                 csvContent += `${row}\r\n`;
             }
@@ -158,9 +155,9 @@ export default function useVqlQuery() {
         const csvData = [];
 
         if (
-            consoleOutput[queryEditorTabIndex]?.data
-            && consoleOutput[queryEditorTabIndex].data.length > 0
-            && queryDescribe
+            consoleOutput[queryEditorTabIndex]?.data &&
+            consoleOutput[queryEditorTabIndex].data.length > 0 &&
+            queryDescribe
         ) {
             addHeadersToCsvArray(csvData);
 
@@ -199,27 +196,25 @@ export default function useVqlQuery() {
     const addHeadersToCsvArray = (csvData) => {
         const headers = [];
         // Get the headers from the first row of data (so the order is correct)
-        Object.keys(consoleOutput[queryEditorTabIndex].data[0]).map(
-            (dataKey) => {
-                // Picklists and standard field headers
-                if (
-                    isPicklist(dataKey)
-                    || isObjectReference(dataKey)
-                    || typeof consoleOutput[queryEditorTabIndex].data[0][dataKey] !== OBJECT
-                    || consoleOutput[queryEditorTabIndex].data[0][dataKey] === null
-                ) {
-                    headers.push(dataKey);
-                } else {
-                    // Subquery headers
-                    // Get subquery fields from query describe (in case there isn't subquery data in the first row)
-                    return queryDescribe.subqueries
-                        .find((subquery) => subquery.relationship === dataKey)
-                        ?.fields.map((field) => {
-                            headers.push(`${dataKey}.${field.name}`);
-                        });
-                }
+        Object.keys(consoleOutput[queryEditorTabIndex].data[0]).map((dataKey) => {
+            // Picklists and standard field headers
+            if (
+                isPicklist(dataKey) ||
+                isObjectReference(dataKey) ||
+                typeof consoleOutput[queryEditorTabIndex].data[0][dataKey] !== OBJECT ||
+                consoleOutput[queryEditorTabIndex].data[0][dataKey] === null
+            ) {
+                headers.push(dataKey);
+            } else {
+                // Subquery headers
+                // Get subquery fields from query describe (in case there isn't subquery data in the first row)
+                return queryDescribe.subqueries
+                    .find((subquery) => subquery.relationship === dataKey)
+                    ?.fields.map((field) => {
+                        headers.push(`${dataKey}.${field.name}`);
+                    });
             }
-        );
+        });
         csvData.push(headers);
     };
 
@@ -243,28 +238,18 @@ export default function useVqlQuery() {
                 Object.keys(queryRow).map((dataRowKey) => {
                     const dataRowValue = queryRow[dataRowKey];
 
-                    if (typeof dataRowValue === OBJECT
-                        && dataRowValue !== null
-                    ) {
+                    if (typeof dataRowValue === OBJECT && dataRowValue !== null) {
                         // Print the appropriate row of subquery results
-                        if (dataRowValue?.data?.length > 0
-                            && rowIndex < subqueryData[dataRowKey]?.length
-                        ) { 
+                        if (dataRowValue?.data?.length > 0 && rowIndex < subqueryData[dataRowKey]?.length) {
                             const subqueryDataRow = subqueryData[dataRowKey][rowIndex];
 
-                            Object.values(subqueryDataRow).map(
-                                (subqueryDataField) => {
-                                    if (Array.isArray(subqueryDataField)) {
-                                        dataRow.push(
-                                            subqueryDataField
-                                                .join(',')
-                                                .toString()
-                                        );
-                                    } else {
-                                        dataRow.push(subqueryDataField);
-                                    }
+                            Object.values(subqueryDataRow).map((subqueryDataField) => {
+                                if (Array.isArray(subqueryDataField)) {
+                                    dataRow.push(subqueryDataField.join(',').toString());
+                                } else {
+                                    dataRow.push(subqueryDataField);
                                 }
-                            );
+                            });
                         } else if (dataRowValue?.length > 0) {
                             // Picklist field values
                             dataRow.push(dataRowValue.join(','));
@@ -286,24 +271,24 @@ export default function useVqlQuery() {
     };
 
     /**
-     * Given a query row, finds the subqueries and returns an object containing 
-     * all pages of that subquery's data. 
-     * @param {Object} queryRow 
+     * Given a query row, finds the subqueries and returns an object containing
+     * all pages of that subquery's data.
+     * @param {Object} queryRow
      * @returns subquery data object (e.g. subqueryData = { "subqueryKey" : [subqueryDataRow1, ...] })
      */
     const getPaginatedSubqueryDataForRow = async (queryRow) => {
-        let subqueryData = {}
+        let subqueryData = {};
         for (const key of Object.keys(queryRow)) {
             if (isSubqueryObject(key)) {
                 const dataRowValue = queryRow[key];
-                
+
                 let tempSubqueryResponseData = dataRowValue?.data;
                 let tempNextPage = dataRowValue?.responseDetails?.next_page;
-                
+
                 const tmpSubqueryDataArray = new Array();
                 while (tempNextPage) {
                     tmpSubqueryDataArray.push(...tempSubqueryResponseData);
-                    
+
                     const { queryResponse } = await queryByPage(tempNextPage);
                     tempSubqueryResponseData = queryResponse?.data;
                     tempNextPage = queryResponse?.responseDetails?.next_page;
@@ -315,7 +300,7 @@ export default function useVqlQuery() {
             }
         }
         return subqueryData;
-    }
+    };
 
     /**
      * Determines the number of fields in a subquery
@@ -324,9 +309,8 @@ export default function useVqlQuery() {
      */
     const getSubqueryFieldCount = (subquery) => {
         if (queryDescribe?.subqueries?.length > 0) {
-            return queryDescribe.subqueries.find(
-                (currentSubquery) => currentSubquery.relationship === subquery
-            )?.fields.length;
+            return queryDescribe.subqueries.find((currentSubquery) => currentSubquery.relationship === subquery)?.fields
+                .length;
         }
         return 1;
     };
@@ -338,14 +322,12 @@ export default function useVqlQuery() {
      */
     const isPicklist = (fieldName) => {
         // Check if the field is a primary field picklist
-        let isPicklist = queryDescribe?.fields?.some(
-            (field) => field.name === fieldName && field.type === PICKLIST
-        );
+        let isPicklist = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === PICKLIST);
 
         if (!isPicklist) {
-            isPicklist = queryDescribe?.subqueries?.some((subquery) => subquery?.fields?.some(
-                (field) => field.name === fieldName && field.type === PICKLIST
-            ));
+            isPicklist = queryDescribe?.subqueries?.some((subquery) =>
+                subquery?.fields?.some((field) => field.name === fieldName && field.type === PICKLIST),
+            );
         }
 
         return isPicklist;
@@ -359,13 +341,13 @@ export default function useVqlQuery() {
     const isObjectReference = (fieldName) => {
         // Check if the field is a primary field ObjectReference
         let isObjectReference = queryDescribe?.fields?.some(
-            (field) => field.name === fieldName && field.type === OBJECT_REFERENCE
+            (field) => field.name === fieldName && field.type === OBJECT_REFERENCE,
         );
 
         if (!isObjectReference) {
-            isObjectReference = queryDescribe?.subqueries?.some((subquery) => subquery?.fields?.some(
-                (field) => field.name === fieldName && field.type === OBJECT_REFERENCE
-            ));
+            isObjectReference = queryDescribe?.subqueries?.some((subquery) =>
+                subquery?.fields?.some((field) => field.name === fieldName && field.type === OBJECT_REFERENCE),
+            );
         }
 
         return isObjectReference;
@@ -378,14 +360,12 @@ export default function useVqlQuery() {
      */
     const isPrimaryFieldRichText = (fieldName) => {
         // Check if the field is a primary field richtext
-        let isRichText = queryDescribe?.fields?.some(
-            (field) => field.name === fieldName && field.type === 'RichText'
-        );
+        let isRichText = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === 'RichText');
 
         if (!isRichText) {
-            isRichText = queryDescribe?.subqueries?.some((subquery) => subquery?.fields?.some(
-                (field) => field.name === fieldName && field.type === 'RichText'
-            ));
+            isRichText = queryDescribe?.subqueries?.some((subquery) =>
+                subquery?.fields?.some((field) => field.name === fieldName && field.type === 'RichText'),
+            );
         }
 
         return isRichText;
@@ -398,29 +378,26 @@ export default function useVqlQuery() {
      */
     const isPrimaryFieldString = (fieldName) => {
         // Check if the field is a primary field String
-        let isString = queryDescribe?.fields?.some(
-            (field) => field.name === fieldName && field.type === 'String'
-        );
+        let isString = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === 'String');
 
         return isString;
     };
-    
+
     /**
      * Determines if the current field value is a subquery object
-     * @param {string} field 
+     * @param {string} field
      * @returns true if is a subquery, otherwise false
      */
     const isSubqueryObject = (field) => {
         if (queryDescribe?.subqueries?.length > 0) {
-            return queryDescribe.subqueries.some(
-                (currentSubquery) => currentSubquery.relationship === field
-            );
+            return queryDescribe.subqueries.some((currentSubquery) => currentSubquery.relationship === field);
         }
         return false;
-    }
+    };
 
     /**
-     * Determines the MAX size of any subqueries in a row of VQL response data. Only accounts for the first page of subquery results.
+     * Determines the MAX size of any subqueries in a row of VQL response data. Only accounts for the first page of
+     * subquery results.
      * @param {Object} row of VQL data
      * @returns maximum subquery size (for this page of results)
      */
@@ -462,11 +439,14 @@ export default function useVqlQuery() {
      * @returns true if user can download results, false otherwise
      */
     function canDownload() {
-        if (consoleOutput[queryEditorTabIndex]?.responseStatus !== 'FAILURE' && (consoleOutput[queryEditorTabIndex]?.responseDetails?.size > 0)) {
+        if (
+            consoleOutput[queryEditorTabIndex]?.responseStatus !== 'FAILURE' &&
+            consoleOutput[queryEditorTabIndex]?.responseDetails?.size > 0
+        ) {
             return true;
         }
         return false;
-    };
+    }
 
     /**
      * Whenever the console output changes, re-load previous/next page
@@ -477,9 +457,26 @@ export default function useVqlQuery() {
     }, [consoleOutput]);
 
     return {
-        code, setCode, consoleOutput, queryEditorTabIndex, previousPage, nextPage, queryDescribe,
-        isExecutingQuery, isDownloading, queryTelemetryData, submitVqlQuery, downloadQueryResults,
-        queryNextPage, queryPreviousPage, canDownload, getSubqueryFieldCount, isPicklist,
-        isPrimaryFieldRichText, getMaxRowSize, isPrimaryFieldString, isSubqueryObject
-    }
+        code,
+        setCode,
+        consoleOutput,
+        queryEditorTabIndex,
+        previousPage,
+        nextPage,
+        queryDescribe,
+        isExecutingQuery,
+        isDownloading,
+        queryTelemetryData,
+        submitVqlQuery,
+        downloadQueryResults,
+        queryNextPage,
+        queryPreviousPage,
+        canDownload,
+        getSubqueryFieldCount,
+        isPicklist,
+        isPrimaryFieldRichText,
+        getMaxRowSize,
+        isPrimaryFieldString,
+        isSubqueryObject,
+    };
 }

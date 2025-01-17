@@ -1,16 +1,39 @@
-/* eslint-disable no-undef */
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Flex, Box, FormControl, FormLabel, Input, Stack, Button, Tabs, Tab, TabList, TabPanels, TabPanel, FormErrorMessage, ButtonGroup, useColorMode } from '@chakra-ui/react';
+import {
+    Flex,
+    Box,
+    FormControl,
+    FormLabel,
+    Input,
+    Stack,
+    Button,
+    Tabs,
+    Tab,
+    TabList,
+    TabPanels,
+    TabPanel,
+    FormErrorMessage,
+    ButtonGroup,
+    Switch,
+    AlertDescription,
+    AlertTitle,
+    Alert,
+    Text,
+} from '@chakra-ui/react';
 import { useAuth } from '../../context/AuthContext';
+import useIntegratedLogin from '../../hooks/login/useIntegratedLogin';
+import useVaultSession from '../../hooks/shared/useVaultSession';
+import IntegratedLoginAlert from './IntegratedLoginAlert';
 import SavedVaultsPopover from './SavedVaultsPopover';
 import useVaultLoginForm from '../../hooks/login/useVaultLoginForm';
 import useSavedVaultData from '../../hooks/login/useSavedVaultData';
 
 export default function LoginCard() {
-    const { sessionId, setSessionId } = useAuth();
+    const { integratedLoginIsEnabled, toggleIntegratedLogin } = useIntegratedLogin();
+    const { isLoggedIn, setIsLoggedIn, setSessionId } = useAuth();
+    const { originatingUrl, originatingVaultSession } = useVaultSession();
     const navigate = useNavigate();
-    const { colorMode } = useColorMode();
 
     const {
         loading,
@@ -23,6 +46,8 @@ export default function LoginCard() {
         setLoginSessionId,
         vaultDNS,
         setVaultDNS,
+        loginFormTabIndex,
+        isIntegratedLoginTabSelected,
         canSubmit,
         handleSubmit,
         handleAuthTypeChange,
@@ -32,28 +57,49 @@ export default function LoginCard() {
         usernameRef,
         sessionIdRef,
         loginButtonRef,
-        handleKeyDown
-    } = useVaultLoginForm({ setSessionId });
+        handleKeyDown,
+    } = useVaultLoginForm({
+        setSessionId,
+        setIsLoggedIn,
+        originatingUrl,
+        originatingVaultSession,
+        integratedLoginIsEnabled,
+    });
 
-    const { savedVaultData, setSavedVaultData } = useSavedVaultData({ setUserName, setVaultDNS, setFocusToPasswordInput, setFocusToUsernameInput })
+    const { savedVaultData, setSavedVaultData } = useSavedVaultData({
+        setUserName,
+        setVaultDNS,
+        setFocusToPasswordInput,
+        setFocusToUsernameInput,
+    });
 
     /**
      * If sessionId is populated, re-route to home page, since auth was successful.
      */
     useEffect(() => {
-        if (sessionId) {
+        if (isLoggedIn) {
             navigate('/');
         }
-    }, [sessionId]);
+    }, [isLoggedIn]);
 
     return (
         <Box {...LoginCardBoxStyle}>
-            <Stack spacing={4}>
-                <FormControl id='dns' isRequired>
+            <Stack spacing={0}>
+                <FormControl id='dns' isRequired marginBottom={4}>
                     <FormLabel>Vault DNS</FormLabel>
                     <Flex>
-                        <ButtonGroup isAttached colorScheme='gray' width='100%'>
-                            <Input type='dns' value={vaultDNS} onChange={(event) => setVaultDNS(event.currentTarget.value.trim())} />
+                        <ButtonGroup
+                            isAttached
+                            colorScheme='gray'
+                            width='100%'
+                            isDisabled={isIntegratedLoginTabSelected()}
+                        >
+                            <Input
+                                type='dns'
+                                value={isIntegratedLoginTabSelected() && originatingUrl ? originatingUrl : vaultDNS}
+                                onChange={(event) => setVaultDNS(event.currentTarget.value.trim())}
+                                disabled={isIntegratedLoginTabSelected()}
+                            />
                             <SavedVaultsPopover
                                 setVaultDNS={setVaultDNS}
                                 setUsername={setUserName}
@@ -64,25 +110,27 @@ export default function LoginCard() {
                         </ButtonGroup>
                     </Flex>
                 </FormControl>
-                <Tabs isFitted variant='enclosed' onChange={(index) => handleAuthTypeChange(index)}>
+                <Tabs
+                    isFitted
+                    variant='enclosed'
+                    index={loginFormTabIndex}
+                    onChange={(index) => handleAuthTypeChange(index)}
+                >
                     <TabList>
-                        <Tab {...TabStyle}>
-                            Basic
-                        </Tab>
-                        <Tab {...TabStyle}>
-                            Session
-                        </Tab>
+                        <Tab {...TabStyle}>Basic</Tab>
+                        <Tab {...TabStyle}>Session</Tab>
+                        <Tab {...TabStyle}>Integrated</Tab>
                     </TabList>
                     <Flex minH='14vh'>
                         <TabPanels>
                             <TabPanel>
                                 <FormControl id='username' isRequired isInvalid={error.hasError}>
                                     <FormLabel>User Name</FormLabel>
-                                    <Input 
-                                        type='email' 
-                                        value={userName} 
-                                        onChange={(event) => setUserName(event.currentTarget.value.trim())} 
-                                        ref={usernameRef} 
+                                    <Input
+                                        type='email'
+                                        value={userName}
+                                        onChange={(event) => setUserName(event.currentTarget.value.trim())}
+                                        ref={usernameRef}
                                         onKeyDown={handleKeyDown}
                                     />
                                 </FormControl>
@@ -90,9 +138,9 @@ export default function LoginCard() {
                                     <FormLabel>Password</FormLabel>
                                     <Input
                                         type='password'
-                                        value={password} 
-                                        onChange={(event) => setPassword(event.currentTarget.value)} 
-                                        ref={passwordRef} 
+                                        value={password}
+                                        onChange={(event) => setPassword(event.currentTarget.value)}
+                                        ref={passwordRef}
                                         onKeyDown={handleKeyDown}
                                     />
                                     <FormErrorMessage>{error.errorMessage}</FormErrorMessage>
@@ -101,13 +149,26 @@ export default function LoginCard() {
                             <TabPanel>
                                 <FormControl id='session' isRequired isInvalid={error.hasError}>
                                     <FormLabel>Session Id</FormLabel>
-                                    <Input 
-                                        type='session' 
-                                        value={loginSessionId} 
-                                        onChange={(event) => setLoginSessionId(event.currentTarget.value)} 
+                                    <Input
+                                        type='session'
+                                        value={loginSessionId}
+                                        onChange={(event) => setLoginSessionId(event.currentTarget.value)}
                                         ref={sessionIdRef}
                                         onKeyDown={handleKeyDown}
                                     />
+                                    <FormErrorMessage>{error.errorMessage}</FormErrorMessage>
+                                </FormControl>
+                            </TabPanel>
+                            <TabPanel marginBottom={4} paddingBottom={0}>
+                                <IntegratedLoginAlert />
+                                <Flex {...ToggleSwitchFlexStyle}>
+                                    <Switch
+                                        isChecked={integratedLoginIsEnabled}
+                                        onChange={() => toggleIntegratedLogin()}
+                                    />
+                                    <Text marginX='10px'>Enable Auto-Integrated Login (All Vaults)</Text>
+                                </Flex>
+                                <FormControl id='integrated' isInvalid={error.hasError}>
                                     <FormErrorMessage>{error.errorMessage}</FormErrorMessage>
                                 </FormControl>
                             </TabPanel>
@@ -115,15 +176,29 @@ export default function LoginCard() {
                     </Flex>
                 </Tabs>
                 <Stack spacing={10}>
-                    <Button
-                        {...ButtonStyle}
-                        isDisabled={!canSubmit()}
-                        isLoading={loading}
-                        onClick={handleSubmit}
-                        ref={loginButtonRef}
-                    >
-                        Log In
-                    </Button>
+                    {isIntegratedLoginTabSelected() ? (
+                        <Button
+                            {...ButtonStyle}
+                            isDisabled={!canSubmit()}
+                            isLoading={loading}
+                            onClick={() =>
+                                handleSubmit({ originatingVaultDNS: originatingUrl, originatingVaultSession })
+                            }
+                            ref={loginButtonRef}
+                        >
+                            Log In With Existing Vault Session
+                        </Button>
+                    ) : (
+                        <Button
+                            {...ButtonStyle}
+                            isDisabled={!canSubmit()}
+                            isLoading={loading}
+                            onClick={handleSubmit}
+                            ref={loginButtonRef}
+                        >
+                            Log In
+                        </Button>
+                    )}
                 </Stack>
             </Stack>
         </Box>
@@ -133,21 +208,30 @@ export default function LoginCard() {
 const TabStyle = {
     _selected: {
         backgroundColor: 'gray.background.color_mode',
-        fontWeight: 'bold'
+        fontWeight: 'bold',
     },
-}
+};
 
 const LoginCardBoxStyle = {
-    minWidth: '500px',
+    width: 600,
     borderRadius: '8px',
     backgroundColor: 'white.color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.2)',
-    padding: 8
+    padding: 8,
 };
 
 const ButtonStyle = {
     backgroundColor: 'blue.400',
     color: 'white',
     _hover: { bg: 'blue.500' },
-    loadingText: 'Authenticating'
+    loadingText: 'Authenticating',
+};
+
+const ToggleSwitchFlexStyle = {
+    fontSize: 'md',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 4,
+    marginBottom: 0,
 };
