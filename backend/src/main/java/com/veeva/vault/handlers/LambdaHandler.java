@@ -10,11 +10,10 @@ package com.veeva.vault.handlers;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import com.amazonaws.services.lambda.AWSLambda;
-import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
-import com.amazonaws.services.lambda.model.InvocationType;
-import com.amazonaws.services.lambda.model.InvokeRequest;
-import com.amazonaws.services.lambda.model.InvokeResult;
+import software.amazon.awssdk.services.lambda.LambdaClient;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.lambda.model.InvokeRequest;
+import software.amazon.awssdk.services.lambda.model.InvocationType;
 import com.veeva.vault.Environment;
 import com.veeva.vault.models.IntegrationRequest;
 import com.veeva.vault.models.IntegrationRequestBodyParams;
@@ -22,6 +21,7 @@ import com.veeva.vault.models.IntegrationResponse;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import software.amazon.awssdk.services.lambda.model.InvokeResponse;
 
 public class LambdaHandler implements RequestHandler<IntegrationRequest, IntegrationResponse> {
     public LambdaHandler() { logger.setLevel(Level.toLevel(Environment.getLogLevel())); }
@@ -48,20 +48,33 @@ public class LambdaHandler implements RequestHandler<IntegrationRequest, Integra
      */
     public static void runAsync(IntegrationRequest request, String jobId) {
         IntegrationRequestBodyParams newBodyParameters = request.getBodyParams();
-
         newBodyParameters.setIsAsync(false);
         newBodyParameters.setLambdaJobId(jobId);
 
         request.setBody(newBodyParameters.toJsonString());
-        InvokeRequest lmbRequest = new InvokeRequest()
-                .withFunctionName(lambdaFunctionARN)
-                .withPayload(request.toJsonString());
 
-        lmbRequest.setInvocationType(InvocationType.Event);
 
-        AWSLambda lambda = AWSLambdaClientBuilder.standard()
-                .build();
+        try (LambdaClient lambda = LambdaClient.builder().build()) {
+            SdkBytes payload = SdkBytes.fromUtf8String(request.toJsonString());
 
-        InvokeResult lmbResult = lambda.invoke(lmbRequest);
+            InvokeRequest lmbRequest = InvokeRequest.builder()
+                    .functionName(lambdaFunctionARN)
+                    .payload(payload)
+                    .invocationType(InvocationType.EVENT)
+                    .build();
+
+            InvokeResponse lmbResponse = lambda.invoke(lmbRequest);
+            int statusCode = lmbResponse.statusCode();
+            String functionError = lmbResponse.functionError();
+
+            logger.debug("Lambda invocation status: " + statusCode);
+            if (functionError != null) {
+                logger.error("Lambda function error: " + functionError);
+            }
+
+        } catch (Exception e) {
+            logger.error("Error invoking Lambda function: " + e.getMessage(), e);
+        }
+
     }
 }

@@ -7,6 +7,10 @@
  */
 package com.veeva.vault.tools.vaultdatatools.delete;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.opencsv.CSVWriter;
 import com.veeva.vault.tools.vaultdatatools.utils.FileUtil;
 import com.veeva.vault.tools.vaultdatatools.services.SortService;
@@ -42,8 +46,8 @@ public class DeleteVaultData {
         DomainResponse domainResponse = Client.getVaultClient().newRequest(DomainRequest.class)
                 .retrieveDomainInformation();
 
-        if (!domainResponse.getDomain().getDomainType().equalsIgnoreCase("SANDBOX")) {
-            LOGGER.error("This tool can only be run in a Sandbox domain.");
+        if (domainResponse.getDomain().getDomainType().equalsIgnoreCase("PRODUCTION")) {
+            LOGGER.error("This tool cannot be run in a Production domain.");
             return;
         }
 
@@ -567,15 +571,25 @@ public class DeleteVaultData {
         for (List<QueryResponse.QueryResult> batch : partitions) {
             List<String[]> outputData = new ArrayList<>();
 
-            JSONArray jsonArray = new JSONArray();
+            ObjectMapper objectMapper = new ObjectMapper();
+            ArrayNode jsonArray = objectMapper.createArrayNode();
+
             for (QueryResponse.QueryResult row : batch) {
-                jsonArray.put(row.toJSONObject());
+                JsonNode rowJsonNode = row.toJSONObject();
+                jsonArray.add(rowJsonNode);
+            }
+
+            String jsonArrayString = "[]";
+            try {
+                jsonArrayString = objectMapper.writeValueAsString(jsonArray);
+            } catch (JsonProcessingException e) {
+                LOGGER.error("Error converting payload to JSON string : " + e.getMessage());
             }
 
             if (target.equalsIgnoreCase("DOCUMENTS")) {
                 DocumentBulkResponse resp = Client.getVaultClient().newRequest(DocumentRequest.class)
                         .setContentTypeJson()
-                        .setRequestString(jsonArray.toString())
+                        .setRequestString(jsonArrayString)
                         .deleteMultipleDocuments();
 
                 if (resp != null) {
@@ -584,7 +598,7 @@ public class DeleteVaultData {
             } else {
                 ObjectRecordBulkResponse resp = Client.getVaultClient().newRequest(ObjectRecordRequest.class)
                         .setContentTypeJson()
-                        .setRequestString(jsonArray.toString())
+                        .setRequestString(jsonArrayString)
                         .deleteObjectRecords(target);
 
                 if (resp != null) {
@@ -651,7 +665,7 @@ public class DeleteVaultData {
                 currentOutput[0] = String.valueOf(action); // Action (From CLI Input)
                 currentOutput[1] = "OBJECTS";
                 currentOutput[2] = objectName; // Record type
-                currentOutput[3] = dataToDelete.get(index).toJSONObject().getString("id"); // Id
+                currentOutput[3] = dataToDelete.get(index).get("id").toString(); // Id
                 currentOutput[4] = String.valueOf(objectRecordResponse.getResponseStatus()); // Response status
 
                 currentOutput[5] = handleErrors(objectRecordResponse, true);
