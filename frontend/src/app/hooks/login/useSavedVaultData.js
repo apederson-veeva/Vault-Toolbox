@@ -48,11 +48,7 @@ export default function useSavedVaultData({
         // If launched from a Vault, load that DNS instead of default
         await chrome.runtime.sendMessage({ action: 'getOriginatingUrl' }, (response) => {
             if (response && response.originatingUrl) {
-                if (
-                    VAULT_SUBDOMAINS.some((subdomain) =>
-                        response.originatingUrl.includes(subdomain),
-                    )
-                ) {
+                if (VAULT_SUBDOMAINS.some((subdomain) => response.originatingUrl.includes(subdomain))) {
                     const parsedURL = new URL(response.originatingUrl);
                     setVaultDNS(parsedURL.hostname.trim());
 

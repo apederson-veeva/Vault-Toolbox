@@ -15,6 +15,8 @@ export default function WhereClauseBuilder({
     removeFilterRow,
     picklistValueOptions,
     objectLifecycleStateOptions,
+    previousQueryResults,
+    addPreviousResultsFilterRow,
 }) {
     return (
         <Flex {...FlexStyle}>
@@ -53,9 +55,21 @@ export default function WhereClauseBuilder({
                         </Fragment>
                     );
                 })}
-                <Button {...AddFilterButtonStyle} leftIcon={<PiPlus />} onClick={addNewFilterRow}>
-                    Add Filter
-                </Button>
+                <Flex gap='5px'>
+                    <Button {...AddFilterButtonStyle} leftIcon={<PiPlus />} onClick={addNewFilterRow}>
+                        Add Filter
+                    </Button>
+                    {previousQueryResults?.isMatch && previousQueryResults?.values?.length > 0 && (
+                        <Button
+                            {...AddPreviousResultsFilterButtonStyle}
+                            leftIcon={<PiPlus />}
+                            onClick={addPreviousResultsFilterRow}
+                        >
+                            Filter By Previous Results? {previousQueryResults?.queryTarget} (
+                            {previousQueryResults?.values?.length})
+                        </Button>
+                    )}
+                </Flex>
             </VStack>
         </Flex>
     );
@@ -78,6 +92,15 @@ const AddFilterButtonStyle = {
     borderRadius: '6px',
     variant: 'outline',
     colorScheme: 'blue',
+    size: 'sm',
+    'aria-label': 'Add filter row button',
+};
+
+const AddPreviousResultsFilterButtonStyle = {
+    maxWidth: 'max-content',
+    borderRadius: '6px',
+    variant: 'outline',
+    colorScheme: 'yellow',
     size: 'sm',
     'aria-label': 'Add filter row button',
 };

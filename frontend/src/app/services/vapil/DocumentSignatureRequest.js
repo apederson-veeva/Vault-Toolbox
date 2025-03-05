@@ -10,7 +10,7 @@ const URL_DOCUMENT_SIGNATURE_METADATA = '/metadata/query/documents/relationships
 export async function retrieveDocumentSignatureMetadata() {
     const url = getAPIEndpoint(URL_DOCUMENT_SIGNATURE_METADATA);
 
-    const headers = getAuthorizationHeader();
+    const headers = await getAuthorizationHeader();
     const method = RequestMethod.GET;
 
     const requestOptions = {

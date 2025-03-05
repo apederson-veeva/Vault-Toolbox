@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 export default function useSavedQueries({ onClose, setCode }) {
     const [selectedQueryName, setSelectedQueryName] = useState('');
+    const [isDefaultQuery, setIsDefaultQuery] = useState(false);
     const [savedQueries, setSavedQueries] = useState([]);
     const [savedQueryOptions, setSavedQueryOptions] = useState([]);
 
@@ -11,13 +12,25 @@ export default function useSavedQueries({ onClose, setCode }) {
     const handleModalClose = () => {
         setSelectedQueryName('');
         onClose();
-    }
+    };
 
     /**
      * Handles saving the current query.
+     * @param code - the query string to be saved
+     * @returns {Promise<void>}
      */
     const handleSave = async (code) => {
         const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
+
+        // If we have a new default, clear the existing default
+        if (isDefaultQuery) {
+            const previousDefaultQueryIndex = currentSavedQueries.findIndex(
+                (savedQuery) => savedQuery?.isDefaultQuery === true,
+            );
+            if (previousDefaultQueryIndex !== -1 && currentSavedQueries[previousDefaultQueryIndex]) {
+                currentSavedQueries[previousDefaultQueryIndex].isDefaultQuery = false;
+            }
+        }
 
         const selectedQueryIndex = currentSavedQueries.findIndex(
             (savedQuery) => savedQuery.name === selectedQueryName?.label,
@@ -26,11 +39,13 @@ export default function useSavedQueries({ onClose, setCode }) {
             currentSavedQueries.push({
                 name: selectedQueryName?.label,
                 queryString: code,
+                isDefaultQuery,
             });
         } else {
             currentSavedQueries[selectedQueryIndex] = {
                 name: selectedQueryName?.label,
                 queryString: code,
+                isDefaultQuery,
             };
         }
 
@@ -41,9 +56,7 @@ export default function useSavedQueries({ onClose, setCode }) {
 
     const deleteSavedQuery = async () => {
         const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
-        const updatedSavedQueries = currentSavedQueries.filter(
-            (savedQuery) => savedQuery?.name !== selectedQueryName,
-        );
+        const updatedSavedQueries = currentSavedQueries.filter((savedQuery) => savedQuery?.name !== selectedQueryName);
 
         await localStorage.setItem('savedQueries', JSON.stringify(updatedSavedQueries));
         setSavedQueries(updatedSavedQueries);
@@ -69,6 +82,7 @@ export default function useSavedQueries({ onClose, setCode }) {
         return {
             value: savedQuery?.name,
             label: savedQuery?.name,
+            isDefaultQuery: savedQuery?.isDefaultQuery,
         };
     };
 
@@ -85,12 +99,16 @@ export default function useSavedQueries({ onClose, setCode }) {
     };
 
     /**
-     * Read in the saved queries from local storage on page load
+     * When the query name to save changes, update whether the current selected name is the current default query. Used
+     * to display the "default" checkbox correctly in the VqlSaveQueryModal
      */
     useEffect(() => {
-        const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
-        setSavedQueries(currentSavedQueries);
-    }, []);
+        const nameIsCurrentDefault = savedQueryOptions.some(
+            (query) => query?.value === selectedQueryName?.value && query.isDefaultQuery,
+        );
+
+        setIsDefaultQuery(nameIsCurrentDefault);
+    }, [selectedQueryName]);
 
     /**
      * Whenever the saved queries update, also update the selectable query options for the drop-down
@@ -99,9 +117,19 @@ export default function useSavedQueries({ onClose, setCode }) {
         updateSavedQueryOptions();
     }, [savedQueries]);
 
+    /**
+     * Read in the saved queries from local storage on page load
+     */
+    useEffect(() => {
+        const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
+        setSavedQueries(currentSavedQueries);
+    }, []);
+
     return {
         selectedQueryName,
         setSelectedQueryName,
+        isDefaultQuery,
+        setIsDefaultQuery,
         savedQueries,
         savedQueryOptions,
         handleSave,

@@ -6,7 +6,7 @@
 
     <groupId>com.veeva.vault</groupId>
     <artifactId>vault-toolbox-backend</artifactId>
-    <version>24.3.0</version>
+    <version>24.3.1</version>
 
     <properties>
         <maven.compiler.source>8</maven.compiler.source>

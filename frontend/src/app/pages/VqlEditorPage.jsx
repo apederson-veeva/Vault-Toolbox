@@ -1,18 +1,23 @@
-import { Box, Flex, VStack, Spacer, IconButton } from '@chakra-ui/react';
-import { PiTreeStructureBold } from 'react-icons/pi';
+import { Box, Flex, VStack, Spacer, IconButton, Divider } from '@chakra-ui/react';
+import { PiClockCounterClockwiseBold, PiTreeStructureBold } from 'react-icons/pi';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import ContextualHelpButton from '../components/shared/ContextualHelpButton';
 import TelemetryData from '../components/shared/TelemetryData';
 import VaultInfoIsland from '../components/shared/VaultInfoIsland';
-import QueryBuilderPanel from '../components/vql-editor/query-builder/QueryBuilderPanel';
+import VerticalResizeHandle from '../components/shared/VerticalResizeHandle';
+import QueryBuilderContainer from '../components/vql-editor/query-builder/QueryBuilderContainer';
+import QueryHistoryContainer from '../components/vql-editor/query-history/QueryHistoryContainer';
 import VqlHeaderRow from '../components/vql-editor/VqlHeaderRow';
 import VqlEditorIsland from '../components/vql-editor/VqlEditorIsland';
 import VqlProdVaultWarningModal from '../components/vql-editor/VqlProdVaultWarningModal';
 import useQueryBuilder from '../hooks/vql-editor/useQueryBuilder';
+import useQueryHistory from '../hooks/vql-editor/useQueryHistory';
+import useQuerySidePanel from '../hooks/vql-editor/useQuerySidePanel';
 import useVqlQuery from '../hooks/vql-editor/useVqlQuery';
 import { isProductionVault } from '../services/SharedServices';
 
 export default function VqlEditorPage() {
+    const { queryHistory, updateQueryHistory } = useQueryHistory();
     const {
         code,
         setCode,
@@ -24,8 +29,11 @@ export default function VqlEditorPage() {
         isExecutingQuery,
         isDownloading,
         queryTelemetryData,
+        previousQueryResults,
+        setPreviousQueryResults,
         submitVqlQuery,
         downloadQueryResults,
+        loadQueryIntoEditor,
         getMaxRowSize,
         queryNextPage,
         queryPreviousPage,
@@ -35,21 +43,23 @@ export default function VqlEditorPage() {
         isPrimaryFieldRichText,
         isPrimaryFieldString,
         isSubqueryObject,
-    } = useVqlQuery();
+    } = useVqlQuery({ updateQueryHistory });
     const {
-        vaultObjects,
-        vaultObjectsError,
-        loadingVaultObjects,
-        selectedObject,
-        setSelectedObject,
+        queryCategoryOptions,
+        selectedQueryCategory,
+        setSelectedQueryCategory,
+        queryTargetOptions,
+        queryTargetsError,
+        loadingQueryTargets,
+        selectedQueryTarget,
+        setSelectedQueryTarget,
         fieldOptions,
         fieldOptionsError,
-        loadingObjectMetadata,
+        loadingFieldMetadata,
         selectedFields,
         setSelectedFields,
         selectedFilters,
         handleSelectedFilterEdits,
-        displayQueryBuilder,
         logicalOperator,
         setLogicalOperator,
         getOperatorOptions,
@@ -58,18 +68,24 @@ export default function VqlEditorPage() {
         objectLifecycleStateOptions,
         addNewFilterRow,
         removeFilterRow,
-        toggleQueryBuilder,
+        addPreviousResultsFilterRow,
         buildQuery,
         canBuildQuery,
+    } = useQueryBuilder({ setCode, previousQueryResults, setPreviousQueryResults });
+    const {
+        sidePanelRef,
         sidePanelCollapsed,
-        setSidePanelCollapsed,
-        queryBuilderPanelRef,
-    } = useQueryBuilder({ setCode });
+        onSidePanelCollapse,
+        displayQueryBuilder,
+        displayQueryHistory,
+        toggleQueryBuilder,
+        toggleQueryHistory,
+    } = useQuerySidePanel();
 
     return (
         <>
             <Flex justify='flex-start' height='100%'>
-                <PanelGroup direction='horizontal' autoSaveId='VqlEditorPage-PanelGroup'>
+                <PanelGroup direction='horizontal'>
                     <Panel id='vql-editor-panel' order={1}>
                         <VStack {...VqlEditorStackStyle}>
                             <VqlHeaderRow
@@ -103,34 +119,60 @@ export default function VqlEditorPage() {
                             </VaultInfoIsland>
                         </VStack>
                     </Panel>
-                    {displayQueryBuilder ? (
-                        <QueryBuilderPanel
-                            vaultObjects={vaultObjects}
-                            vaultObjectsError={vaultObjectsError}
-                            loadingVaultObjects={loadingVaultObjects}
-                            selectedObject={selectedObject}
-                            setSelectedObject={setSelectedObject}
-                            selectedFields={selectedFields}
-                            setSelectedFields={setSelectedFields}
-                            selectedFilters={selectedFilters}
-                            handleSelectedFilterEdits={handleSelectedFilterEdits}
-                            fieldOptions={fieldOptions}
-                            fieldOptionsError={fieldOptionsError}
-                            loadingObjectMetadata={loadingObjectMetadata}
-                            buildQuery={buildQuery}
-                            canBuildQuery={canBuildQuery}
-                            logicalOperator={logicalOperator}
-                            setLogicalOperator={setLogicalOperator}
-                            getOperatorOptions={getOperatorOptions}
-                            booleanValueOptions={booleanValueOptions}
-                            addNewFilterRow={addNewFilterRow}
-                            picklistValueOptions={picklistValueOptions}
-                            objectLifecycleStateOptions={objectLifecycleStateOptions}
-                            removeFilterRow={removeFilterRow}
-                            sidePanelCollapsed={sidePanelCollapsed}
-                            setSidePanelCollapsed={setSidePanelCollapsed}
-                            queryBuilderPanelRef={queryBuilderPanelRef}
-                        />
+                    {!sidePanelCollapsed ? (
+                        <>
+                            <VerticalResizeHandle sidePanelCollapsed={sidePanelCollapsed} />
+                            <Panel
+                                id='query-side-panel'
+                                order={2}
+                                defaultSize={50}
+                                minSize={10}
+                                maxSize={50}
+                                collapsible
+                                onCollapse={() => onSidePanelCollapse(true)}
+                                onExpand={() => onSidePanelCollapse(false)}
+                                ref={sidePanelRef}
+                            >
+                                {displayQueryBuilder ? (
+                                    <QueryBuilderContainer
+                                        queryCategoryOptions={queryCategoryOptions}
+                                        selectedQueryCategory={selectedQueryCategory}
+                                        setSelectedQueryCategory={setSelectedQueryCategory}
+                                        queryTargetOptions={queryTargetOptions}
+                                        queryTargetsError={queryTargetsError}
+                                        loadingQueryTargets={loadingQueryTargets}
+                                        selectedQueryTarget={selectedQueryTarget}
+                                        setSelectedQueryTarget={setSelectedQueryTarget}
+                                        selectedFields={selectedFields}
+                                        setSelectedFields={setSelectedFields}
+                                        selectedFilters={selectedFilters}
+                                        handleSelectedFilterEdits={handleSelectedFilterEdits}
+                                        fieldOptions={fieldOptions}
+                                        fieldOptionsError={fieldOptionsError}
+                                        loadingFieldMetadata={loadingFieldMetadata}
+                                        buildQuery={buildQuery}
+                                        canBuildQuery={canBuildQuery}
+                                        logicalOperator={logicalOperator}
+                                        setLogicalOperator={setLogicalOperator}
+                                        getOperatorOptions={getOperatorOptions}
+                                        booleanValueOptions={booleanValueOptions}
+                                        addNewFilterRow={addNewFilterRow}
+                                        picklistValueOptions={picklistValueOptions}
+                                        objectLifecycleStateOptions={objectLifecycleStateOptions}
+                                        removeFilterRow={removeFilterRow}
+                                        previousQueryResults={previousQueryResults}
+                                        addPreviousResultsFilterRow={addPreviousResultsFilterRow}
+                                    />
+                                ) : null}
+                                {displayQueryHistory ? (
+                                    <QueryHistoryContainer
+                                        queryHistory={queryHistory}
+                                        loadQueryIntoEditor={loadQueryIntoEditor}
+                                    />
+                                ) : null}
+                            </Panel>
+                            {!sidePanelCollapsed ? <Divider {...VerticalDividerStyle} /> : null}
+                        </>
                     ) : null}
                 </PanelGroup>
                 <Box height='100vh' flex='0 0'>
@@ -140,6 +182,13 @@ export default function VqlEditorPage() {
                             onClick={toggleQueryBuilder}
                             color={displayQueryBuilder ? 'white' : 'veeva_orange.color_mode'}
                             backgroundColor={displayQueryBuilder ? 'veeva_orange.color_mode' : 'transparent'}
+                            {...ToggleQueryBuilderButtonStyle}
+                        />
+                        <IconButton
+                            icon={<PiClockCounterClockwiseBold size={20} style={{ margin: '4px' }} />}
+                            onClick={toggleQueryHistory}
+                            color={displayQueryHistory ? 'white' : 'orange'}
+                            backgroundColor={displayQueryHistory ? 'orange' : 'transparent'}
                             {...ToggleQueryBuilderButtonStyle}
                         />
                         <Spacer />
@@ -164,4 +213,11 @@ const ToggleQueryBuilderButtonStyle = {
     size: 'auto',
     borderRadius: '6px',
     margin: '5px',
+};
+
+const VerticalDividerStyle = {
+    orientation: 'vertical',
+    borderColor: 'veeva_light_gray.500',
+    height: 'auto',
+    borderWidth: '1px',
 };

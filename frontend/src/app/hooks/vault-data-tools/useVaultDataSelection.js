@@ -17,13 +17,14 @@ export default function useVaultDataSelection({
     const extractVaultNames = (input) => {
         if (Array.isArray(input)) {
             return input.map((str) => {
-                const match = str.match(/\(([^)]+)\)/);
+                const match = str.match(/\(([^)]+)\)$/);
+
                 return match ? match[1] : null;
             });
         }
         if (typeof input === 'string') {
             // If it's a single string
-            const match = input.match(/\(([^)]+)\)/);
+            const match = input.match(/\(([^)]+)\)$/);
             return match ? match[1] : null;
         }
     };
@@ -40,9 +41,7 @@ export default function useVaultDataSelection({
         if (event.target.checked) {
             setSelectedOptions([...selectedOptions, extractVaultNames(event.target.name)]);
         } else {
-            setSelectedOptions(
-                selectedOptions.filter((item) => item !== extractVaultNames(event.target.name)),
-            );
+            setSelectedOptions(selectedOptions.filter((item) => item !== extractVaultNames(event.target.name)));
         }
     };
 

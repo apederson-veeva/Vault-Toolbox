@@ -96,25 +96,35 @@ function isVaultDevOrPVMDomain() {
 /**
  * Formats a date/time string to a user-friendly format
  * @param {String} utcDateTimeString - Date/time string in UTC format
- * @param {String} userLocale - User locale
- * @param {String} userTimeZone - User time zone
  * @returns String value of formatted date/time
  */
-export function formatDateTime(utcDateTimeString, userLocale = 'en-US', userTimeZone = 'UTC') {
+export function formatDateTime(utcDateTimeString) {
     const utcDateTimeObj = new Date(utcDateTimeString);
 
-    const formatter = new Intl.DateTimeFormat(userLocale.replace('_', '-'), {
-        timeZone: userTimeZone,
-        timeZoneName: 'short',
+    const formatter = new Intl.DateTimeFormat(undefined, {
         year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: 'numeric',
-        hourCycle: 'h23',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false,
+        timeZoneName: 'short',
     });
 
-    return formatter.format(utcDateTimeObj);
+    // Break the DateTime into structured parts
+    const parts = formatter.formatToParts(utcDateTimeObj);
+
+    // Extract relevant parts dynamically and return in our desired format
+    const year = parts.find((p) => p.type === 'year').value;
+    const month = parts.find((p) => p.type === 'month').value;
+    const day = parts.find((p) => p.type === 'day').value;
+    const hour = parts.find((p) => p.type === 'hour').value;
+    const minute = parts.find((p) => p.type === 'minute').value;
+    const second = parts.find((p) => p.type === 'second').value;
+    const timeZoneName = parts.find((p) => p.type === 'timeZoneName').value;
+
+    return `${year}-${month}-${day} ${hour}:${minute}:${second} ${timeZoneName}`;
 }
 
 /**

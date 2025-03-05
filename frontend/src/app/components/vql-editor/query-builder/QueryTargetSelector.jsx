@@ -1,20 +1,47 @@
-import { Box, Flex, Heading, Spacer } from '@chakra-ui/react';
+import { Box, Center, Flex, Heading, Spinner } from '@chakra-ui/react';
 import ApiErrorMessageCard from '../../shared/ApiErrorMessageCard';
 import CustomSelect from '../../shared/CustomSelect';
 
-export default function QueryTargetSelector() {
-    // Will move to helper file when other targets are introduced
-    const queryTargetOptions = [{ value: 'Objects', label: 'Objects' }];
+export default function QueryTargetSelector({
+    queryTargetOptions,
+    queryTargetsError,
+    selectedQueryTarget,
+    setSelectedQueryTarget,
+    loadingQueryTargets,
+}) {
+    // const queryTargetOptions = [{ value: 'Objects', label: 'Objects' }];
 
     return (
-        <Flex align='center' marginX='5px'>
+        <Flex {...FlexStyle}>
             <Box minWidth='75px' marginRight='5px'>
                 <Heading size='xs'>Target:</Heading>
             </Box>
-            <Box width='100%'>
-                <CustomSelect options={queryTargetOptions} value={queryTargetOptions[0]} />
-            </Box>
-            <Spacer />
+            {loadingQueryTargets ? (
+                <Center>
+                    <Spinner />
+                </Center>
+            ) : (
+                <Box width='100%'>
+                    {queryTargetsError ? (
+                        <ApiErrorMessageCard errorMessage={queryTargetsError} />
+                    ) : (
+                        <CustomSelect
+                            // defaultValue={test}
+                            options={queryTargetOptions}
+                            placeholder='Select a query target...'
+                            isClearable={true}
+                            value={selectedQueryTarget}
+                            onChange={(newValue) => setSelectedQueryTarget(newValue)}
+                        />
+                    )}
+                </Box>
+            )}
         </Flex>
     );
 }
+
+const FlexStyle = {
+    align: 'center',
+    marginX: '5px',
+    marginTop: '10px',
+};

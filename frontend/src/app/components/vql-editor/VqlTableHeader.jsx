@@ -68,7 +68,7 @@ export default function VqlTableHeader({
                         if (typeof consoleOutput.data[0][dataKey] === OBJECT && !isPicklist(dataKey)) {
                             // Get subquery fields from query describe
                             return queryDescribe.subqueries
-                                .find((subquery) => subquery.relationship === dataKey)
+                                .find((subquery) => subquery.relationship === dataKey || subquery.alias === dataKey)
                                 ?.fields.map((field, fieldCount) => {
                                     return (
                                         <Th

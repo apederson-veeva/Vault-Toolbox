@@ -17,8 +17,8 @@ export default function useDataFiles() {
         setFetchFilesError({ hasError: false, errorMessage: '' }); // Clear existing errors
 
         const userId = sessionStorage.getItem('userId');
-        const countFolderPath = `u${userId}/VaultDeveloperToolbox/count`;
-        const deleteFolderPath = `u${userId}/VaultDeveloperToolbox/delete`;
+        const countFolderPath = `u${userId}/VaultToolbox/count`;
+        const deleteFolderPath = `u${userId}/VaultToolbox/delete`;
 
         setLoadingFiles(true);
 
@@ -97,7 +97,7 @@ export default function useDataFiles() {
      */
     const createVaultDataToolsFileStagingFolders = async () => {
         const userId = sessionStorage.getItem('userId');
-        const vaultToolboxPath = `u${userId}/VaultDeveloperToolbox`;
+        const vaultToolboxPath = `u${userId}/VaultToolbox`;
         const countFolderPath = `${vaultToolboxPath}/count`;
         const deleteFolderPath = `${vaultToolboxPath}/delete`;
 

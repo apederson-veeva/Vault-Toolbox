@@ -2,7 +2,7 @@ import { VAULT_CLIENT_ID, getVaultDNS } from '../ApiService.js';
 import { getVaultApiVersion } from '../SharedServices';
 
 export const VAULT_API_VERSION = 'v24.3';
-export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v24.3.0';
+export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v24.3.1';
 
 export const HTTP_HEADER_CONTENT_TYPE = 'Content-Type';
 export const HTTP_HEADER_ACCEPT = 'Accept';
@@ -53,7 +53,7 @@ export function getAPIEndpoint(endpoint, includeVersion = true, vaultDNS = null)
     if (includeVersion) {
         return `https://${vaultDNS}/api/${getVaultApiVersion()}${endpoint}`;
     } else {
-        return `https://${vaultDNS}/api/${endpoint}`;
+        return `https://${vaultDNS}/api${endpoint}`;
     }
 }
 

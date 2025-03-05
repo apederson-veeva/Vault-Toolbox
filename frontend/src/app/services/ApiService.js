@@ -6,7 +6,11 @@ import {
     retrieveApiVersions,
     sessionKeepAlive as vapilSessionKeepAlive,
 } from './vapil/AuthenticationRequest';
-import { retrieveAllDocumentTypes as vapilRetrieveAllDocumentTypes } from './vapil/DocumentRequest';
+import {
+    retrieveAllDocumentTypes as vapilRetrieveAllDocumentTypes,
+    retrieveAllDocumentFields as vapilRetrieveAllDocumentFields,
+} from './vapil/DocumentRequest';
+import { retrieveDocumentSignatureMetadata as vapilRetrieveDocumentSignatureMetadata } from './vapil/DocumentSignatureRequest';
 import { retrieveDomainInformation as vapilRetrieveDomainInformation } from './vapil/DomainRequest';
 import {
     createFolderOrFile as vapilCreateFolderOrFile,
@@ -26,6 +30,7 @@ import {
 } from './vapil/MetaDataRequest';
 import { retrievePicklistValues as vapilRetrievePicklistValues } from './vapil/PicklistRequest';
 import { query as vapilQuery, queryByPage as vapilQueryByPage } from './vapil/QueryRequest';
+import { retrieveUserMetadata as vapilRetrieveUserMetadata } from './vapil/UserRequest';
 import { getAPIEndpoint, HTTP_HEADER_AUTHORIZATION } from './vapil/VaultRequest';
 
 export const VAULT_CLIENT_ID = 'veeva-vault-toolbox';
@@ -69,6 +74,32 @@ export async function retrieveAllDocumentTypes() {
 }
 
 /**
+ * Calls the Vault API's Retrieve All Document Fields endpoint.
+ * @returns Vault Response
+ */
+export async function retrieveAllDocumentFields() {
+    try {
+        const { response } = await vapilRetrieveAllDocumentFields();
+        return response;
+    } catch (error) {
+        return handleErrors(error);
+    }
+}
+
+/**
+ * Calls the Vault API's Retrieve Document Signature Metadata endpoint.
+ * @returns Vault Response
+ */
+export async function retrieveDocumentSignatureMetadata() {
+    try {
+        const { response } = await vapilRetrieveDocumentSignatureMetadata();
+        return response;
+    } catch (error) {
+        return handleErrors(error);
+    }
+}
+
+/**
  * Calls the Vault API's Retrieve All Document Types endpoint.
  * @returns Vault Response
  */
@@ -98,7 +129,7 @@ export async function query(queryString) {
             apiExecutionEndTime,
         });
 
-        return { queryResponse: response, responseTelemetry };
+        return { queryResponse: response, responseTelemetry, responseHeaders };
     } catch (error) {
         return handleErrors(error);
     }
@@ -325,6 +356,19 @@ export async function retrieveObjectMetadata(objectName) {
 }
 
 /**
+ * Calls the Vault API's Retrieve User Metadata endpoint.
+ * @returns Vault Response
+ */
+export async function retrieveUserMetadata() {
+    try {
+        const { response } = await vapilRetrieveUserMetadata();
+        return { response };
+    } catch (error) {
+        return handleErrors(error);
+    }
+}
+
+/**
  * Calls the Vault API's Retrieve Picklist Values endpoint.
  * @returns Vault Response
  */
@@ -374,17 +418,17 @@ export async function login(params) {
                             const vaultUserId = responseHeaders.get('x-vaultapi-userid');
                             if (vaultUserId) {
                                 // System user not supported
-                                if (vaultUserId === '1') {
-                                    return {
-                                        responseStatus: 'FAILURE',
-                                        errors: [
-                                            {
-                                                type: 'INVALID_SESSION_ID',
-                                                message: 'System user not supported',
-                                            },
-                                        ],
-                                    };
-                                }
+                                // if (vaultUserId === '1') {
+                                //     return {
+                                //         responseStatus: 'FAILURE',
+                                //         errors: [
+                                //             {
+                                //                 type: 'INVALID_SESSION_ID',
+                                //                 message: 'System user not supported',
+                                //             },
+                                //         ],
+                                //     };
+                                // }
                                 sessionStorage.setItem('userId', vaultUserId);
                             }
                             return response;

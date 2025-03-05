@@ -1,51 +1,42 @@
-import { useEffect, useRef, useState } from 'react';
-import VqlDefinitions from '../../components/vql-editor/query-builder/VqlDefinitions';
+import { useEffect, useMemo, useState } from 'react';
+import VqlQueryMetadata from '../../components/vql-editor/query-builder/VqlQueryMetadata';
 import {
+    retrieveAllComponentMetadata,
+    retrieveAllDocumentFields,
     retrieveComponentRecordXmlJson,
+    retrieveDocumentSignatureMetadata,
     retrieveObjectCollection,
     retrieveObjectMetadata,
     retrievePicklistValues,
+    retrieveUserMetadata,
 } from '../../services/ApiService';
 
-export default function useQueryBuilder({ setCode }) {
-    const [displayQueryBuilder, setDisplayQueryBuilder] = useState(true);
-    const [sidePanelCollapsed, setSidePanelCollapsed] = useState(false);
-    const [vaultObjects, setVaultObjects] = useState([]);
-    const [vaultObjectsError, setVaultObjectsError] = useState('');
-    const [loadingVaultObjects, setLoadingVaultObjects] = useState(false);
-    const [selectedObject, setSelectedObject] = useState();
+export default function useQueryBuilder({ setCode, previousQueryResults, setPreviousQueryResults }) {
+    const [selectedQueryCategory, setSelectedQueryCategory] = useState();
+    const [queryTargetOptions, setQueryTargetOptions] = useState([]);
+    const [queryTargetsError, setQueryTargetsError] = useState('');
+    const [loadingQueryTargets, setLoadingQueryTargets] = useState(false);
+    const [selectedQueryTarget, setSelectedQueryTarget] = useState();
     const [selectedFields, setSelectedFields] = useState();
     const [selectedFilters, setSelectedFilters] = useState([]);
     const [fieldOptions, setFieldOptions] = useState();
     const [fieldOptionsError, setFieldOptionsError] = useState('');
-    const [loadingObjectMetadata, setLoadingObjectMetadata] = useState(false);
+    const [loadingFieldMetadata, setLoadingFieldMetadata] = useState(false);
     const [logicalOperator, setLogicalOperator] = useState('AND');
     const [picklistValueOptions, setPicklistValueOptions] = useState([]);
     const [objectLifecycleStateOptions, setObjectLifecycleStateOptions] = useState([]);
 
-    const queryBuilderPanelRef = useRef(null);
-
-    const { supportedQueryFilterOperators, booleanValues, attachmentsQueryTarget } =
-        VqlDefinitions();
-
-    /**
-     * Opens/closes the query builder panel
-     */
-    const toggleQueryBuilder = () => {
-        if (displayQueryBuilder) {
-            setSidePanelCollapsed(true);
-        } else {
-            setSidePanelCollapsed(false);
-        }
-        setDisplayQueryBuilder(!displayQueryBuilder);
-    };
+    // Memoized to avoid expensive recalculations since VqlQueryMetadata won't change during runtime
+    const vqlQueryMetadata = useMemo(() => VqlQueryMetadata(), []);
+    const { queryCategories, queryTargets, supportedQueryFilterOperators, booleanValues, attachmentsQueryTarget } =
+        vqlQueryMetadata;
 
     /**
      * Retrieves all Vault objects via the query endpoint and loads them into state
      */
     const fetchVaultObjects = async () => {
-        setLoadingVaultObjects(true);
-        setVaultObjectsError('');
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
 
         const objectResponse = await retrieveObjectCollection();
         if (objectResponse?.responseStatus === 'FAILURE') {
@@ -53,8 +44,8 @@ export default function useQueryBuilder({ setCode }) {
             if (objectResponse?.errors?.length > 0) {
                 error = `${objectResponse.errors[0].type} : ${objectResponse.errors[0].message}`;
             }
-            setVaultObjectsError(error);
-            setLoadingVaultObjects(false);
+            setQueryTargetsError(error);
+            setLoadingQueryTargets(false);
             return;
         }
 
@@ -66,9 +57,9 @@ export default function useQueryBuilder({ setCode }) {
             });
         });
 
-        setVaultObjects(vaultObjectArray.sort((a, b) => a?.label.localeCompare(b?.label)));
+        setQueryTargetOptions(vaultObjectArray.sort((a, b) => a?.label.localeCompare(b?.label)));
 
-        setLoadingVaultObjects(false);
+        setLoadingQueryTargets(false);
     };
 
     /**
@@ -76,17 +67,21 @@ export default function useQueryBuilder({ setCode }) {
      * into state.
      */
     const fetchObjectMetadata = async () => {
-        setLoadingObjectMetadata(true);
+        setLoadingFieldMetadata(true);
         setFieldOptionsError('');
+        setPreviousQueryResults((prevState) => ({
+            ...prevState,
+            isMatch: false, // Reset whenever the target object changes
+        }));
 
-        const { response } = await retrieveObjectMetadata(selectedObject?.value);
+        const { response } = await retrieveObjectMetadata(selectedQueryTarget?.value);
 
         if (response?.responseStatus === 'SUCCESS') {
             const lifecycle = response?.object?.available_lifecycles?.toString();
             const objectFields = response?.object?.fields?.map((field) => {
                 return {
                     value: field.name,
-                    label: field.label,
+                    label: `${field.label} (${field.name})`,
                     fieldType: field.type,
                     picklist: field?.picklist,
                     formula: field?.formula, // Captured so we can exclude formula fields from the WHERE clause
@@ -102,26 +97,22 @@ export default function useQueryBuilder({ setCode }) {
 
             let relationshipFieldOptions = [];
             if (objectRelationships) {
+                // If object has a relationship to previous results, store that relationship so we can suggest a filter
+                // on the previous results
+                checkRelationshipToPreviousResults(objectRelationships);
+
                 const outboundRelationshipOptions = createRelationshipOptions(
                     objectRelationships,
                     'reference_outbound',
                     false,
                 );
-                const parentRelationshipOptions = createRelationshipOptions(
-                    objectRelationships,
-                    'parent',
-                    false,
-                );
+                const parentRelationshipOptions = createRelationshipOptions(objectRelationships, 'parent', false);
                 const inboundRelationshipOptions = createRelationshipOptions(
                     objectRelationships,
                     'reference_inbound',
                     true,
                 );
-                const childRelationshipOptions = createRelationshipOptions(
-                    objectRelationships,
-                    'child',
-                    true,
-                );
+                const childRelationshipOptions = createRelationshipOptions(objectRelationships, 'child', true);
                 const objectAttachmentOptions = allowsAttachments
                     ? createQueryFieldOptions(
                           attachmentsQueryTarget.queryTarget,
@@ -172,7 +163,1329 @@ export default function useQueryBuilder({ setCode }) {
             setFieldOptionsError(error);
         }
 
-        setLoadingObjectMetadata(false);
+        setLoadingFieldMetadata(false);
+    };
+
+    const checkRelationshipToPreviousResults = (objectRelationships) => {
+        objectRelationships.forEach((relationship) => {
+            if (
+                relationship?.relationship_type === 'parent' ||
+                relationship?.relationship_type === 'reference_outbound'
+            ) {
+                if (relationship?.object?.name === previousQueryResults?.queryTarget) {
+                    setPreviousQueryResults((prevState) => ({
+                        ...prevState,
+                        relationship: relationship?.field,
+                        isMatch: true,
+                    }));
+                }
+            }
+        });
+    };
+
+    /**
+     * Retrieves the Vault document query target options and loads them into state
+     */
+    const loadDocumentQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const documentQueryTargets = queryTargets.Documents.map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(documentQueryTargets.sort((a, b) => a?.label.localeCompare(b?.label)));
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadDocumentQueryTargetMetadata = async () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const response = await retrieveAllDocumentFields();
+
+        if (response?.responseStatus === 'SUCCESS') {
+            const documentFields = response?.properties?.reduce((fieldsArray, currentField) => {
+                if (currentField?.queryable) {
+                    fieldsArray.push({
+                        value: currentField.name,
+                        label: currentField.label ? `${currentField.label} (${currentField.name})` : currentField.name,
+                        fieldType: currentField.type,
+                        ...(currentField.type === 'Picklist' && { picklistEntries: currentField?.entryLabels }),
+                    });
+                }
+                return fieldsArray;
+            }, []);
+
+            documentFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+            const documentRelationships = response?.properties?.reduce((relationshipsArray, currentField) => {
+                if (
+                    currentField?.queryable &&
+                    currentField?.type === 'ObjectReference' &&
+                    currentField?.relationshipType === 'reference' &&
+                    currentField.relationshipName
+                ) {
+                    relationshipsArray.push({
+                        relationship_name: currentField.relationshipName,
+                        relationship_label: currentField.label || currentField.name,
+                        field: currentField?.objectType,
+                        relationship_type: currentField?.relationshipType,
+                        object: { name: currentField?.objectType },
+                    });
+                }
+                return relationshipsArray;
+            }, []);
+            const referenceRelationshipOptions = createRelationshipOptions(documentRelationships, 'reference', true);
+
+            const documentAttachmentOptions =
+                createQueryFieldOptions(
+                    attachmentsQueryTarget.queryTarget,
+                    attachmentsQueryTarget.documentAttachmentFields,
+                    true,
+                    'Attachments',
+                ) || [];
+
+            const documentRoleOptions =
+                createQueryFieldOptions(
+                    queryTargets.Documents[0].metadata.subqueries.documentRolesQueryTarget.subQueryTarget,
+                    queryTargets.Documents[0].metadata.subqueries.documentRolesQueryTarget.fields,
+                    true,
+                    'Document Roles',
+                ) || [];
+
+            const documentRenditionsOptions =
+                createQueryFieldOptions(
+                    queryTargets.Documents[0].metadata.subqueries.renditionsQueryTarget.subQueryTarget,
+                    queryTargets.Documents[0].metadata.subqueries.renditionsQueryTarget.fields,
+                    true,
+                    'Document Renditions',
+                ) || [];
+
+            const documentSignatureOptions = (await loadDocumentSignatureFieldOptions()) || [];
+
+            const relationshipFieldOptions = [
+                {
+                    label: 'Reference Relationships',
+                    options: referenceRelationshipOptions,
+                },
+                {
+                    label: 'Document Roles',
+                    options: documentRoleOptions,
+                },
+                {
+                    label: 'Document Signatures',
+                    options: documentSignatureOptions,
+                },
+                {
+                    label: 'Document Renditions',
+                    options: documentRenditionsOptions,
+                },
+                {
+                    label: 'Attachments',
+                    options: documentAttachmentOptions,
+                },
+            ];
+
+            const allFieldOptions = [
+                {
+                    label: 'Fields',
+                    options: documentFields,
+                },
+                ...relationshipFieldOptions,
+            ];
+
+            setFieldOptions(allFieldOptions);
+        } else if (response?.responseStatus === 'FAILURE') {
+            let error = '';
+            if (response?.errors?.length > 0) {
+                error = `${response.errors[0].type} : ${response.errors[0].message}`;
+            }
+            setFieldOptionsError(error);
+        }
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadDocumentRoleQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const docRoleQueryTargets = queryTargets['Document Roles'].map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(docRoleQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadDocumentRoleQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const documentRoleQueryTargetMetadata = queryTargets['Document Roles'][0].metadata;
+
+        const documentRoleFields = documentRoleQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        documentRoleFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const outboundRelationshipOptions = createRelationshipOptions(
+            documentRoleQueryTargetMetadata.relationships,
+            'reference_outbound',
+            false,
+        );
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: documentRoleFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadDocumentRelationshipsQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const docRelationshipQueryTargets = queryTargets['Document Relationships'].map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(docRelationshipQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadDocumentRelationshipsQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const documentRelationshipsQueryTargetMetadata = queryTargets['Document Relationships'][0].metadata;
+
+        const documentRelationshipFields = documentRelationshipsQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        documentRelationshipFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const outboundRelationshipOptions = createRelationshipOptions(
+            documentRelationshipsQueryTargetMetadata.relationships,
+            'reference_outbound',
+            false,
+        );
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: documentRelationshipFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadBinderQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const docRelationshipQueryTargets = queryTargets.Binders.map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(docRelationshipQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadBinderQueryTargetMetadata = async () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        // Binder fields are the same as document fields
+        const response = await retrieveAllDocumentFields();
+
+        if (response?.responseStatus === 'SUCCESS') {
+            const documentFields = response?.properties?.reduce((fieldsArray, currentField) => {
+                if (currentField?.queryable) {
+                    fieldsArray.push({
+                        value: currentField.name,
+                        label: currentField.label ? `${currentField.label} (${currentField.name})` : currentField.name,
+                        fieldType: currentField.type,
+                    });
+                }
+                return fieldsArray;
+            }, []);
+
+            documentFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+            const documentRelationships = response?.properties?.reduce((relationshipsArray, currentField) => {
+                if (
+                    currentField?.queryable &&
+                    currentField?.type === 'ObjectReference' &&
+                    currentField?.relationshipType === 'reference' &&
+                    currentField.relationshipName
+                ) {
+                    relationshipsArray.push({
+                        relationship_name: currentField.relationshipName,
+                        relationship_label: currentField.label || currentField.name,
+                        field: currentField?.objectType,
+                        relationship_type: currentField?.relationshipType,
+                        object: { name: currentField?.objectType },
+                    });
+                }
+                return relationshipsArray;
+            }, []);
+            const referenceRelationshipOptions = createRelationshipOptions(documentRelationships, 'reference', true);
+
+            const binderNodeOptions = createQueryFieldOptions(
+                'binder_nodes__sysr',
+                queryTargets.Binders[1].metadata.fields,
+                true,
+                'Binder Nodes',
+            );
+
+            const relationshipFieldOptions = [
+                {
+                    label: 'Reference Relationships',
+                    options: referenceRelationshipOptions,
+                },
+                {
+                    label: 'Binder Nodes',
+                    options: binderNodeOptions,
+                },
+            ];
+
+            const allFieldOptions = [
+                {
+                    label: 'Fields',
+                    options: documentFields,
+                },
+                ...relationshipFieldOptions,
+            ];
+
+            setFieldOptions(allFieldOptions);
+        } else if (response?.responseStatus === 'FAILURE') {
+            let error = '';
+            if (response?.errors?.length > 0) {
+                error = `${response.errors[0].type} : ${response.errors[0].message}`;
+            }
+            setFieldOptionsError(error);
+        }
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadBinderNodesQueryTargetMetadata = async () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const binderNodesQueryTargetMetadata = queryTargets.Binders[1].metadata;
+
+        const binderNodeFields = createQueryFieldOptions(
+            binderNodesQueryTargetMetadata.queryTarget,
+            binderNodesQueryTargetMetadata.fields,
+            false,
+            binderNodesQueryTargetMetadata.label,
+        );
+
+        binderNodeFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const outboundRelationshipOptions = createRelationshipOptions(
+            binderNodesQueryTargetMetadata.relationships,
+            'reference_outbound',
+            false,
+        );
+
+        let parentRelationshipOptions = [];
+        binderNodesQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship.relationship_type === 'parent') {
+                if (relationship.relationship_name === 'binder__sysr') {
+                    parentRelationshipOptions.push(...createRelationshipOptions([relationship], 'parent', true));
+                } else {
+                    parentRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            binderNodesQueryTargetMetadata.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        let childRelationshipOptions = [];
+        binderNodesQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship.relationship_type === 'child') {
+                childRelationshipOptions.push(
+                    ...createRelationshipOptionsFromFields(relationship, binderNodesQueryTargetMetadata.fields, true),
+                );
+            }
+        });
+
+        const relationshipFieldOptions = [
+            { label: 'Outbound Relationships', options: outboundRelationshipOptions },
+            { label: 'Parent Relationships', options: parentRelationshipOptions },
+            { label: 'Child Relationships', options: childRelationshipOptions },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: binderNodeFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadDocumentSignatureFieldOptions = async () => {
+        const response = await retrieveDocumentSignatureMetadata();
+
+        if (response?.responseStatus === 'SUCCESS') {
+            const documentSignatureFields = response?.properties?.fields?.reduce((fieldsArray, currentField) => {
+                fieldsArray.push({
+                    field: currentField.name,
+                    label: currentField.label ? `${currentField.label} (${currentField.name})` : null,
+                    fieldType: currentField.type,
+                });
+                return fieldsArray;
+            }, []);
+
+            documentSignatureFields.sort((a, b) => a?.field.localeCompare(b?.field));
+
+            const docSignaturesQueryTarget =
+                queryTargets.Documents[0].metadata.subqueries.documentSignaturesQueryTarget;
+            return createQueryFieldOptions(
+                docSignaturesQueryTarget.subQueryTarget,
+                documentSignatureFields,
+                true,
+                docSignaturesQueryTarget.label,
+            );
+        }
+    };
+
+    const loadUsersQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const usersQueryTargets = queryTargets['Users'].map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(usersQueryTargets);
+        setLoadingQueryTargets(false);
+    };
+
+    const loadUsersQueryTargetMetadata = async () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const { response } = await retrieveUserMetadata();
+
+        if (response?.responseStatus === 'SUCCESS') {
+            const userFields = response?.properties?.reduce((fieldsArray, currentField) => {
+                if (currentField?.queryable) {
+                    fieldsArray.push({
+                        value: currentField.name,
+                        label: currentField.label ? `${currentField.label} (${currentField.name})` : currentField.name,
+                        fieldType: currentField.type,
+                        values: currentField.values, // certain user fields have selectable values included (e.g. user_timezone__v)
+                    });
+                }
+                return fieldsArray;
+            }, []);
+
+            userFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+            const allFieldOptions = [
+                {
+                    label: 'Fields',
+                    options: userFields,
+                },
+            ];
+
+            setFieldOptions(allFieldOptions);
+        } else if (response?.responseStatus === 'FAILURE') {
+            let error = '';
+            if (response?.errors?.length > 0) {
+                error = `${response.errors[0].type} : ${response.errors[0].message}`;
+            }
+            setFieldOptionsError(error);
+        }
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadRenditionsQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const renditionsQueryTargets = queryTargets.Renditions.map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(renditionsQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadRenditionsQueryTargetMetadata = async () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const renditionsQueryTargetMetadata = queryTargets.Renditions[0].metadata;
+
+        const renditionsFields = renditionsQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        renditionsFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: renditionsFields,
+            },
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadMatchedDocumentsQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const matchedDocumentsQueryTargets = queryTargets['Matched Documents'].map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(matchedDocumentsQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadMatchedDocumentsQueryTargetMetadata = async () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const matchedDocumentsQueryTargetMetadata = queryTargets['Matched Documents'][0].metadata;
+
+        const matchedDocumentsFields = matchedDocumentsQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        matchedDocumentsFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const outboundRelationshipOptions = createRelationshipOptions(
+            matchedDocumentsQueryTargetMetadata.relationships,
+            'reference_outbound',
+            false,
+        );
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: matchedDocumentsFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadJobsQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const jobsQueryTargets = queryTargets.Jobs.map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(jobsQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadJobInstanceQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const jobInstanceQueryTargetMetadata = queryTargets.Jobs[0].metadata;
+
+        const jobInstanceFields = jobInstanceQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        jobInstanceFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: jobInstanceFields,
+            },
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadJobHistoryQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const jobHistoryQueryTargetMetadata = queryTargets.Jobs[1].metadata;
+
+        const jobHistoryFields = jobHistoryQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        jobHistoryFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let inboundRelationshipOptions = [];
+        jobHistoryQueryTargetMetadata.relationships.forEach((relationship) => {
+            inboundRelationshipOptions.push(
+                ...createRelationshipOptionsFromFields(relationship, queryTargets.Jobs[2].metadata.fields, true),
+            );
+        });
+
+        const relationshipFieldOptions = [{ label: 'Inbound Relationships', options: inboundRelationshipOptions }];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: jobHistoryFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadJobTaskHistoryQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const jobTaskHistoryQueryTargetMetadata = queryTargets.Jobs[2].metadata;
+
+        const jobTaskHistoryFields = jobTaskHistoryQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        jobTaskHistoryFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        jobTaskHistoryQueryTargetMetadata.relationships.forEach((relationship) => {
+            outboundRelationshipOptions.push(
+                ...createRelationshipOptionsFromFields(relationship, queryTargets.Jobs[1].metadata.fields),
+            );
+        });
+
+        const relationshipFieldOptions = [{ label: 'Inbound Relationships', options: outboundRelationshipOptions }];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: jobTaskHistoryFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadGroupsQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const groupsQueryTargets = queryTargets.Groups.map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(groupsQueryTargets);
+
+        setLoadingQueryTargets(false);
+    };
+
+    const loadGroupQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const groupsQueryTargetMetadata = queryTargets.Groups[0].metadata;
+
+        const groupsFields = groupsQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        groupsFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let inboundRelationshipOptions = [];
+        groupsQueryTargetMetadata.relationships.forEach((relationship) => {
+            inboundRelationshipOptions.push(
+                ...createRelationshipOptionsFromFields(relationship, queryTargets.Groups[1].metadata.fields, true),
+            );
+        });
+
+        const relationshipFieldOptions = [{ label: 'Inbound Relationships', options: inboundRelationshipOptions }];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: groupsFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadGroupMembershipQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const groupMembershipQueryTargetMetadata = queryTargets.Groups[1].metadata;
+
+        const groupMembershipFields = groupMembershipQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        groupMembershipFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        groupMembershipQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship.relationship_name === 'user__sysr') {
+                outboundRelationshipOptions.push(...createRelationshipOptions([relationship], 'reference_outbound'));
+            } else {
+                outboundRelationshipOptions.push(
+                    ...createRelationshipOptionsFromFields(relationship, queryTargets.Groups[0].metadata.fields),
+                );
+            }
+        });
+
+        const relationshipFieldOptions = [{ label: 'Outbound Relationships', options: outboundRelationshipOptions }];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: groupMembershipFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadWorkflowQueryTargetOptions = () => {
+        setLoadingQueryTargets(true);
+        setQueryTargetsError('');
+
+        const workflowQueryTargets = queryTargets.Workflows.map((queryTarget) => {
+            return {
+                label: `${queryTarget?.label} (${queryTarget?.name})`,
+                value: queryTarget?.name,
+            };
+        });
+
+        setQueryTargetOptions(workflowQueryTargets);
+        setLoadingQueryTargets(false);
+    };
+
+    const loadActiveWorkflowObjectsQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowQueryTargetMetadata = queryTargets.Workflows[0].metadata;
+
+        const workflowFields = workflowQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const outboundRelationshipOptions = createRelationshipOptions(
+            workflowQueryTargetMetadata.relationships,
+            'reference_outbound',
+            false,
+        );
+
+        let inboundRelationshipOptions = [];
+        workflowQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_inbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+                if (relationshipQueryTargetMetadata?.fields) {
+                    inboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+            { label: 'Inbound Relationships', options: inboundRelationshipOptions },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadInactiveWorkflowObjectsQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowQueryTargetMetadata = queryTargets.Workflows[1].metadata;
+
+        const workflowFields = workflowQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        const outboundRelationshipOptions = createRelationshipOptions(
+            workflowQueryTargetMetadata.relationships,
+            'reference_outbound',
+            false,
+        );
+
+        let inboundRelationshipOptions = [];
+        workflowQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_inbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+                if (relationshipQueryTargetMetadata?.fields) {
+                    inboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+            { label: 'Inbound Relationships', options: inboundRelationshipOptions },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadActiveWorkflowItemsQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowItemsQueryTargetMetadata = queryTargets.Workflows[2].metadata;
+
+        const workflowItemFields = workflowItemsQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowItemFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        workflowItemsQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_outbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+
+                if (relationshipQueryTargetMetadata?.fields) {
+                    outboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowItemFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadInactiveWorkflowItemsQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowItemsQueryTargetMetadata = queryTargets.Workflows[3].metadata;
+
+        const workflowItemFields = workflowItemsQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowItemFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        workflowItemsQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_outbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+
+                if (relationshipQueryTargetMetadata?.fields) {
+                    outboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowItemFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadActiveWorkflowTaskQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowTasksQueryTargetMetadata = queryTargets.Workflows[4].metadata;
+
+        const workflowTaskFields = workflowTasksQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowTaskFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        workflowTasksQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_outbound') {
+                if (relationship?.field) {
+                    outboundRelationshipOptions.push(
+                        ...createRelationshipOptions([relationship], 'reference_outbound', false),
+                    );
+                } else {
+                    const relationshipQueryTarget = queryTargets.Workflows.find(
+                        (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                    );
+                    const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+
+                    if (relationshipQueryTargetMetadata?.fields) {
+                        outboundRelationshipOptions.push(
+                            ...createRelationshipOptionsFromFields(
+                                relationship,
+                                relationshipQueryTargetMetadata?.fields,
+                                true,
+                            ),
+                        );
+                    }
+                }
+            }
+        });
+
+        let inboundRelationshipOptions = [];
+        workflowTasksQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_inbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+                if (relationshipQueryTargetMetadata?.fields) {
+                    inboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+            { label: 'Inbound Relationships', options: inboundRelationshipOptions },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowTaskFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadInactiveWorkflowTaskQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowTasksQueryTargetMetadata = queryTargets.Workflows[5].metadata;
+
+        const workflowTaskFields = workflowTasksQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowTaskFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        workflowTasksQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_outbound') {
+                if (relationship?.field) {
+                    outboundRelationshipOptions.push(
+                        ...createRelationshipOptions([relationship], 'reference_outbound', false),
+                    );
+                } else {
+                    const relationshipQueryTarget = queryTargets.Workflows.find(
+                        (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                    );
+                    const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+
+                    if (relationshipQueryTargetMetadata?.fields) {
+                        outboundRelationshipOptions.push(
+                            ...createRelationshipOptionsFromFields(
+                                relationship,
+                                relationshipQueryTargetMetadata?.fields,
+                                true,
+                            ),
+                        );
+                    }
+                }
+            }
+        });
+
+        let inboundRelationshipOptions = [];
+        workflowTasksQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_inbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+                if (relationshipQueryTargetMetadata?.fields) {
+                    inboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+            { label: 'Inbound Relationships', options: inboundRelationshipOptions },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowTaskFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadActiveWorkflowTaskItemQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowTaskItemQueryTargetMetadata = queryTargets.Workflows[6].metadata;
+
+        const workflowTaskItemFields = workflowTaskItemQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowTaskItemFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        workflowTaskItemQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_outbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+
+                if (relationshipQueryTargetMetadata?.fields) {
+                    outboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowTaskItemFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
+    };
+
+    const loadInactiveWorkflowTaskItemQueryTargetMetadata = () => {
+        setLoadingFieldMetadata(true);
+        setFieldOptionsError('');
+
+        const workflowTaskItemQueryTargetMetadata = queryTargets.Workflows[7].metadata;
+
+        const workflowTaskItemFields = workflowTaskItemQueryTargetMetadata.fields.map((currentField) => {
+            return {
+                value: currentField.field,
+                label: currentField.label ? `${currentField.label} (${currentField.field})` : currentField.field,
+                fieldType: currentField.fieldType,
+            };
+        });
+        workflowTaskItemFields.sort((a, b) => a?.label.localeCompare(b?.label));
+
+        let outboundRelationshipOptions = [];
+        workflowTaskItemQueryTargetMetadata.relationships.forEach((relationship) => {
+            if (relationship?.relationship_type === 'reference_outbound') {
+                const relationshipQueryTarget = queryTargets.Workflows.find(
+                    (queryTarget) => queryTarget?.name === relationship.relationship_query_target,
+                );
+                const relationshipQueryTargetMetadata = relationshipQueryTarget?.metadata;
+
+                if (relationshipQueryTargetMetadata?.fields) {
+                    outboundRelationshipOptions.push(
+                        ...createRelationshipOptionsFromFields(
+                            relationship,
+                            relationshipQueryTargetMetadata?.fields,
+                            true,
+                        ),
+                    );
+                }
+            }
+        });
+
+        const relationshipFieldOptions = [
+            {
+                label: 'Outbound Relationships',
+                options: outboundRelationshipOptions,
+            },
+        ];
+
+        const allFieldOptions = [
+            {
+                label: 'Fields',
+                options: workflowTaskItemFields,
+            },
+            ...relationshipFieldOptions,
+        ];
+
+        setFieldOptions(allFieldOptions);
+        setLoadingFieldMetadata(false);
     };
 
     /**
@@ -231,33 +1544,33 @@ export default function useQueryBuilder({ setCode }) {
     };
 
     /**
-     * Helper function that creates array of the default selectable options for an object relationship.
-     * @param relationships - array of relationship objects (from Retrieve Object Metadata response)
+     * Helper function that creates array of the default selectable options for a relationship. These include
+     * hard-coded fields for objects and documents.
+     * @param relationships - array of relationship objects (e.g. from Retrieve Object Metadata response)
      * @param relationshipType - type of relationship (child, parent, inbound, outbound, etc.)
-     * @param includeSubqueryTarget - if a relationship type will be a subquery, includes subquery target in the options
+     * @param includeSubqueryTarget - if a relationship type will be a subquery, includes subquery target in the
+     *     options
      * @returns {Array} default selection fields for given relationship type
      */
-    const createRelationshipOptions = (
-        relationships,
-        relationshipType,
-        includeSubqueryTarget = false,
-    ) => {
+    const createRelationshipOptions = (relationships, relationshipType, includeSubqueryTarget = false) => {
         return relationships
             .filter((relationship) => relationship?.relationship_type === relationshipType)
             .flatMap((relationship) => {
-                const idFields = [
-                    includeSubqueryTarget
-                        ? {
-                              label: `${relationship?.relationship_label}: ID`,
-                              value: `${relationship?.relationship_name}.id`,
-                              fieldType: 'ID',
-                          }
-                        : {
-                              label: `${relationship?.relationship_label}: ID`,
-                              value: `${relationship?.field}`,
-                              fieldType: 'ID',
-                          },
-                ];
+                const idFields = !relationship?.excludeIdField
+                    ? [
+                          includeSubqueryTarget
+                              ? {
+                                    label: `${relationship?.relationship_label} (${relationship?.relationship_name}): ID (id)`,
+                                    value: `${relationship?.relationship_name}.id`,
+                                    fieldType: 'ID',
+                                }
+                              : {
+                                    label: `${relationship?.relationship_label} (${relationship?.relationship_name}): ID (id)`,
+                                    value: `${relationship?.field}`,
+                                    fieldType: 'ID',
+                                },
+                      ]
+                    : [];
 
                 const commonFields = [
                     {
@@ -362,6 +1675,23 @@ export default function useQueryBuilder({ setCode }) {
                     }),
                 }));
             });
+    };
+
+    /**
+     * Helper function that creates array of selectable options for a relationship from provided fields.
+     * @param relationship - relationship object (e.g. modeled from Retrieve Object Metadata response)
+     * @param includeSubqueryTarget - if a relationship type will be a subquery, includes subquery target in the options
+     * @returns {Array} selection fields for given relationship
+     */
+    const createRelationshipOptionsFromFields = (relationship, fields, includeSubqueryTarget = false) => {
+        return fields.map((field) => ({
+            label: `${relationship?.relationship_label} (${relationship?.relationship_name}): ${field.label} (${field.field})`,
+            value: `${relationship?.relationship_name}.${field.field}`,
+            fieldType: field.fieldType,
+            ...(includeSubqueryTarget && {
+                subqueryTarget: relationship?.relationship_name,
+            }),
+        }));
     };
 
     /**
@@ -481,7 +1811,7 @@ export default function useQueryBuilder({ setCode }) {
             });
         }
 
-        const queryString = `SELECT ${fieldsString} \nFROM ${selectedObject?.value} ${whereClause}`;
+        const queryString = `SELECT ${fieldsString} \nFROM ${selectedQueryTarget?.value} ${whereClause}`;
 
         setCode(queryString);
     };
@@ -498,7 +1828,7 @@ export default function useQueryBuilder({ setCode }) {
          */
         let canBuild = true;
 
-        if (!selectedObject?.value || selectedFields.length === 0) {
+        if (!selectedQueryTarget?.value || selectedFields.length === 0) {
             canBuild = false;
         }
 
@@ -531,8 +1861,7 @@ export default function useQueryBuilder({ setCode }) {
      * @param fieldType
      */
     const getOperatorOptions = (fieldType) => {
-        const supportedOperators =
-            supportedQueryFilterOperators[fieldType] || supportedQueryFilterOperators['Default'];
+        const supportedOperators = supportedQueryFilterOperators[fieldType] || supportedQueryFilterOperators['Default'];
         return convertArrayToSelectOptions(supportedOperators);
     };
 
@@ -546,6 +1875,19 @@ export default function useQueryBuilder({ setCode }) {
             field: '',
             operator: '',
             value: '',
+        };
+
+        setSelectedFilters((prevFilters) => [...prevFilters, newFilterRow]);
+    };
+
+    /**
+     * Creates a new query filter row based on the previous query results.
+     */
+    const addPreviousResultsFilterRow = () => {
+        const newFilterRow = {
+            field: { value: previousQueryResults?.relationship, label: previousQueryResults?.relationship },
+            operator: { value: 'CONTAINS', label: 'CONTAINS' },
+            value: previousQueryResults?.values?.map((value) => ({ value: value, label: value })),
         };
 
         setSelectedFilters((prevFilters) => [...prevFilters, newFilterRow]);
@@ -580,8 +1922,18 @@ export default function useQueryBuilder({ setCode }) {
         };
 
         // If the field has been updated to a Picklist or LC State, load the appropriate options
-        if (field === 'field' && newValue?.fieldType === 'Picklist' && newValue?.picklist) {
-            fetchPicklistValues(newValue.picklist);
+        if (field === 'field' && newValue?.fieldType === 'Picklist') {
+            // Document fields provide the picklist entry names, not a reference to the picklist, so load those directly
+            if (newValue?.picklistEntries) {
+                const picklistOptions = newValue?.picklistEntries?.map((picklistValue) => ({
+                    value: picklistValue,
+                    label: picklistValue,
+                }));
+
+                setPicklistValueOptions(picklistOptions);
+            } else if (newValue?.picklist) {
+                fetchPicklistValues(newValue.picklist);
+            }
         } else if (field === 'field' && newValue?.isObjectLifecycleStateField) {
             fetchObjectLifecycleStateValues(`Objectlifecycle.${newValue.lifecycle}`);
         }
@@ -600,13 +1952,10 @@ export default function useQueryBuilder({ setCode }) {
                 updatedSelectedFilters[rowIndexAsNumber]?.operator?.value !== 'CONTAINS') ||
             (previousFilterRow?.operator?.value !== 'CONTAINS' &&
                 updatedSelectedFilters[rowIndexAsNumber]?.operator?.value === 'CONTAINS') ||
-            updatedSelectedFilters[rowIndexAsNumber]?.field?.fieldType !==
-                previousFilterRow?.field?.fieldType ||
+            updatedSelectedFilters[rowIndexAsNumber]?.field?.fieldType !== previousFilterRow?.field?.fieldType ||
             updatedSelectedFilters[rowIndexAsNumber]?.field?.isObjectLifecycleStateField !==
                 previousFilterRow?.field?.isObjectLifecycleStateField ||
-            (field === 'field' &&
-                newValue?.picklist &&
-                newValue?.picklist !== previousFilterRow?.field?.picklist)
+            (field === 'field' && newValue?.picklist && newValue?.picklist !== previousFilterRow?.field?.picklist)
         ) {
             updatedSelectedFilters[rowIndexAsNumber] = {
                 ...updatedSelectedFilters[rowIndexAsNumber],
@@ -617,48 +1966,180 @@ export default function useQueryBuilder({ setCode }) {
         setSelectedFilters(updatedSelectedFilters);
     };
 
-    useEffect(() => {
-        if (sidePanelCollapsed) {
-            queryBuilderPanelRef.current?.collapse();
-            setDisplayQueryBuilder(false);
-        } else {
-            queryBuilderPanelRef.current?.expand();
-        }
-    }, [sidePanelCollapsed]);
+    const queryCategoryOptions = convertArrayToSelectOptions(queryCategories);
 
     /**
-     * When the selected object changes, clear the fields and re-load them for the new object.
+     * If there is every only one query target option, load that as the default query target
+     */
+    useEffect(() => {
+        if (queryTargetOptions?.length === 1) {
+            setSelectedQueryTarget(queryTargetOptions[0]);
+        }
+    }, [queryTargetOptions]);
+
+    /**
+     * When the selected query target changes, clear the fields and re-load them for the new target.
      */
     useEffect(() => {
         setFieldOptions([]);
         setSelectedFields([]);
         setSelectedFilters([]);
 
-        if (selectedObject?.value) {
-            fetchObjectMetadata();
+        if (selectedQueryTarget?.value && selectedQueryCategory?.value) {
+            switch (selectedQueryCategory?.value) {
+                case 'Objects':
+                    fetchObjectMetadata();
+                    break;
+                case 'Documents':
+                    loadDocumentQueryTargetMetadata();
+                    break;
+                case 'Document Roles':
+                    loadDocumentRoleQueryTargetMetadata();
+                    break;
+                case 'Document Relationships':
+                    loadDocumentRelationshipsQueryTargetMetadata();
+                    break;
+                case 'Matched Documents':
+                    loadMatchedDocumentsQueryTargetMetadata();
+                    break;
+                case 'Binders':
+                    switch (selectedQueryTarget?.value) {
+                        case 'binders':
+                            loadBinderQueryTargetMetadata();
+                            break;
+                        case 'binder_node__sys':
+                            loadBinderNodesQueryTargetMetadata();
+                            break;
+                        default:
+                    }
+                    break;
+                case 'Users':
+                    loadUsersQueryTargetMetadata();
+                    break;
+                case 'Renditions':
+                    loadRenditionsQueryTargetMetadata();
+                    break;
+                case 'Jobs':
+                    switch (selectedQueryTarget?.value) {
+                        case 'job_instance__sys':
+                            loadJobInstanceQueryTargetMetadata();
+                            break;
+                        case 'job_history__sys':
+                            loadJobHistoryQueryTargetMetadata();
+                            break;
+                        case 'job_task_history__sys':
+                            loadJobTaskHistoryQueryTargetMetadata();
+                            break;
+                        default:
+                    }
+                    break;
+                case 'Groups':
+                    switch (selectedQueryTarget?.value) {
+                        case 'group__sys':
+                            loadGroupQueryTargetMetadata();
+                            break;
+                        case 'group_membership__sys':
+                            loadGroupMembershipQueryTargetMetadata();
+                            break;
+                        default:
+                    }
+                    break;
+                case 'Workflows':
+                    switch (selectedQueryTarget?.value) {
+                        case 'active_workflow__sys':
+                            loadActiveWorkflowObjectsQueryTargetMetadata();
+                            break;
+                        case 'inactive_workflow__sys':
+                            loadInactiveWorkflowObjectsQueryTargetMetadata();
+                            break;
+                        case 'active_workflow_item__sys':
+                            loadActiveWorkflowItemsQueryTargetMetadata();
+                            break;
+                        case 'inactive_workflow_item__sys':
+                            loadInactiveWorkflowItemsQueryTargetMetadata();
+                            break;
+                        case 'active_workflow_task__sys':
+                            loadActiveWorkflowTaskQueryTargetMetadata();
+                            break;
+                        case 'inactive_workflow_task__sys':
+                            loadInactiveWorkflowTaskQueryTargetMetadata();
+                            break;
+                        case 'active_workflow_task_item__sys':
+                            loadActiveWorkflowTaskItemQueryTargetMetadata();
+                            break;
+                        case 'inactive_workflow_task_item__sys':
+                            loadInactiveWorkflowTaskItemQueryTargetMetadata();
+                            break;
+                        default:
+                    }
+                    break;
+                default:
+            }
         }
-    }, [selectedObject]);
+    }, [selectedQueryTarget]);
 
     /**
-     * Retrieve all Vault objects on page load
+     * When the selected query category changes, clear the query target and reload the query target options
      */
     useEffect(() => {
-        fetchVaultObjects();
-    }, []);
+        setSelectedQueryTarget(null); // Must set to null so the current option clears from React-Select
+        setQueryTargetOptions([]);
+
+        if (selectedQueryCategory?.value) {
+            switch (selectedQueryCategory?.value) {
+                case 'Objects':
+                    fetchVaultObjects();
+                    break;
+                case 'Documents':
+                    loadDocumentQueryTargetOptions();
+                    break;
+                case 'Document Roles':
+                    loadDocumentRoleQueryTargetOptions();
+                    break;
+                case 'Document Relationships':
+                    loadDocumentRelationshipsQueryTargetOptions();
+                    break;
+                case 'Matched Documents':
+                    loadMatchedDocumentsQueryTargetOptions();
+                    break;
+                case 'Binders':
+                    loadBinderQueryTargetOptions();
+                    break;
+                case 'Users':
+                    loadUsersQueryTargetOptions();
+                    break;
+                case 'Renditions':
+                    loadRenditionsQueryTargetOptions();
+                    break;
+                case 'Jobs':
+                    loadJobsQueryTargetOptions();
+                    break;
+                case 'Groups':
+                    loadGroupsQueryTargetOptions();
+                    break;
+                case 'Workflows':
+                    loadWorkflowQueryTargetOptions();
+                    break;
+                default:
+            }
+        }
+    }, [selectedQueryCategory]);
 
     return {
-        vaultObjects,
-        vaultObjectsError,
-        loadingVaultObjects,
-        selectedObject,
-        setSelectedObject,
+        queryCategoryOptions,
+        selectedQueryCategory,
+        setSelectedQueryCategory,
+        queryTargetOptions,
+        queryTargetsError,
+        loadingQueryTargets,
+        selectedQueryTarget,
+        setSelectedQueryTarget,
         fieldOptions,
         fieldOptionsError,
-        loadingObjectMetadata,
+        loadingFieldMetadata,
         selectedFields,
         setSelectedFields,
         selectedFilters,
-        displayQueryBuilder,
         logicalOperator,
         setLogicalOperator,
         getOperatorOptions,
@@ -668,11 +2149,8 @@ export default function useQueryBuilder({ setCode }) {
         handleSelectedFilterEdits,
         addNewFilterRow,
         removeFilterRow,
-        toggleQueryBuilder,
+        addPreviousResultsFilterRow,
         buildQuery,
         canBuildQuery,
-        sidePanelCollapsed,
-        setSidePanelCollapsed,
-        queryBuilderPanelRef,
     };
 }

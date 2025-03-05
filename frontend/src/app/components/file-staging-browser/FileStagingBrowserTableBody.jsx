@@ -40,9 +40,7 @@ export default function FileStagingBrowserTableBody({
                                 {item.data.size ? formatBytesToUserFriendlyFormat(item.data.size) : '-'}
                             </Td>
                             <Td {...TdStyle}>
-                                {item.data.modified_date
-                                    ? formatDateTime(item.data.modified_date, 'en-US', 'UTC')
-                                    : '-'}
+                                {item.data.modified_date ? formatDateTime(item.data.modified_date) : '-'}
                             </Td>
                             <Td {...TdStyle} textAlign='right'>
                                 {!item.isFolder && (

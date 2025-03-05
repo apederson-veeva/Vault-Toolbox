@@ -131,7 +131,7 @@ public class FileUtil {
     public static void writeToFileStaging(String outputFileName, String folder) {
         try {
             String newFileName = outputFileName.substring(4); // Remove /tmp from file name
-            String folderPath = String.format("u%s/VaultDeveloperToolbox/%s", Client.getVaultClient().getUserId(), folder);
+            String folderPath = String.format("u%s/VaultToolbox/%s", Client.getVaultClient().getUserId(), folder);
 
 
             File outputFile = new File(outputFileName);
@@ -166,7 +166,7 @@ public class FileUtil {
      * @return - true for success, false for failure
      */
     public static boolean createVaultDataToolsFileStagingFolders() {
-        String vaultToolboxPath = String.format("u%s/VaultDeveloperToolbox", Client.getVaultClient().getUserId());
+        String vaultToolboxPath = String.format("u%s/VaultToolbox", Client.getVaultClient().getUserId());
         String countPath = String.format("%s/count", vaultToolboxPath);
         String deletePath = String.format("%s/delete", vaultToolboxPath);
 

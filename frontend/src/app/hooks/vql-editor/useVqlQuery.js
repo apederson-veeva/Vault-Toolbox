@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { query, queryByPage } from '../../services/ApiService';
 
-export default function useVqlQuery() {
-    const [code, setCode] = useState('SELECT id, name__v \nFROM person__sys');
+export default function useVqlQuery({ updateQueryHistory }) {
+    const [code, setCode] = useState('');
     const [consoleOutput, setConsoleOutput] = useState([]);
     const [previousPage, setPreviousPage] = useState();
     const [nextPage, setNextPage] = useState();
@@ -11,6 +11,7 @@ export default function useVqlQuery() {
     const [isDownloading, setIsDownloading] = useState(false);
     const [queryEditorTabIndex, setQueryEditorTabIndex] = useState(0);
     const [queryTelemetryData, setQueryTelemetryData] = useState({});
+    const [previousQueryResults, setPreviousQueryResults] = useState({});
 
     const OBJECT = 'object';
     const PICKLIST = 'Picklist';
@@ -21,7 +22,8 @@ export default function useVqlQuery() {
      */
     const submitVqlQuery = async () => {
         setIsExecutingQuery(true);
-        const { queryResponse, responseTelemetry } = await query(code);
+        setPreviousQueryResults({});
+        const { queryResponse, responseTelemetry, responseHeaders } = await query(code);
 
         // Display the result in console output
         if (queryResponse) {
@@ -33,44 +35,109 @@ export default function useVqlQuery() {
 
             if (queryResponse.queryDescribe) {
                 setQueryDescribe(queryResponse.queryDescribe);
+
+                cacheQueryResults(queryResponse);
             } else {
                 setQueryDescribe();
             }
+
+            logQueryHistory(queryResponse, responseTelemetry, responseHeaders);
         }
 
         setQueryTelemetryData(responseTelemetry ? responseTelemetry : {});
-
         setIsExecutingQuery(false);
     };
+
+    /**
+     * Stores the query target and id's from the query results in memory.
+     * This allows us to chain queries and suggest filters by the previous results in query builder.
+     * @param queryResponse
+     */
+    const cacheQueryResults = (queryResponse) => {
+        const queryTarget = queryResponse.queryDescribe?.object?.name;
+        const queryHasIdField = queryResponse.queryDescribe?.fields?.some((field) => field?.name === 'id');
+
+        if (!queryTarget || !queryHasIdField) {
+            return;
+        }
+
+        const queryResultIds = queryResponse?.data?.map((result) => result.id);
+        if (queryResultIds.length > 0) {
+            setPreviousQueryResults({
+                queryTarget,
+                values: queryResultIds,
+                relationship: null,
+                isMatch: false,
+            });
+        }
+    };
+
+    /**
+     * Logs a query to query history
+     * @param queryResponse
+     * @param queryTelemetry
+     * @param responseHeaders
+     */
+    const logQueryHistory = (queryResponse, queryTelemetry, responseHeaders) => {
+        const time = new Date().getTime();
+        const queryTarget = queryResponse?.queryDescribe?.object?.name || 'N/A';
+        const queryString = code;
+        const vaultResponseStatus = queryResponse?.responseStatus || 'N/A';
+        const results = queryResponse?.responseDetails?.total || 'N/A';
+        const responseTimeInMs = queryTelemetry?.executionTimeInMS || 'N/A';
+        const responseSizeInKB = queryTelemetry?.responseSizeInKB || 'N/A';
+        const vaultApiExecutionId = responseHeaders?.get('x-vaultapi-executionid') || 'N/A';
+
+        const newQueryHistoryEntry = {
+            time,
+            queryTarget,
+            queryString,
+            vaultResponseStatus,
+            results,
+            responseTimeInMs,
+            responseSizeInKB,
+            vaultApiExecutionId,
+        };
+
+        updateQueryHistory(newQueryHistoryEntry);
+    };
+
+    /**
+     * Loads a query from history into the query editor
+     * @param queryString - query string to load
+     */
+    const loadQueryIntoEditor = useCallback((queryString) => {
+        setCode(queryString);
+    }, []);
 
     /**
      * Reads previous_page from the VQL query response and loads it into state.
      * @param {Object} response - VQL query response
      */
-    const loadPreviousPage = (response) => {
+    const loadPreviousPage = useCallback((response) => {
         if (response?.responseDetails?.previous_page) {
             setPreviousPage(response?.responseDetails?.previous_page);
         } else {
             setPreviousPage();
         }
-    };
+    }, []);
 
     /**
      * Reads next_page from the VQL query response and loads it into state.
      * @param {Object} response - VQL query response
      */
-    const loadNextPage = (response) => {
+    const loadNextPage = useCallback((response) => {
         if (response?.responseDetails?.next_page) {
             setNextPage(response?.responseDetails?.next_page);
         } else {
             setNextPage();
         }
-    };
+    }, []);
 
     /**
      * Executes next_page query.
      */
-    const queryNextPage = async () => {
+    const queryNextPage = useCallback(async () => {
         setIsExecutingQuery(true);
         const { queryResponse, responseTelemetry } = await queryByPage(nextPage);
 
@@ -86,12 +153,12 @@ export default function useVqlQuery() {
         setQueryTelemetryData(responseTelemetry ? responseTelemetry : {});
 
         setIsExecutingQuery(false);
-    };
+    }, [nextPage, queryEditorTabIndex]);
 
     /**
      * Executes previous_page query.
      */
-    const queryPreviousPage = async () => {
+    const queryPreviousPage = useCallback(async () => {
         setIsExecutingQuery(true);
         const { queryResponse, responseTelemetry } = await queryByPage(previousPage);
 
@@ -107,7 +174,7 @@ export default function useVqlQuery() {
         setQueryTelemetryData(responseTelemetry ? responseTelemetry : {});
 
         setIsExecutingQuery(false);
-    };
+    }, [previousPage, queryEditorTabIndex]);
 
     /**
      * Handler for downloading query results to CSV
@@ -307,93 +374,120 @@ export default function useVqlQuery() {
      * @param {string} subquery relationship
      * @returns a count of the fields in the provided subquery, or default of 1
      */
-    const getSubqueryFieldCount = (subquery) => {
-        if (queryDescribe?.subqueries?.length > 0) {
-            return queryDescribe.subqueries.find((currentSubquery) => currentSubquery.relationship === subquery)?.fields
-                .length;
-        }
-        return 1;
-    };
+    const getSubqueryFieldCount = useCallback(
+        (subquery) => {
+            if (queryDescribe?.subqueries?.length > 0) {
+                return queryDescribe.subqueries.find(
+                    (currentSubquery) =>
+                        currentSubquery.relationship === subquery || currentSubquery.alias === subquery,
+                )?.fields.length;
+            }
+            return 1;
+        },
+        [queryDescribe],
+    );
 
     /**
      * Determines if the provided field is a picklist (either in the primary query or in a subquery).
      * @param {string} fieldName
      * @returns true if the field is a picklist, otherwise false
      */
-    const isPicklist = (fieldName) => {
-        // Check if the field is a primary field picklist
-        let isPicklist = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === PICKLIST);
-
-        if (!isPicklist) {
-            isPicklist = queryDescribe?.subqueries?.some((subquery) =>
-                subquery?.fields?.some((field) => field.name === fieldName && field.type === PICKLIST),
+    const isPicklist = useCallback(
+        (fieldName) => {
+            // Check if the field is a primary field picklist
+            let isPicklist = queryDescribe?.fields?.some(
+                (field) => field.name === fieldName && field.type === PICKLIST,
             );
-        }
 
-        return isPicklist;
-    };
+            if (!isPicklist) {
+                isPicklist = queryDescribe?.subqueries?.some((subquery) =>
+                    subquery?.fields?.some((field) => field.name === fieldName && field.type === PICKLIST),
+                );
+            }
+
+            return isPicklist;
+        },
+        [queryDescribe],
+    );
 
     /**
-     * Determines if the provided field is a ObjectReference field from a document (either in the primary query or in a subquery).
+     * Determines if the provided field is a ObjectReference field from a document (either in the primary query or in a
+     * subquery).
      * @param {string} fieldName
      * @returns true if the field is a ObjectReference, otherwise false
      */
-    const isObjectReference = (fieldName) => {
-        // Check if the field is a primary field ObjectReference
-        let isObjectReference = queryDescribe?.fields?.some(
-            (field) => field.name === fieldName && field.type === OBJECT_REFERENCE,
-        );
-
-        if (!isObjectReference) {
-            isObjectReference = queryDescribe?.subqueries?.some((subquery) =>
-                subquery?.fields?.some((field) => field.name === fieldName && field.type === OBJECT_REFERENCE),
+    const isObjectReference = useCallback(
+        (fieldName) => {
+            // Check if the field is a primary field ObjectReference
+            let isObjectReference = queryDescribe?.fields?.some(
+                (field) => field.name === fieldName && field.type === OBJECT_REFERENCE,
             );
-        }
 
-        return isObjectReference;
-    };
+            if (!isObjectReference) {
+                isObjectReference = queryDescribe?.subqueries?.some((subquery) =>
+                    subquery?.fields?.some((field) => field.name === fieldName && field.type === OBJECT_REFERENCE),
+                );
+            }
+
+            return isObjectReference;
+        },
+        [queryDescribe],
+    );
 
     /**
      * Determines if the provided field is a richtext field in the primary query.
      * @param {string} fieldName
      * @returns true if the field is a RichText field on the primary query, otherwise false
      */
-    const isPrimaryFieldRichText = (fieldName) => {
-        // Check if the field is a primary field richtext
-        let isRichText = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === 'RichText');
-
-        if (!isRichText) {
-            isRichText = queryDescribe?.subqueries?.some((subquery) =>
-                subquery?.fields?.some((field) => field.name === fieldName && field.type === 'RichText'),
+    const isPrimaryFieldRichText = useCallback(
+        (fieldName) => {
+            // Check if the field is a primary field richtext
+            let isRichText = queryDescribe?.fields?.some(
+                (field) => field.name === fieldName && field.type === 'RichText',
             );
-        }
 
-        return isRichText;
-    };
+            if (!isRichText) {
+                isRichText = queryDescribe?.subqueries?.some((subquery) =>
+                    subquery?.fields?.some((field) => field.name === fieldName && field.type === 'RichText'),
+                );
+            }
+
+            return isRichText;
+        },
+        [queryDescribe],
+    );
 
     /**
      * Determines if the provided field is a String field in the primary query.
      * @param {string} fieldName
      * @returns true if the field is a RichText field on the primary query, otherwise false
      */
-    const isPrimaryFieldString = (fieldName) => {
-        // Check if the field is a primary field String
-        let isString = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === 'String');
+    const isPrimaryFieldString = useCallback(
+        (fieldName) => {
+            // Check if the field is a primary field String
+            let isString = queryDescribe?.fields?.some((field) => field.name === fieldName && field.type === 'String');
 
-        return isString;
-    };
+            return isString;
+        },
+        [queryDescribe],
+    );
 
     /**
      * Determines if the current field value is a subquery object
      * @param {string} field
      * @returns true if is a subquery, otherwise false
      */
-    const isSubqueryObject = (field) => {
-        if (queryDescribe?.subqueries?.length > 0) {
-            return queryDescribe.subqueries.some((currentSubquery) => currentSubquery.relationship === field);
-        }
-        return false;
-    };
+    const isSubqueryObject = useCallback(
+        (field) => {
+            if (queryDescribe?.subqueries?.length > 0) {
+                return queryDescribe.subqueries.some(
+                    (currentSubquery) => currentSubquery.relationship === field || currentSubquery.alias === field,
+                );
+            }
+            return false;
+        },
+        [queryDescribe],
+    );
 
     /**
      * Determines the MAX size of any subqueries in a row of VQL response data. Only accounts for the first page of
@@ -401,7 +495,7 @@ export default function useVqlQuery() {
      * @param {Object} row of VQL data
      * @returns maximum subquery size (for this page of results)
      */
-    const getMaxRowSize = (row) => {
+    const getMaxRowSize = useCallback((row) => {
         let maxRowSize = 1; // Default to 1 row size
 
         Object.values(row).forEach((rowDataValue) => {
@@ -413,14 +507,14 @@ export default function useVqlQuery() {
         });
 
         return maxRowSize;
-    };
+    }, []);
 
     /**
      * Determines the TOTAL size of any subqueries in a row of VQL response data across all pages.
      * @param {Object} row of VQL data
      * @returns total subquery size across all pages of results
      */
-    const getTotalSubqueryRowSize = (row) => {
+    const getTotalSubqueryRowSize = useCallback((row) => {
         let totalSubqueryRowSize = 1; // Default to 1 row size
 
         Object.values(row).forEach((rowDataValue) => {
@@ -432,13 +526,13 @@ export default function useVqlQuery() {
         });
 
         return totalSubqueryRowSize;
-    };
+    }, []);
 
     /**
      * Determines if the download button should be enabled.
      * @returns true if user can download results, false otherwise
      */
-    function canDownload() {
+    const canDownload = useCallback(() => {
         if (
             consoleOutput[queryEditorTabIndex]?.responseStatus !== 'FAILURE' &&
             consoleOutput[queryEditorTabIndex]?.responseDetails?.size > 0
@@ -446,7 +540,26 @@ export default function useVqlQuery() {
             return true;
         }
         return false;
-    }
+    }, [consoleOutput, queryEditorTabIndex]);
+
+    /**
+     * Loads the default query string into the code editor, either from local storage or using a generic default
+     * documents query
+     */
+    const loadDefaultQueryString = () => {
+        const currentSavedQueries = JSON.parse(localStorage.getItem('savedQueries')) || [];
+
+        const defaultQueryIndex = currentSavedQueries.findIndex((savedQuery) => savedQuery?.isDefaultQuery === true);
+
+        if (defaultQueryIndex !== -1) {
+            const currentDefaultQuery = currentSavedQueries[defaultQueryIndex];
+            if (currentDefaultQuery?.queryString) {
+                setCode(currentDefaultQuery?.queryString);
+            }
+        } else {
+            setCode('SELECT id, name__v \nFROM person__sys');
+        }
+    };
 
     /**
      * Whenever the console output changes, re-load previous/next page
@@ -455,6 +568,13 @@ export default function useVqlQuery() {
         loadPreviousPage(consoleOutput[queryEditorTabIndex]);
         loadNextPage(consoleOutput[queryEditorTabIndex]);
     }, [consoleOutput]);
+
+    /**
+     * Load the default query string on page load
+     */
+    useEffect(() => {
+        loadDefaultQueryString();
+    }, []);
 
     return {
         code,
@@ -467,7 +587,10 @@ export default function useVqlQuery() {
         isExecutingQuery,
         isDownloading,
         queryTelemetryData,
+        previousQueryResults,
+        setPreviousQueryResults,
         submitVqlQuery,
+        loadQueryIntoEditor,
         downloadQueryResults,
         queryNextPage,
         queryPreviousPage,

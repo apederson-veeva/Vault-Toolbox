@@ -19,7 +19,7 @@ const URL_METADATA = '/metadata/objects/users';
 export async function retrieveUserMetadata() {
     const url = getAPIEndpoint(URL_METADATA, true);
 
-    const headers = getAuthorizationHeader();
+    const headers = await getAuthorizationHeader();
     const method = RequestMethod.GET;
 
     const requestOptions = {

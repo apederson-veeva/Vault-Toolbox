@@ -13,13 +13,13 @@ export default function useVaultSession() {
     const getOriginatingVaultHostname = () => {
         return new Promise((resolve, reject) => {
             chrome.runtime.sendMessage({ action: 'getOriginatingUrl' }, (response) => {
-                if (VAULT_SUBDOMAINS.some((subdomain) => response?.originatingUrl?.includes(subdomain))) {
+                if (VAULT_SUBDOMAINS?.some((subdomain) => response?.originatingUrl?.includes(subdomain))) {
                     const parsedURL = new URL(response.originatingUrl);
                     const originatingVaultHostname = parsedURL.hostname.trim();
 
                     resolve(originatingVaultHostname);
                 } else {
-                    reject(null);
+                    reject('Originating URL does not match a Vault subdomain');
                 }
             });
         });
@@ -53,18 +53,22 @@ export default function useVaultSession() {
             return;
         }
 
-        const originatingVaultHostname = await getOriginatingVaultHostname();
-        if (!originatingVaultHostname) {
+        try {
+            const originatingVaultHostname = await getOriginatingVaultHostname();
+            if (!originatingVaultHostname) {
+                return;
+            }
+
+            const sessionId = await getOriginatingVaultSession(originatingVaultHostname);
+            if (!sessionId) {
+                return;
+            }
+
+            setOriginatingUrl(originatingVaultHostname);
+            setOriginatingVaultSession(sessionId);
+        } catch (error) {
             return;
         }
-
-        const sessionId = await getOriginatingVaultSession(originatingVaultHostname);
-        if (!sessionId) {
-            return;
-        }
-
-        setOriginatingUrl(originatingVaultHostname);
-        setOriginatingVaultSession(sessionId);
     };
 
     /*

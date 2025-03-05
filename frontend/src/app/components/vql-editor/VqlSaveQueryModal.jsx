@@ -1,5 +1,6 @@
 import {
     Button,
+    Checkbox,
     Icon,
     Modal,
     ModalBody,
@@ -21,21 +22,18 @@ export default function VqlSaveQueryModal({
     savedQueryOptions,
     selectedQueryName,
     setSelectedQueryName,
+    isDefaultQuery,
+    setIsDefaultQuery,
     handleSave,
 }) {
     const saveQueryInputRef = useRef(null);
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={handleModalClose}
-            initialFocusRef={saveQueryInputRef}
-            size='sm'
-        >
+        <Modal isOpen={isOpen} onClose={handleModalClose} initialFocusRef={saveQueryInputRef} size='sm'>
             <ModalOverlay />
             <ModalContent backgroundColor='white.color_mode'>
                 <ModalHeader paddingY='10px'>Save Query</ModalHeader>
-                <ModalCloseButton {...ModelCloseButtonStyle} />
+                <ModalCloseButton {...ModalCloseButtonStyle} />
                 <ModalBody paddingY='0px'>
                     <CreatableSelect
                         size='sm'
@@ -49,7 +47,15 @@ export default function VqlSaveQueryModal({
                     />
                 </ModalBody>
                 <ModalFooter paddingY='10px'>
-                    <Button onClick={() => handleSave(code)} {...SaveButtonStyle}>
+                    <Checkbox
+                        size='sm'
+                        marginRight='10px'
+                        isChecked={isDefaultQuery}
+                        onChange={() => setIsDefaultQuery(!isDefaultQuery)}
+                    >
+                        Default?
+                    </Checkbox>
+                    <Button onClick={() => handleSave(code)} isDisabled={!selectedQueryName} {...SaveButtonStyle}>
                         <Icon as={PiFloppyDisk} boxSize={5} marginRight='5px' />
                         <Text>Save</Text>
                     </Button>
@@ -59,7 +65,7 @@ export default function VqlSaveQueryModal({
     );
 }
 
-const ModelCloseButtonStyle = {
+const ModalCloseButtonStyle = {
     position: 'absolute',
     top: '10px',
     right: '24px',
@@ -71,4 +77,3 @@ const SaveButtonStyle = {
     colorScheme: 'blue',
     padding: '10px',
 };
-

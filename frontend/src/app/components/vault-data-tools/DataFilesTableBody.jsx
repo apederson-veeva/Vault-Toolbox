@@ -1,4 +1,5 @@
 import { Tbody, Tr, Td, Link } from '@chakra-ui/react';
+import { formatDateTime } from '../../services/SharedServices';
 
 export default function DataFilesTableBody({ countFiles, deleteFiles, handleClick }) {
     const OPERATIONS = {
@@ -21,7 +22,7 @@ export default function DataFilesTableBody({ countFiles, deleteFiles, handleClic
                     }
                     return (
                         <Tr key={dataFileCount}>
-                            <Td {...TdStyle}>{dataFile.fileTimestamp}</Td>
+                            <Td {...TdStyle}>{formatDateTime(dataFile.fileTimestamp)}</Td>
                             <Td {...TdStyle}>{operation}</Td>
                             <Td {...HyperlinkStyle} onClick={() => handleClick(dataFile.filePath)}>
                                 <Link>{dataFile.filePath.split('/')[4]}</Link>
