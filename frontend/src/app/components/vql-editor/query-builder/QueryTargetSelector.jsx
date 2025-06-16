@@ -14,7 +14,7 @@ export default function QueryTargetSelector({
     return (
         <Flex {...FlexStyle}>
             <Box minWidth='75px' marginRight='5px'>
-                <Heading size='xs'>Target:</Heading>
+                <Heading size='sm'>Target:</Heading>
             </Box>
             {loadingQueryTargets ? (
                 <Center>
@@ -26,10 +26,9 @@ export default function QueryTargetSelector({
                         <ApiErrorMessageCard errorMessage={queryTargetsError} />
                     ) : (
                         <CustomSelect
-                            // defaultValue={test}
                             options={queryTargetOptions}
                             placeholder='Select a query target...'
-                            isClearable={true}
+                            isClearable
                             value={selectedQueryTarget}
                             onChange={(newValue) => setSelectedQueryTarget(newValue)}
                         />

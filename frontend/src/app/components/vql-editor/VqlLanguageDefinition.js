@@ -7,7 +7,7 @@ const languageExtensionPoint = {
 
 export function setupVqlLanguage() {
     window.MonacoEnvironment = {
-        getWorkerUrl: function (moduleId, label) {
+        getWorkerUrl: function () {
             return './editor.worker.js';
         },
     };

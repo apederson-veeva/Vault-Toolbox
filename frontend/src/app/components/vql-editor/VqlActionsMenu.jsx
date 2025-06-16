@@ -1,18 +1,7 @@
-import {
-    Box,
-    Button,
-    Divider,
-    Flex,
-    IconButton,
-    Menu,
-    MenuButton,
-    MenuItem,
-    MenuList,
-    Text,
-    Tooltip,
-    useDisclosure,
-} from '@chakra-ui/react';
+import { Box, Button, Separator, Flex, IconButton, Text, useDisclosure } from '@chakra-ui/react';
 import { PiCaretLeft, PiDotsThreeBold, PiTrash } from 'react-icons/pi';
+import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from '../shared/ui-components/menu';
+import { Tooltip } from '../shared/ui-components/tooltip';
 import VqlConfirmQueryDeletionModal from './VqlConfirmQueryDeletionModal';
 
 export default function VqlActionsMenu({
@@ -22,21 +11,21 @@ export default function VqlActionsMenu({
     selectedQueryName,
     setSelectedQueryName,
 }) {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { open, onOpen, onClose } = useDisclosure();
 
     return (
         <>
-            <Menu>
-                <MenuButton
-                    as={IconButton}
-                    icon={<PiDotsThreeBold size={24} />}
-                    {...VqlActionsMenuButtonStyle}
-                />
-                <MenuList {...MenuListStyle} paddingY='0px'>
+            <MenuRoot>
+                <MenuTrigger asChild focusRing='none'>
+                    <IconButton {...VqlActionsMenuButtonStyle}>
+                        <PiDotsThreeBold style={{ width: 24, height: 24 }} />
+                    </IconButton>
+                </MenuTrigger>
+                <MenuContent {...MenuListStyle} paddingY='0px'>
                     <Text {...TextStyle} fontSize='md'>
                         Insert Saved Query
                     </Text>
-                    <Divider />
+                    <Separator />
                     {savedQueryOptions?.length > 0 ? (
                         <>
                             <Box overflowY='auto' maxHeight='30vh'>
@@ -47,8 +36,8 @@ export default function VqlActionsMenu({
                                             key={savedQuery?.label}
                                             onClick={() => insertSavedQuery(savedQuery?.label)}
                                         >
-                                            <Tooltip label={savedQuery?.label}>
-                                                <Text isTruncated maxWidth='100%'>
+                                            <Tooltip content={savedQuery?.label} openDelay={0}>
+                                                <Text truncate maxWidth='100%'>
                                                     {savedQuery?.label}
                                                 </Text>
                                             </Tooltip>
@@ -56,25 +45,24 @@ export default function VqlActionsMenu({
                                     );
                                 })}
                             </Box>
-                            <Divider />
-                            <Menu placement={'left'}>
-                                <MenuButton
-                                    as={Button}
-                                    leftIcon={<PiCaretLeft size={16} />}
-                                    {...DeleteQueryButtonStyle}
-                                >
-                                    <Flex alignItems='center' justifyContent='center'>
-                                        <Text fontSize='md' marginRight='5px'>
-                                            Delete Saved Query
-                                        </Text>
-                                        <PiTrash size={16} />
-                                    </Flex>
-                                </MenuButton>
-                                <MenuList {...MenuListStyle} paddingTop='0px'>
+                            <Separator />
+                            <MenuRoot positioning={{ placement: 'left' }}>
+                                <MenuTrigger asChild focusRing='none'>
+                                    <Button {...DeleteQueryButtonStyle}>
+                                        <PiCaretLeft style={{ width: 16, height: 16 }} />
+                                        <Flex alignItems='center' justifyContent='center'>
+                                            <Text fontSize='md' marginRight='5px'>
+                                                Delete Saved Query
+                                            </Text>
+                                            <PiTrash style={{ width: 16, height: 16 }} />
+                                        </Flex>
+                                    </Button>
+                                </MenuTrigger>
+                                <MenuContent {...MenuListStyle}>
                                     <Text {...TextStyle} fontSize='md'>
                                         Delete Saved Query
                                     </Text>
-                                    <Divider />
+                                    <Separator />
                                     <Box overflowY='auto' maxHeight='30vh'>
                                         {savedQueryOptions.map((savedQuery) => {
                                             return (
@@ -86,8 +74,8 @@ export default function VqlActionsMenu({
                                                         onOpen();
                                                     }}
                                                 >
-                                                    <Tooltip label={savedQuery?.label}>
-                                                        <Text isTruncated maxWidth='100%'>
+                                                    <Tooltip content={savedQuery?.label} openDelay={0}>
+                                                        <Text truncate maxWidth='100%'>
                                                             {savedQuery?.label}
                                                         </Text>
                                                     </Tooltip>
@@ -95,19 +83,19 @@ export default function VqlActionsMenu({
                                             );
                                         })}
                                     </Box>
-                                </MenuList>
-                            </Menu>
+                                </MenuContent>
+                            </MenuRoot>
                         </>
                     ) : (
                         <Flex {...TextStyle} justifyContent='center'>
                             No Saved Queries
                         </Flex>
                     )}
-                </MenuList>
-            </Menu>
-            {isOpen ? (
+                </MenuContent>
+            </MenuRoot>
+            {open ? (
                 <VqlConfirmQueryDeletionModal
-                    isOpen={isOpen}
+                    open={open}
                     onClose={onClose}
                     onSubmit={deleteSavedQuery}
                     savedQueryName={selectedQueryName}
@@ -122,11 +110,13 @@ const VqlActionsMenuButtonStyle = {
     size: 'sm',
     margin: '10px 10px 10px 0px',
     padding: '5px',
+    borderRadius: '8px',
 };
 
 const MenuListStyle = {
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     maxWidth: '30vw',
+    paddingTop: '0px',
 };
 
 const MenuItemStyle = {
@@ -140,7 +130,7 @@ const MenuItemStyle = {
 const DeleteMenuItemStyle = {
     fontSize: 'medium',
     _hover: {
-        backgroundColor: 'veeva_sunset_red.color_mode',
+        backgroundColor: 'veeva_sunset_red_color_mode',
         color: 'white',
     },
 };
@@ -151,6 +141,7 @@ const DeleteQueryButtonStyle = {
     margin: '10px',
     padding: '5px',
     maxWidth: '100%',
+    focusRing: 'none',
 };
 
 const TextStyle = {

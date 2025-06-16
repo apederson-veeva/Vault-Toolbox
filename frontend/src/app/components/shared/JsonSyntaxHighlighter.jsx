@@ -1,10 +1,9 @@
 import { memo } from 'react';
-import { useColorMode } from '@chakra-ui/react';
 import SyntaxHighlighter from 'react-syntax-highlighter';
+import { useColorMode } from './ui-components/color-mode';
 
 export default memo(({ dataToDisplay }) => {
-    const displayData =
-        typeof dataToDisplay === 'string' ? dataToDisplay : JSON.stringify(dataToDisplay, null, 4);
+    const displayData = typeof dataToDisplay === 'string' ? dataToDisplay : JSON.stringify(dataToDisplay, null, 4);
     const { colorMode } = useColorMode();
 
     return (

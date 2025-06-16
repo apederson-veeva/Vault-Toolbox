@@ -1,16 +1,15 @@
-import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { ChakraProvider } from '@chakra-ui/react';
-import { AuthProvider } from './context/AuthContext';
-import { veevaTheme } from './utils/VeevaTheme';
 import App from './App';
+import { Provider } from './components/shared/ui-components/provider';
+import { AuthProvider } from './context/AuthContext';
+import veevaTheme from './utils/VeevaTheme';
 
 const index = (
-    <AuthProvider>
-        <ChakraProvider theme={veevaTheme}>
+    <Provider theme={veevaTheme}>
+        <AuthProvider>
             <App />
-        </ChakraProvider>
-    </AuthProvider>
+        </AuthProvider>
+    </Provider>
 );
 
 const container = document.createElement('div');

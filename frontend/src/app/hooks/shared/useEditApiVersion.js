@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { getVaultApiVersion, getVaultDns } from '../../services/SharedServices';
+import { convertArrayToSelectOptions, getVaultApiVersion, getVaultDns } from '../../services/SharedServices';
 import { retrieveApiVersions } from '../../services/vapil/AuthenticationRequest';
 
 export default function useEditApiVersion({ onClose }) {
     const { sessionId } = useAuth();
 
-    const [selectedApiVersion, setSelectedApiVersion] = useState(getVaultApiVersion());
+    const [selectedApiVersion, setSelectedApiVersion] = useState(convertArrayToSelectOptions([getVaultApiVersion()]));
     const [apiVersions, setApiVersions] = useState([]);
     const [vaultApiVersionsError, setVaultApiVersionsError] = useState({
         hasError: false,
@@ -18,7 +18,7 @@ export default function useEditApiVersion({ onClose }) {
      * Retrieves the current Vault's API Versions
      * @returns {Promise<void>}
      */
-    const getApiVersions = async () => {
+    const getApiVersions = useCallback(async () => {
         setVaultApiVersionsError({ hasError: false, errorMessage: '' });
         setLoadingVaultApiVersions(true);
 
@@ -26,7 +26,7 @@ export default function useEditApiVersion({ onClose }) {
         if (response?.responseStatus === 'SUCCESS') {
             if (response?.values) {
                 const apiVersionsArray = Object.keys(response.values).map((key) => key);
-                setApiVersions(apiVersionsArray.reverse());
+                setApiVersions(convertArrayToSelectOptions(apiVersionsArray.reverse()));
             }
         } else {
             let error = '';
@@ -37,7 +37,7 @@ export default function useEditApiVersion({ onClose }) {
         }
 
         setLoadingVaultApiVersions(false);
-    };
+    }, [sessionId]);
 
     /**
      * Handles closing the select API version modal.
@@ -51,7 +51,7 @@ export default function useEditApiVersion({ onClose }) {
      * Handles saving the selected API version.
      */
     const handleSave = () => {
-        sessionStorage.setItem('vaultApiVersion', selectedApiVersion);
+        sessionStorage.setItem('vaultApiVersion', selectedApiVersion.value);
         onClose();
     };
 
@@ -60,7 +60,7 @@ export default function useEditApiVersion({ onClose }) {
      */
     useEffect(() => {
         getApiVersions();
-    }, []);
+    }, [getApiVersions]);
 
     return {
         selectedApiVersion,

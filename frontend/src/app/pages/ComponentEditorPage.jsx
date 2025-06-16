@@ -1,19 +1,18 @@
 import { Box, Flex, IconButton, Spacer, VStack } from '@chakra-ui/react';
-import { Panel, PanelGroup } from 'react-resizable-panels';
 import { PiTreeStructureBold } from 'react-icons/pi';
-import OutstandingAsyncJobWarning from '../components/component-editor/OutstandingAsyncJobWarning';
-import ComponentEditorIsland from '../components/component-editor/ComponentEditorIsland';
-import ComponentEditorHeaderRow from '../components/component-editor/ComponentEditorHeaderRow';
+import { Panel, PanelGroup } from 'react-resizable-panels';
 import ComponentDirectoryPanel from '../components/component-editor/ComponentDirectoryPanel';
+import ComponentEditorHeaderRow from '../components/component-editor/ComponentEditorHeaderRow';
+import ComponentEditorIsland from '../components/component-editor/ComponentEditorIsland';
+import OutstandingAsyncJobWarning from '../components/component-editor/OutstandingAsyncJobWarning';
 import ContextualHelpButton from '../components/shared/ContextualHelpButton';
 import TelemetryData from '../components/shared/TelemetryData';
 import VaultInfoIsland from '../components/shared/VaultInfoIsland';
-import useComponentTree from '../hooks/component-editor/useComponentTree';
 import useComponentEditor from '../hooks/component-editor/useComponentEditor';
+import useComponentTree from '../hooks/component-editor/useComponentTree';
 
 export default function ComponentEditorPage() {
-    const { componentTree, componentTreeError, retrieveComponentTree, loadingComponentTree } =
-        useComponentTree();
+    const { componentTree, componentTreeError, retrieveComponentTree, loadingComponentTree } = useComponentTree();
     const {
         code,
         setCode,
@@ -82,16 +81,15 @@ export default function ComponentEditorPage() {
                 <Box height='100vh' flex='0 0 auto'>
                     <Flex flexDirection='column' height='100%'>
                         <IconButton
-                            icon={<PiTreeStructureBold size={20} style={{ margin: '4px' }} />}
                             onClick={toggleComponentTree}
                             size='auto'
                             borderRadius='6px'
                             margin='5px'
-                            color={displayComponentTree ? 'white' : 'veeva_orange.color_mode'}
-                            backgroundColor={
-                                displayComponentTree ? 'veeva_orange.color_mode' : 'transparent'
-                            }
-                        />
+                            color={displayComponentTree ? 'white' : 'veeva_orange_color_mode'}
+                            backgroundColor={displayComponentTree ? 'veeva_orange_color_mode' : 'transparent'}
+                        >
+                            <PiTreeStructureBold size={20} style={{ margin: '4px' }} />
+                        </IconButton>
                         <Spacer />
                         <ContextualHelpButton tooltip='MDL Documentation' url='https://developer.veevavault.com/mdl/' />
                     </Flex>
@@ -99,7 +97,7 @@ export default function ComponentEditorPage() {
             </Flex>
             {showOutstandingAsyncJobWarning && (
                 <OutstandingAsyncJobWarning
-                    isOpen={showOutstandingAsyncJobWarning}
+                    open={showOutstandingAsyncJobWarning}
                     onClose={closeOutstandingAsyncJobWarning}
                     onConfirm={updateSelectedComponent}
                     currentComponent={selectedComponentPendingConfirmation}
@@ -111,8 +109,8 @@ export default function ComponentEditorPage() {
 
 const ComponentEditorStackStyle = {
     height: '100%',
-    backgroundColor: 'veeva_light_gray.color_mode',
+    backgroundColor: 'veeva_light_gray_color_mode',
     flex: 1,
     boxShadow: 'inset -5px 0 8px -8px rgba(0,0,0,0.3), inset 5px 0 8px -8px rgba(0,0,0,0.3)',
-    spacing: 0,
+    gap: 0,
 };

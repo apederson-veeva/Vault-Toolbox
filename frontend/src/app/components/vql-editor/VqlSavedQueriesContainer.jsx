@@ -1,11 +1,12 @@
-import { IconButton, useDisclosure, Tooltip } from '@chakra-ui/react';
+import { IconButton, useDisclosure } from '@chakra-ui/react';
 import { PiFloppyDisk } from 'react-icons/pi';
 import useSavedQueries from '../../hooks/vql-editor/useSavedQueries';
-import VqlSaveQueryModal from './VqlSaveQueryModal';
+import { Tooltip } from '../shared/ui-components/tooltip';
 import VqlActionsMenu from './VqlActionsMenu';
+import VqlSaveQueryModal from './VqlSaveQueryModal';
 
 export default function VqlSavedQueriesContainer({ code, setCode }) {
-    const { isOpen, onOpen, onClose } = useDisclosure();
+    const { open, onOpen, onClose } = useDisclosure();
     const {
         selectedQueryName,
         setSelectedQueryName,
@@ -22,15 +23,13 @@ export default function VqlSavedQueriesContainer({ code, setCode }) {
     return (
         <>
             <Tooltip
-                placement='left'
-                label={savedQueries?.length < 20 ? 'Save Query' : 'Max saved queries reached (20)'}
+                content={savedQueries?.length < 20 ? 'Save Query' : 'Max saved queries reached (20)'}
+                openDelay={0}
+                positioning={{ placement: 'left' }}
             >
-                <IconButton
-                    onClick={onOpen}
-                    isDisabled={savedQueries?.length >= 20}
-                    icon={<PiFloppyDisk size={24} />}
-                    {...SaveQueryButtonStyle}
-                />
+                <IconButton onClick={onOpen} disabled={savedQueries?.length >= 20} {...SaveQueryButtonStyle}>
+                    <PiFloppyDisk style={{ width: 24, height: 24 }} />
+                </IconButton>
             </Tooltip>
             <VqlActionsMenu
                 savedQueryOptions={savedQueryOptions}
@@ -39,10 +38,10 @@ export default function VqlSavedQueriesContainer({ code, setCode }) {
                 selectedQueryName={selectedQueryName}
                 setSelectedQueryName={setSelectedQueryName}
             />
-            {isOpen ? (
+            {open ? (
                 <VqlSaveQueryModal
                     code={code}
-                    isOpen={isOpen}
+                    open={open}
                     handleModalClose={handleModalClose}
                     handleSave={handleSave}
                     selectedQueryName={selectedQueryName}
@@ -60,11 +59,12 @@ export default function VqlSavedQueriesContainer({ code, setCode }) {
 const SaveQueryButtonStyle = {
     variant: 'ghost',
     size: 'sm',
-    colorScheme: 'blue',
+    colorPalette: 'blue',
     _hover: {
         backgroundColor: 'blue.400',
         color: 'white',
     },
     margin: '10px',
     padding: '5px',
+    borderRadius: '8px',
 };

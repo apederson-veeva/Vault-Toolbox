@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
 import * as monaco from 'monaco-editor-core';
+import { useEffect, useRef } from 'react';
 
 export default function CodeEditor({ code, setCode, language, theme }) {
     const containerRef = useRef();
@@ -12,34 +12,34 @@ export default function CodeEditor({ code, setCode, language, theme }) {
         monaco.editor.setTheme('default');
     }
 
-    const EditorSettings = {
-        value: code,
-        language,
-        autoIndent: 'full',
-        contextmenu: true,
-        fontFamily: 'monospace',
-        fontSize: 16,
-        lineHeight: 30,
-        hideCursorInOverviewRuler: true,
-        matchBrackets: 'always',
-        minimap: { enabled: false },
-        scrollbar: {
-            horizontalSliderSize: 8,
-            verticalSliderSize: 18,
-        },
-        selectOnLineNumbers: true,
-        roundedSelection: false,
-        readOnly: false,
-        cursorStyle: 'line',
-        automaticLayout: true,
-        'bracketPairColorization.enabled': false,
-        mouseWheelZoom: true,
-        stickyScroll: { enabled: true },
-        scrollBeyondLastLine: false,
-        wordWrap: true,
-    };
-
     useEffect(() => {
+        const EditorSettings = {
+            value: code,
+            language,
+            autoIndent: 'full',
+            contextmenu: true,
+            fontFamily: 'monospace',
+            fontSize: 16,
+            lineHeight: 30,
+            hideCursorInOverviewRuler: true,
+            matchBrackets: 'always',
+            minimap: { enabled: false },
+            scrollbar: {
+                horizontalSliderSize: 8,
+                verticalSliderSize: 18,
+            },
+            selectOnLineNumbers: true,
+            roundedSelection: false,
+            readOnly: false,
+            cursorStyle: 'line',
+            automaticLayout: true,
+            'bracketPairColorization.enabled': false,
+            mouseWheelZoom: true,
+            stickyScroll: { enabled: true },
+            scrollBeyondLastLine: false,
+            wordWrap: true,
+        };
+
         editorRef.current = monaco.editor.create(containerRef.current, EditorSettings);
 
         // Update code state as user types code in the editor
@@ -52,6 +52,7 @@ export default function CodeEditor({ code, setCode, language, theme }) {
                 editorRef.current.dispose();
             }
         };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // If the code state changes (e.g. due to selecting a new component), update the code in the editor

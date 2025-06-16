@@ -1,7 +1,8 @@
+import { Box } from '@chakra-ui/react';
 import { Select } from 'chakra-react-select';
-import { Box, InputGroup, InputLeftElement } from '@chakra-ui/react';
 import { PiMagnifyingGlass } from 'react-icons/pi';
 import useFileStagingSearch from '../../hooks/file-staging-browser/useFileStagingSearch';
+import { InputGroup } from '../shared/ui-components/input-group';
 
 export default function FileStagingBrowserSearchBar({ fileStagingTree, onSelect }) {
     const { handleSearchResultClick, searchOptions, searchValue, setSearchValue, selectedSearchResult } =
@@ -11,10 +12,7 @@ export default function FileStagingBrowserSearchBar({ fileStagingTree, onSelect 
         });
 
     return (
-        <InputGroup marginX='5px'>
-            <InputLeftElement backgroundColor='transparent'>
-                <PiMagnifyingGlass size={24} />
-            </InputLeftElement>
+        <InputGroup marginX='5px' flexGrow={1} startElement={<PiMagnifyingGlass size={24} />}>
             <Box width='100%' marginRight='6px'>
                 <Select
                     value={selectedSearchResult}
@@ -46,9 +44,10 @@ export default function FileStagingBrowserSearchBar({ fileStagingTree, onSelect 
 }
 
 const SelectComponentStyles = {
-    paddingLeft: '2rem',
+    paddingLeft: '3rem',
     boxShadow: '0 0 5px rgba(0,0,0,0.25)',
-    backgroundColor: 'white.color_mode',
-    color: 'text.color_mode',
+    backgroundColor: 'white_color_mode',
+    color: 'text_color_mode',
     border: 'transparent',
+    borderRadius: 'md',
 };

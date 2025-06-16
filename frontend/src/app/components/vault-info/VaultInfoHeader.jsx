@@ -21,10 +21,10 @@ const ToolboxIconStyle = {
 
 const PageHeaderStyle = {
     fontSize: '3xl',
-    color: 'veeva_orange.color_mode',
+    color: 'veeva_orange_color_mode',
 };
 
 const TextStyle = {
     fontSize: 'lg',
-    color: 'text.color_mode',
+    color: 'text_color_mode',
 };

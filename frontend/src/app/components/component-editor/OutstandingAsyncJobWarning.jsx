@@ -1,45 +1,31 @@
-import {
-    AlertDialog,
-    AlertDialogHeader,
-    AlertDialogOverlay,
-    AlertDialogContent,
-    AlertDialogBody,
-    AlertDialogFooter,
-    Button,
-} from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
+import { DialogRoot, DialogContent, DialogHeader, DialogBody, DialogFooter } from '../shared/ui-components/dialog';
 
-export default function OutstandingAsyncJobWarning({
-    isOpen,
-    onClose,
-    onConfirm,
-    currentComponent,
-}) {
+export default function OutstandingAsyncJobWarning({ open, onClose, onConfirm, currentComponent }) {
     const clearAsyncJob = () => {
         onClose();
         onConfirm(currentComponent);
     };
 
     return (
-        <AlertDialog isOpen={isOpen} onClose={onClose}>
-            <AlertDialogOverlay>
-                <AlertDialogContent>
-                    <AlertDialogHeader fontSize='lg' fontWeight='bold'>
-                        Outstanding Async Job Request
-                    </AlertDialogHeader>
-
-                    <AlertDialogBody fontSize='lg'>
-                        You have an outstanding asynchrynous MDL job request. If you continue, your
-                        job results will be cleared.
-                    </AlertDialogBody>
-
-                    <AlertDialogFooter>
-                        <Button onClick={onClose}>Cancel</Button>
-                        <Button colorScheme='red' onClick={clearAsyncJob} ml={3}>
-                            Continue
-                        </Button>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialogOverlay>
-        </AlertDialog>
+        <DialogRoot open={open} onOpenChange={onClose} role='alertdialog'>
+            <DialogContent>
+                <DialogHeader fontSize='lg' fontWeight='bold'>
+                    Outstanding Async Job Request
+                </DialogHeader>
+                <DialogBody fontSize='lg'>
+                    You have an outstanding asynchrynous MDL job request. If you continue, your job results will be
+                    cleared.
+                </DialogBody>
+                <DialogFooter>
+                    <Button onClick={onClose} marginRight='5px' variant='subtle'>
+                        Cancel
+                    </Button>
+                    <Button colorPalette='red' onClick={clearAsyncJob}>
+                        Continue
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </DialogRoot>
     );
 }

@@ -1,17 +1,17 @@
-import { Tbody, Tr, Td, Box } from '@chakra-ui/react';
+import { Table, Box } from '@chakra-ui/react';
 import { Fragment } from 'react';
 
 export default function VqlTableBody({ consoleOutput, queryDescribe, getMaxRowSize }) {
     const OBJECT = 'object';
 
     return (
-        <Tbody>
+        <Table.Body>
             {consoleOutput?.data &&
                 consoleOutput.data.map((row, i) => {
                     const maxRowSize = getMaxRowSize(row);
                     return (
                         <Fragment key={`fragment-${i}`}>
-                            <Tr key={i}>
+                            <Table.Row key={i}>
                                 {Object.keys(row).map((dataRowKey, dataRowKeyCount) => {
                                     const dataRowValue = row[dataRowKey];
                                     if (typeof dataRowValue === OBJECT && dataRowValue !== null) {
@@ -26,15 +26,18 @@ export default function VqlTableBody({ consoleOutput, queryDescribe, getMaxRowSi
                                                             // Join picklist values with a comma
                                                             if (Array.isArray(subqueryDataField)) {
                                                                 return (
-                                                                    <Td key={subqueryDataFieldCount} {...TdStyle}>
+                                                                    <Table.Cell
+                                                                        key={subqueryDataFieldCount}
+                                                                        {...TdStyle}
+                                                                    >
                                                                         {subqueryDataField.join(', ')}
-                                                                    </Td>
+                                                                    </Table.Cell>
                                                                 );
                                                             }
                                                             return (
-                                                                <Td key={subqueryDataFieldCount} {...TdStyle}>
+                                                                <Table.Cell key={subqueryDataFieldCount} {...TdStyle}>
                                                                     {String(subqueryDataField)}
-                                                                </Td>
+                                                                </Table.Cell>
                                                             );
                                                         },
                                                     );
@@ -43,9 +46,9 @@ export default function VqlTableBody({ consoleOutput, queryDescribe, getMaxRowSi
                                         } else if (dataRowValue?.length > 0) {
                                             // Join picklist values with a comma
                                             return (
-                                                <Td key={dataRowKeyCount} {...TdStyle}>
+                                                <Table.Cell key={dataRowKeyCount} {...TdStyle}>
                                                     {dataRowValue.join(', ')}
-                                                </Td>
+                                                </Table.Cell>
                                             );
                                         } else {
                                             const subqueryFieldCount = queryDescribe?.subqueries?.find(
@@ -53,24 +56,24 @@ export default function VqlTableBody({ consoleOutput, queryDescribe, getMaxRowSi
                                             )?.fields?.length;
 
                                             return Array.from({ length: subqueryFieldCount }, (_, index) => (
-                                                <Td key={`${dataRowKeyCount}-${index}`} {...TdStyle}></Td>
+                                                <Table.Cell key={`${dataRowKeyCount}-${index}`} {...TdStyle} />
                                             ));
                                         }
                                     } else {
                                         // Convert dataRowValue to a String before displaying, so booleans are displayed properly
                                         return (
-                                            <Td key={dataRowKeyCount} rowSpan={maxRowSize} {...TdStyle}>
+                                            <Table.Cell key={dataRowKeyCount} rowSpan={maxRowSize} {...TdStyle}>
                                                 <Box {...FloatingCellBoxStyle}>{String(dataRowValue)}</Box>
-                                            </Td>
+                                            </Table.Cell>
                                         );
                                     }
                                 })}
-                            </Tr>
+                            </Table.Row>
                             {maxRowSize > 1 &&
                                 [...Array(maxRowSize - 1)].map((_, index) => {
                                     // Loop over the number of subquery rows remaining in this overall row
                                     return (
-                                        <Tr key={`${i}-${index}`}>
+                                        <Table.Row key={`${i}-${index}`}>
                                             {Object.keys(row).map((dataRowKey, dataRowKeyCount) => {
                                                 const dataRowValue = row[dataRowKey];
 
@@ -86,24 +89,30 @@ export default function VqlTableBody({ consoleOutput, queryDescribe, getMaxRowSi
                                                                 // Join picklist values with a comma
                                                                 if (Array.isArray(subqueryDataField)) {
                                                                     return (
-                                                                        <Td key={subqueryDataFieldCount} {...TdStyle}>
+                                                                        <Table.Cell
+                                                                            key={subqueryDataFieldCount}
+                                                                            {...TdStyle}
+                                                                        >
                                                                             {subqueryDataField.join(', ')}
-                                                                        </Td>
+                                                                        </Table.Cell>
                                                                     );
                                                                 }
                                                                 return (
-                                                                    <Td key={subqueryDataFieldCount} {...TdStyle}>
+                                                                    <Table.Cell
+                                                                        key={subqueryDataFieldCount}
+                                                                        {...TdStyle}
+                                                                    >
                                                                         {String(subqueryDataField)}
-                                                                    </Td>
+                                                                    </Table.Cell>
                                                                 );
                                                             },
                                                         );
                                                     } else if (dataRowValue?.length > 0) {
                                                         // Create empty cells for picklists we've finished displaying
                                                         return (
-                                                            <Td key={index} {...TdStyle}>
+                                                            <Table.Cell key={index} {...TdStyle}>
                                                                 {}
-                                                            </Td>
+                                                            </Table.Cell>
                                                         );
                                                     } else {
                                                         const subqueryFieldCount = queryDescribe?.subqueries?.find(
@@ -113,22 +122,22 @@ export default function VqlTableBody({ consoleOutput, queryDescribe, getMaxRowSi
                                                         return Array.from(
                                                             { length: subqueryFieldCount },
                                                             (_, index) => (
-                                                                <Td
+                                                                <Table.Cell
                                                                     key={`${dataRowKeyCount}-${index}`}
                                                                     {...TdStyle}
-                                                                ></Td>
+                                                                />
                                                             ),
                                                         );
                                                     }
                                                 }
                                             })}
-                                        </Tr>
+                                        </Table.Row>
                                     );
                                 })}
                         </Fragment>
                     );
                 })}
-        </Tbody>
+        </Table.Body>
     );
 }
 
@@ -137,6 +146,7 @@ const TdStyle = {
     borderColor: 'gray.300',
     verticalAlign: 'top',
     backgroundColor: 'veeva_sunset_yellow.five_percent_opacity',
+    whiteSpace: 'nowrap',
 };
 
 const FloatingCellBoxStyle = {

@@ -1,27 +1,21 @@
-import {
-    Card,
-    CardBody,
-    Alert,
-    AlertIcon,
-    AlertTitle,
-    AlertDescription,
-    Box,
-} from '@chakra-ui/react';
+import { Card, Alert, Box } from '@chakra-ui/react';
 
 export default function ApiErrorMessageCard({ content, errorMessage }) {
     const alertTitleText = content ? `retrieving ${content}` : 'processing your request';
 
     return (
-        <Card backgroundColor='white.color_mode'>
-            <CardBody>
-                <Alert status='error' variant='left-accent'>
-                    <AlertIcon />
-                    <Box>
-                        <AlertTitle>Error {alertTitleText}: </AlertTitle>
-                        <AlertDescription>{errorMessage}</AlertDescription>
-                    </Box>
-                </Alert>
-            </CardBody>
-        </Card>
+        <Card.Root backgroundColor='white_color_mode'>
+            <Card.Body>
+                <Alert.Root status='error' variant='subtle'>
+                    <Alert.Indicator />
+                    <Alert.Content>
+                        <Box>
+                            <Alert.Title>Error {alertTitleText}: </Alert.Title>
+                            <Alert.Description>{errorMessage}</Alert.Description>
+                        </Box>
+                    </Alert.Content>
+                </Alert.Root>
+            </Card.Body>
+        </Card.Root>
     );
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-escape */
 import * as monaco from 'monaco-editor-core';
 
 export const mdlLanguageID = 'mdl';
@@ -5,7 +6,7 @@ const languageExtensionPoint = { id: mdlLanguageID };
 
 export function setupMdlLanguage() {
     window.MonacoEnvironment = {
-        getWorkerUrl(moduleId, label) {
+        getWorkerUrl() {
             return './editor.worker.js';
         },
     };
@@ -50,10 +51,7 @@ const mdlLanguage = {
     tokenizer: {
         root: [
             // default text
-            [
-                /^Select a component record from the tree to view its MDL code$/,
-                'entity.mdl.defaulttext',
-            ],
+            [/^Select a component record from the tree to view its MDL code$/, 'entity.mdl.defaulttext'],
             [/^Error. Could not retrieve MDL code for this component.$/, 'entity.mdl.defaulttext'],
             // parenthesis
             [/[()]/, '@brackets'],
@@ -65,10 +63,8 @@ const mdlLanguage = {
                         '\\b([A-Z ]+)\\b': 'keyword', // Command
                         '\\b([A-Z][a-z])(\\S*?)\\b': 'type.mdl.componenttype', // Component Type
                         '\\b(\\w*__\\w*)\\b': 'variable.mdl.componentrecord', // Component Record
-                        '(?<![A-Z])\\b(?!\\w*__\\w*)\\w+\\b(?<!false|true)(?<![0-9])':
-                            'entity.mdl.property',
-                        '(?<![A-Z])\\b(?!\\w*__\\w*)\\w+\\b(?<!false|true)(?![0-9])':
-                            'entity.mdl.checksum',
+                        '(?<![A-Z])\\b(?!\\w*__\\w*)\\w+\\b(?<!false|true)(?<![0-9])': 'entity.mdl.property',
+                        '(?<![A-Z])\\b(?!\\w*__\\w*)\\w+\\b(?<!false|true)(?![0-9])': 'entity.mdl.checksum',
                         '^(true|false)$': 'entity.mdl.boolean',
                         '@default': 'identifier',
                     },
@@ -179,5 +175,6 @@ export const MdlDarkModeTheme = {
     ],
     colors: {
         'editor.background': '#303841',
+        'editor.lineHighlightBackground': '#0000FF20',
     },
 };

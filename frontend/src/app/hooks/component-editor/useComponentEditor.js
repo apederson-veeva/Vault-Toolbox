@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
     executeMdlScript,
     executeMdlScriptAsync,
@@ -7,17 +7,14 @@ import {
 } from '../../services/ApiService';
 
 export default function useComponentEditor() {
-    const [code, setCode] = useState(
-        'Select a component record from the tree to view its MDL code',
-    );
+    const [code, setCode] = useState('Select a component record from the tree to view its MDL code');
     const [selectedComponent, setSelectedComponent] = useState('');
     const [consoleOutput, setConsoleOutput] = useState();
     const [isExecutingApiCall, setIsExecutingApiCall] = useState(false);
     const [isExecutingMdl, setIsExecutingMdl] = useState(false);
     const [asyncJobId, setAsyncJobId] = useState('');
     const [showOutstandingAsyncJobWarning, setShowOutstandingAsyncJobWarning] = useState(false);
-    const [selectedComponentPendingConfirmation, setSelectedComponentPendingConfirmation] =
-        useState('');
+    const [selectedComponentPendingConfirmation, setSelectedComponentPendingConfirmation] = useState('');
     const [displayComponentTree, setDisplayComponentTree] = useState(true);
     const [sidePanelCollapsed, setSidePanelCollapsed] = useState(false);
     const [mdlTelemetryData, setMdlTelemetryData] = useState({});
@@ -27,7 +24,7 @@ export default function useComponentEditor() {
     /**
      * Retrieve MDL code for current component record
      */
-    const retrieveCode = async () => {
+    const retrieveCode = useCallback(async () => {
         const { response, responseTelemetry } = await retrieveComponentRecordMdl(selectedComponent);
 
         if (typeof response === 'string') {
@@ -38,7 +35,7 @@ export default function useComponentEditor() {
         }
 
         setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
-    };
+    }, [selectedComponent]);
 
     /**
      * Execute current MDL code
@@ -142,7 +139,7 @@ export default function useComponentEditor() {
             setConsoleOutput();
             retrieveCode();
         }
-    }, [selectedComponent]);
+    }, [selectedComponent, retrieveCode]);
 
     return {
         code,

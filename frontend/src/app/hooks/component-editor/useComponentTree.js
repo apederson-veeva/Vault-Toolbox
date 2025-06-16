@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { query, queryByPage, retrieveAllComponentMetadata } from '../../services/ApiService';
 
 export default function useComponentTree() {
@@ -9,7 +9,7 @@ export default function useComponentTree() {
     /**
      * Calls the Vault REST API to build the component tree
      */
-    const retrieveComponentTree = async () => {
+    const retrieveComponentTree = useCallback(async () => {
         setLoadingComponentTree(true);
         setComponentTreeError('');
 
@@ -32,8 +32,7 @@ export default function useComponentTree() {
             return;
         }
 
-        const queryString =
-            'SELECT label__v,component_name__v, component_type__v, status__v FROM vault_component__v';
+        const queryString = 'SELECT label__v,component_name__v, component_type__v, status__v FROM vault_component__v';
         let { queryResponse } = await query(queryString);
         if (queryResponse?.responseStatus === 'FAILURE') {
             let error = '';
@@ -89,7 +88,7 @@ export default function useComponentTree() {
         } finally {
             setComponentTree([tmpComponentTree]);
         }
-    };
+    }, []);
 
     /**
      * Helper for building the component tree
@@ -109,16 +108,14 @@ export default function useComponentTree() {
 
             if (componentTypeStatus !== 'inactive__v') {
                 // If this component type isn't already in the tree, add it
-                const componentTypeIsInTree = tmpComponentTree.hasOwnProperty(componentType);
+                const componentTypeIsInTree = Object.hasOwn(tmpComponentTree, componentType);
+
                 let isCode = false;
                 if (!componentTypeIsInTree) {
                     let componentTypeLabel = componentType;
                     if (allComponentMetadata && allComponentMetadata.data) {
                         allComponentMetadata.data.map((componentTypeObject) => {
-                            if (
-                                componentTypeObject?.name === componentType &&
-                                componentTypeObject.label
-                            ) {
+                            if (componentTypeObject?.name === componentType && componentTypeObject.label) {
                                 componentTypeLabel = `${componentTypeObject?.label} (${componentTypeObject?.name})`;
 
                                 if (componentTypeObject?.class === 'code') {
@@ -181,7 +178,7 @@ export default function useComponentTree() {
                 setComponentTree([JSON.parse(sessionStorage.getItem('componentTree'))]);
             }
         }
-    }, [componentTree]);
+    }, [componentTree, retrieveComponentTree]);
 
     return {
         componentTree,

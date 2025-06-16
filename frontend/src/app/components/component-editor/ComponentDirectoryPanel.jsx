@@ -1,9 +1,10 @@
-import { Stack, Box, Heading, Divider, Tooltip, IconButton, Progress } from '@chakra-ui/react';
-import { Panel } from 'react-resizable-panels';
+import { Stack, Box, Heading, Separator, IconButton, Progress } from '@chakra-ui/react';
 import { PiArrowClockwise } from 'react-icons/pi';
-import VerticalResizeHandle from '../shared/VerticalResizeHandle';
-import ComponentTree from './ComponentTree';
+import { Panel } from 'react-resizable-panels';
 import ApiErrorMessageCard from '../shared/ApiErrorMessageCard';
+import VerticalResizeHandle from '../shared/VerticalResizeHandle';
+import { Tooltip } from '../shared/ui-components/tooltip';
+import ComponentTree from './ComponentTree';
 
 export default function ComponentDirectoryPanel({
     retrieveComponentTree,
@@ -34,19 +35,25 @@ export default function ComponentDirectoryPanel({
                 <Stack {...ParentStackStyle}>
                     <Box position='sticky'>
                         <Heading {...HeadingStyle}>Component Directory</Heading>
-                        <Divider {...HorizontalDividerStyle} />
-                        <Tooltip label='Reload Component Directory' placement='right'>
-                            <IconButton
-                                icon={<PiArrowClockwise size={20} style={{ margin: '4px' }} />}
-                                onClick={retrieveComponentTree}
-                                {...RefreshIconButtonStyle}
-                            />
+                        <Separator {...HorizontalDividerStyle} />
+                        <Tooltip
+                            content='Reload Component Directory'
+                            openDelay={0}
+                            positioning={{ placement: 'right' }}
+                        >
+                            <IconButton onClick={retrieveComponentTree} {...RefreshIconButtonStyle}>
+                                <PiArrowClockwise size={20} style={{ margin: '4px' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                     {componentTreeError ? (
                         <ApiErrorMessageCard content='component directory' errorMessage={componentTreeError} />
                     ) : loadingComponentTree ? (
-                        <Progress size='sm' isIndeterminate />
+                        <Progress.Root size='sm' value={null}>
+                            <Progress.Track>
+                                <Progress.Range />
+                            </Progress.Track>
+                        </Progress.Root>
                     ) : (
                         <Box {...ComponentTreeBoxStyle}>
                             <ComponentTree
@@ -59,7 +66,7 @@ export default function ComponentDirectoryPanel({
                     )}
                 </Stack>
             </Panel>
-            <Divider {...VerticalDividerStyle} />
+            <Separator {...VerticalDividerStyle} />
         </>
     );
 }
@@ -67,12 +74,13 @@ export default function ComponentDirectoryPanel({
 const ParentStackStyle = {
     height: '100%',
     flex: '0 0',
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
 };
 
 const HeadingStyle = {
-    color: 'veeva_orange.color_mode',
-    size: 'md',
+    color: 'veeva_orange_color_mode',
+    size: 'xl',
+    fontWeight: 'bold',
     margin: '5px',
 };
 
@@ -82,6 +90,8 @@ const HorizontalDividerStyle = {
 };
 
 const RefreshIconButtonStyle = {
+    variant: 'subtle',
+    colorPalette: 'gray',
     size: 'auto',
     borderRadius: '6px',
     margin: '5px',

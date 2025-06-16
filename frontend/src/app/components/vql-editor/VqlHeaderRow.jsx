@@ -1,4 +1,4 @@
-import { Flex, Heading, Button, Spacer, Box } from '@chakra-ui/react';
+import { Flex, Heading, Button, Spacer } from '@chakra-ui/react';
 
 export default function VqlHeaderRow({
     submitVqlQuery,
@@ -11,23 +11,19 @@ export default function VqlHeaderRow({
         <Flex {...ParentFlexStyle}>
             <Heading {...HeadingStyle}>VQL Editor</Heading>
             <Spacer />
-            <Box>
-                <Button
-                    onClick={submitVqlQuery}
-                    isLoading={isExecutingQuery}
-                    {...RunVqlButtonStyle}
-                >
+            <Flex>
+                <Button onClick={submitVqlQuery} loading={isExecutingQuery} {...RunVqlButtonStyle}>
                     Run VQL
                 </Button>
                 <Button
                     onClick={downloadQueryResults}
-                    isLoading={isDownloading}
-                    isDisabled={!canDownload()}
+                    loading={isDownloading}
+                    disabled={!canDownload()}
                     {...DownloadCsvButtonStyle}
                 >
                     Download CSV
                 </Button>
-            </Box>
+            </Flex>
         </Flex>
     );
 }
@@ -39,7 +35,7 @@ const ParentFlexStyle = {
 };
 
 const HeadingStyle = {
-    color: 'veeva_orange.color_mode',
+    color: 'veeva_orange_color_mode',
     minWidth: 'max-content',
     marginLeft: '25px',
     marginRight: '5px',
@@ -52,6 +48,8 @@ const RunVqlButtonStyle = {
     _hover: {
         backgroundColor: 'veeva_twilight_blue.fifty_percent_opacity',
     },
+    fontSize: 'lg',
+    borderRadius: '8px',
     marginRight: '5px',
     width: '180px',
     boxShadow: '0 0 5px rgba(0,0,0,0.25)',
@@ -63,6 +61,8 @@ const DownloadCsvButtonStyle = {
     _hover: {
         backgroundColor: 'veeva_green_pasture.fifty_percent_opacity',
     },
+    fontSize: 'lg',
+    borderRadius: '8px',
     marginRight: '10px',
     width: '180px',
     boxShadow: '0 0 5px rgba(0,0,0,0.25)',

@@ -1,28 +1,7 @@
-/* eslint-disable no-param-reassign */
-import {
-    IconButton,
-    TableContainer,
-    Table,
-    Thead,
-    Tr,
-    Th,
-    Tbody,
-    Td,
-    Center,
-    Editable,
-    EditableInput,
-    EditablePreview,
-    Checkbox,
-    Alert,
-    AlertIcon,
-    Flex,
-    Box,
-    Icon,
-    Text,
-    Button,
-} from '@chakra-ui/react';
-import { PiCheck, PiMinusCircle, PiPlus, PiFloppyDisk } from 'react-icons/pi';
+import { Table, Alert, Flex, Box, Text, Button } from '@chakra-ui/react';
+import { PiPlus, PiFloppyDisk } from 'react-icons/pi';
 import useSavedVaultsTable from '../../hooks/login/useSavedVaultsTable';
+import SavedVaultsTableRow from './SavedVaultsTableRow';
 
 export default function SavedVaultsTable({
     savedVaultData,
@@ -33,18 +12,13 @@ export default function SavedVaultsTable({
     isEditable,
     toggleEditMode,
 }) {
-    const VAULT_DNS = 'vaultDNS';
-    const USERNAME = 'username';
-
     const {
         defaultVaultRowIndex,
-        newEditableRowRef,
         handleRowClick,
         handleSavedVaultEdits,
         handleDefaultRowChanged,
         addNewEditableRow,
         removeRow,
-        focusOnNewRow,
     } = useSavedVaultsTable({
         savedVaultData,
         setSavedVaultData,
@@ -57,95 +31,33 @@ export default function SavedVaultsTable({
     return (
         <Flex flexDirection='column' height='100%'>
             <Box {...TableBoxStyle}>
-                <TableContainer {...TableContainerStyle}>
-                    <Table {...TableStyle}>
-                        <Thead {...ThStyle}>
-                            <Tr>
-                                <Th>Vault DNS</Th>
-                                <Th>Username</Th>
-                                <Th>Default?</Th>
-                                {isEditable && <Th />}
-                            </Tr>
-                        </Thead>
-                        <Tbody>
+                <Flex {...TableContainerStyle}>
+                    <Table.Root {...TableStyle}>
+                        <Table.Header {...ThStyle}>
+                            <Table.Row>
+                                <Table.ColumnHeader>Vault DNS</Table.ColumnHeader>
+                                <Table.ColumnHeader>Username</Table.ColumnHeader>
+                                <Table.ColumnHeader>Default?</Table.ColumnHeader>
+                                {isEditable && <Table.ColumnHeader />}
+                            </Table.Row>
+                        </Table.Header>
+                        <Table.Body>
                             {savedVaultData.map((savedVault, savedVaultRowIndex) => (
-                                <Tr
+                                <SavedVaultsTableRow
                                     key={savedVaultRowIndex}
-                                    onClick={() => handleRowClick(savedVaultRowIndex)}
-                                    {...TrStyle}
-                                >
-                                    <Td>
-                                        <Editable
-                                            defaultValue={savedVault?.vaultDNS}
-                                            value={savedVault?.vaultDNS}
-                                            isDisabled={!isEditable}
-                                            onChange={(value) =>
-                                                handleSavedVaultEdits(
-                                                    value,
-                                                    savedVaultRowIndex,
-                                                    VAULT_DNS,
-                                                )
-                                            }
-                                        >
-                                            <EditablePreview
-                                                {...EditablePreviewStyle}
-                                                ref={
-                                                    savedVaultRowIndex === savedVaultData.length - 1
-                                                        ? newEditableRowRef
-                                                        : null
-                                                }
-                                            />
-                                            <EditableInput />
-                                        </Editable>
-                                    </Td>
-                                    <Td>
-                                        <Editable
-                                            defaultValue={savedVault?.username}
-                                            value={savedVault?.username}
-                                            isDisabled={!isEditable}
-                                            onChange={(value) =>
-                                                handleSavedVaultEdits(
-                                                    value,
-                                                    savedVaultRowIndex,
-                                                    USERNAME,
-                                                )
-                                            }
-                                        >
-                                            <EditablePreview {...EditablePreviewStyle} />
-                                            <EditableInput />
-                                        </Editable>
-                                    </Td>
-                                    <Td>
-                                        <Center>
-                                            {isEditable ? (
-                                                <Checkbox
-                                                    value={savedVaultRowIndex}
-                                                    isChecked={
-                                                        defaultVaultRowIndex === savedVaultRowIndex
-                                                    }
-                                                    onChange={() =>
-                                                        handleDefaultRowChanged(savedVaultRowIndex)
-                                                    }
-                                                />
-                                            ) : (
-                                                <Box>{savedVault.default && <PiCheck />}</Box>
-                                            )}
-                                        </Center>
-                                    </Td>
-                                    {isEditable && (
-                                        <Td padding={0}>
-                                            <IconButton
-                                                icon={<PiMinusCircle />}
-                                                onClick={() => removeRow(savedVaultRowIndex)}
-                                                {...RemoveRowButtonStyle}
-                                            />
-                                        </Td>
-                                    )}
-                                </Tr>
+                                    savedVault={savedVault}
+                                    savedVaultRowIndex={savedVaultRowIndex}
+                                    defaultVaultRowIndex={defaultVaultRowIndex}
+                                    handleRowClick={handleRowClick}
+                                    handleSavedVaultEdits={handleSavedVaultEdits}
+                                    handleDefaultRowChanged={handleDefaultRowChanged}
+                                    isEditable={isEditable}
+                                    removeRow={removeRow}
+                                />
                             ))}
-                        </Tbody>
-                    </Table>
-                </TableContainer>
+                        </Table.Body>
+                    </Table.Root>
+                </Flex>
             </Box>
             {isEditable && (
                 <Box>
@@ -155,22 +67,21 @@ export default function SavedVaultsTable({
                                 {...AddRowButtonStyle}
                                 onClick={() => {
                                     addNewEditableRow();
-                                    setTimeout(focusOnNewRow, 100);
                                 }}
                             >
-                                <Icon as={PiPlus} boxSize={5} />
+                                <PiPlus />
                                 <Text>Add Row</Text>
                             </Button>
                             <Button {...SaveButtonStyle} onClick={toggleEditMode}>
-                                <Icon as={PiFloppyDisk} boxSize={5} />
+                                <PiFloppyDisk />
                                 <Text>Save</Text>
                             </Button>
                         </>
                     ) : (
-                        <Alert status='warning'>
-                            <AlertIcon />
+                        <Alert.Root status='warning'>
+                            <Alert.Indicator />
                             You have reached the max allowed number of saved Vaults (100).
-                        </Alert>
+                        </Alert.Root>
                     )}
                 </Box>
             )}
@@ -190,51 +101,30 @@ const TableContainerStyle = {
     borderRadius: '8px',
     overflowX: 'unset',
     overflowY: 'unset',
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
 };
 
 const TableStyle = {
-    variant: 'simple',
+    variant: 'outline',
+    interactive: true,
     size: 'sm',
     maxHeight: '100px',
     overflow: 'auto',
 };
 
 const ThStyle = {
-    backgroundColor: 'white.color_mode',
     position: 'sticky',
     top: 0,
     border: 'none',
     zIndex: 10,
 };
 
-const TrStyle = {
-    _hover: {
-        bg: 'gray.background.color_mode',
-        cursor: 'pointer',
-    },
-};
-
-const EditablePreviewStyle = {
-    _hover: {
-        bg: 'gray.background.color_mode',
-        cursor: 'pointer',
-    },
-    minWidth: '150px',
-};
-
-const RemoveRowButtonStyle = {
-    size: 'md',
-    variant: 'ghost',
-    colorScheme: 'red',
-};
-
 const AddRowButtonStyle = {
-    variant: 'outline',
+    variant: 'subtle',
     size: 'sm',
     position: 'sticky',
     bottom: '0',
-    colorScheme: 'blue',
+    colorPalette: 'blue',
     marginLeft: '5px',
     marginTop: '10px',
     padding: '5px',
@@ -245,7 +135,7 @@ const SaveButtonStyle = {
     size: 'sm',
     position: 'sticky',
     bottom: '0',
-    colorScheme: 'blue',
+    colorPalette: 'blue',
     marginLeft: '5px',
     marginTop: '10px',
     padding: '5px',

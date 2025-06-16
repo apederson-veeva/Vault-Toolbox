@@ -201,9 +201,9 @@ export async function downloadItemContent(path) {
  * Calls the Vault API's Create Folder or File endpoint.
  * @returns Vault Response
  */
-export async function createFolderOrFile(kind, path) {
+export async function createFolderOrFile(kind, path, file) {
     try {
-        const { response } = await vapilCreateFolderOrFile(kind, path);
+        const { response } = await vapilCreateFolderOrFile(kind, path, file);
         return response;
     } catch (error) {
         return handleErrors(error);
@@ -418,17 +418,17 @@ export async function login(params) {
                             const vaultUserId = responseHeaders.get('x-vaultapi-userid');
                             if (vaultUserId) {
                                 // System user not supported
-                                // if (vaultUserId === '1') {
-                                //     return {
-                                //         responseStatus: 'FAILURE',
-                                //         errors: [
-                                //             {
-                                //                 type: 'INVALID_SESSION_ID',
-                                //                 message: 'System user not supported',
-                                //             },
-                                //         ],
-                                //     };
-                                // }
+                                if (vaultUserId === '1') {
+                                    return {
+                                        responseStatus: 'FAILURE',
+                                        errors: [
+                                            {
+                                                type: 'INVALID_SESSION_ID',
+                                                message: 'System user not supported',
+                                            },
+                                        ],
+                                    };
+                                }
                                 sessionStorage.setItem('userId', vaultUserId);
                             }
                             return response;
@@ -452,11 +452,7 @@ export async function login(params) {
             }
         } else if (params.userName && params.password) {
             try {
-                const { response, responseHeaders } = await vapilLogin(
-                    params.userName,
-                    params.password,
-                    params.vaultDNS,
-                );
+                const { response } = await vapilLogin(params.userName, params.password, params.vaultDNS);
                 return response;
             } catch (error) {
                 return handleErrors(error);

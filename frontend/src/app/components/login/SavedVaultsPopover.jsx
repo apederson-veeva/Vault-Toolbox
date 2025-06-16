@@ -1,22 +1,15 @@
-/* eslint-disable no-undef */
-import {
-    Text,
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-    PopoverHeader,
-    PopoverArrow,
-    PopoverBody,
-    IconButton,
-    Flex,
-    Button,
-    Icon,
-    useDisclosure,
-    Spacer,
-} from '@chakra-ui/react';
+import { IconButton, Flex, Spacer } from '@chakra-ui/react';
+import { Button, Text } from '@chakra-ui/react';
 import { PiCaretDownBold, PiX, PiNotePencil, PiFloppyDisk } from 'react-icons/pi';
-import SavedVaultsTable from './SavedVaultsTable';
 import useSavedVaultsPopover from '../../hooks/login/useSavedVaultsPopover';
+import {
+    PopoverBody,
+    PopoverContent,
+    PopoverRoot,
+    PopoverHeader,
+    PopoverTrigger,
+} from '../shared/ui-components/popover';
+import SavedVaultsTable from './SavedVaultsTable';
 
 export default function SavedVaultsPopover({
     setVaultDNS,
@@ -25,43 +18,44 @@ export default function SavedVaultsPopover({
     savedVaultData,
     setSavedVaultData,
 }) {
-    const { onOpen, onClose, isOpen } = useDisclosure();
-
-    const { isEditable, toggleEditMode, handlePopoverClosed } = useSavedVaultsPopover({
+    const { open, isEditable, toggleEditMode, handleOpenChange } = useSavedVaultsPopover({
         savedVaultData,
         setSavedVaultData,
-        onClose,
     });
 
     return (
-        <Popover
-            placement='right-start'
-            isOpen={isOpen}
-            onOpen={onOpen}
-            onClose={handlePopoverClosed}
-            isLazy
+        <PopoverRoot
+            positioning={{ placement: 'right-start' }}
+            open={open}
+            onOpenChange={(e) => handleOpenChange(e.open)}
+            lazyMounted
         >
-            <PopoverTrigger>
-                <IconButton icon={<PiCaretDownBold />} {...IconButtonStyle} />
+            <PopoverTrigger asChild>
+                <IconButton {...IconButtonStyle}>
+                    <PiCaretDownBold />
+                </IconButton>
             </PopoverTrigger>
-            <PopoverContent {...PopoverContentStyle}>
+            <PopoverContent {...PopoverContentStyle} css={{ '--popover-bg': 'blue.100' }}>
                 <PopoverHeader {...PopoverHeaderStyle}>
                     <Flex alignItems='center'>
                         <Text fontSize='md'>Saved Vaults</Text>
-                        <Button {...ToggleEditModeButtonStyle} onClick={toggleEditMode}>
+                        <Button
+                            {...ToggleEditModeButtonStyle}
+                            onClick={toggleEditMode}
+                            color={isEditable ? 'blue_color_mode' : ''}
+                        >
                             {isEditable ? (
-                                <Icon as={PiFloppyDisk} boxSize={6} color={'blue.color_mode'} />
+                                <PiFloppyDisk style={{ width: 24, height: 24 }} />
                             ) : (
-                                <Icon as={PiNotePencil} boxSize={6} />
+                                <PiNotePencil style={{ width: 24, height: 24 }} />
                             )}
                         </Button>
                         <Spacer />
-                        <Button {...CloseButtonStyle} onClick={handlePopoverClosed}>
+                        <Button {...CloseButtonStyle} onClick={() => handleOpenChange(false)}>
                             <PiX />
                         </Button>
                     </Flex>
                 </PopoverHeader>
-                <PopoverArrow backgroundColor='gray.background.color_mode' />
                 <PopoverBody>
                     <SavedVaultsTable
                         savedVaultData={savedVaultData}
@@ -74,24 +68,24 @@ export default function SavedVaultsPopover({
                     />
                 </PopoverBody>
             </PopoverContent>
-        </Popover>
+        </PopoverRoot>
     );
 }
 
 const IconButtonStyle = {
-    backgroundColor: 'gray.background.color_mode',
-    marginLeft: '5px',
+    backgroundColor: 'gray_background_color_mode',
+    variant: 'ghost',
 };
 
 const PopoverContentStyle = {
     minW: { base: '100%', lg: 'max-content' },
     borderRadius: 'md',
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
 };
 
 const PopoverHeaderStyle = {
     fontWeight: 'semibold',
-    backgroundColor: 'gray.background.color_mode',
+    backgroundColor: 'gray_background_color_mode',
     borderTopRadius: 'md',
     padding: '8px',
 };
@@ -100,11 +94,13 @@ const ToggleEditModeButtonStyle = {
     size: 'sm',
     marginLeft: '5px',
     padding: '0',
-    backgroundColor: 'gray.background.color_mode',
+    backgroundColor: 'gray_background_color_mode',
+    variant: 'ghost',
 };
 
 const CloseButtonStyle = {
     size: 'sm',
-    backgroundColor: 'gray.background.color_mode',
-    _hover: { backgroundColor: 'veeva_light_gray.color_mode' },
+    backgroundColor: 'gray_background_color_mode',
+    _hover: { backgroundColor: 'veeva_light_gray_color_mode' },
+    variant: 'ghost',
 };

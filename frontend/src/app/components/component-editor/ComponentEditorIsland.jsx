@@ -1,22 +1,14 @@
-import { Flex, Box, Tabs, TabList, Tab, TabIndicator, Divider, Skeleton, Text, useColorMode } from '@chakra-ui/react';
-import { PanelGroup, Panel } from 'react-resizable-panels';
+import { Flex, Box, Tabs, Separator, Text } from '@chakra-ui/react';
 import { useState } from 'react';
+import { PanelGroup, Panel } from 'react-resizable-panels';
 import CodeEditor from '../shared/CodeEditor';
-import {
-    setupMdlLanguage,
-    mdlLanguageID,
-    MdlLightModeTheme,
-    MdlDarkModeTheme,
-} from './MdlLanguageDefinition';
-import ComponentConsole from './ComponentConsole';
 import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
+import { useColorMode } from '../shared/ui-components/color-mode';
+import { Skeleton } from '../shared/ui-components/skeleton';
+import ComponentConsole from './ComponentConsole';
+import { setupMdlLanguage, mdlLanguageID, MdlLightModeTheme, MdlDarkModeTheme } from './MdlLanguageDefinition';
 
-export default function ComponentEditorIsland({
-    consoleOutput,
-    code,
-    setCode,
-    isExecutingApiCall,
-}) {
+export default function ComponentEditorIsland({ consoleOutput, code, setCode, isExecutingApiCall }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const { colorMode } = useColorMode();
 
@@ -28,15 +20,17 @@ export default function ComponentEditorIsland({
             <PanelGroup direction='vertical' autoSaveId='ComponentEditorIsland-PanelGroup'>
                 <Panel defaultSize={70} minSize={30}>
                     <Flex flexDirection='column' height='100%' width='100%'>
-                        <Tabs {...TabsStyle}>
-                            <TabList {...TabListStyle}>
-                                <Box width='180px'>
-                                    <Tab {...TabStyle}>MDL</Tab>
-                                </Box>
-                            </TabList>
-                            <TabIndicator {...TabIndicatorStyle} />
-                        </Tabs>
-                        <Box flex={1} overflow={'auto'}>
+                        <Tabs.Root {...TabsStyle}>
+                            <Tabs.List {...TabListStyle}>
+                                <Tabs.Trigger {...TabStyle}>
+                                    <Flex width='180px' alignItems='center' justifyContent='center'>
+                                        MDL
+                                    </Flex>
+                                </Tabs.Trigger>
+                            </Tabs.List>
+                            <Tabs.Indicator {...TabIndicatorStyle} />
+                        </Tabs.Root>
+                        <Box flex={1} overflow='auto'>
                             <CodeEditor
                                 code={code}
                                 setCode={setCode}
@@ -46,7 +40,7 @@ export default function ComponentEditorIsland({
                         </Box>
                     </Flex>
                 </Panel>
-                <Divider border='1px solid thin' />
+                <Separator border='1px solid' borderColor='veeva_light_gray_color_mode' />
                 <HorizontalResizeHandle
                     backgroundColor='veeva_sunset_yellow.ten_percent_opacity'
                     isCollapsed={isCollapsed}
@@ -60,12 +54,10 @@ export default function ComponentEditorIsland({
                 >
                     <Flex flexDirection='column' height='100%'>
                         <Box {...ConsoleBoxStyle}>
-                            <Skeleton isLoaded={!isExecutingApiCall} height='100%'>
+                            <Skeleton loading={isExecutingApiCall} height='100%'>
                                 <ComponentConsole consoleOutput={consoleOutput} />
                             </Skeleton>
-                            {isExecutingApiCall && (
-                                <Text {...SendingRequestTextStyle}>Sending request...</Text>
-                            )}
+                            {isExecutingApiCall && <Text {...SendingRequestTextStyle}>Sending request...</Text>}
                         </Box>
                     </Flex>
                 </Panel>
@@ -79,39 +71,43 @@ const ParentFlexStyle = {
     width: 'calc(100% - 20px)',
     margin: '0px',
     borderRadius: '8px',
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
 const TabsStyle = {
     flex: 'none',
     position: 'relative',
-    variant: 'unstyled',
+    variant: 'plain',
     size: 'lg',
     minHeight: 'auto',
 };
 
 const TabListStyle = {
     height: '60px',
+    width: '100%',
     borderBottom: 'solid 3px',
     borderBottomColor: 'gray.400',
 };
 
 const TabStyle = {
-    color: 'veeva_orange.color_mode',
+    color: 'veeva_orange_color_mode',
     fontSize: 'xl',
     width: '180px',
+    height: '100%',
 };
 
 const TabIndicatorStyle = {
     marginTop: '-3px',
+    width: '180px',
     height: '3px',
-    backgroundColor: 'veeva_orange.color_mode',
+    backgroundColor: 'veeva_orange_color_mode',
+    zIndex: 1,
 };
 
 const ConsoleBoxStyle = {
     flex: 1,
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     fontSize: 'medium',
     position: 'relative',
     overflow: 'auto',

@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { login } from '../../services/ApiService';
+
+const LOGIN_TYPE_VALUES = {
+    BASIC: 'basic',
+    SESSION: 'session',
+    INTEGRATED: 'integrated',
+};
 
 export default function useVaultLoginForm({
     setSessionId,
@@ -14,7 +20,7 @@ export default function useVaultLoginForm({
     const [loginSessionId, setLoginSessionId] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState({ hasError: false, errorMessage: '' });
-    const [loginFormTabIndex, setLoginFormTabIndex] = useState(0);
+    const [loginFormTabValue, setLoginFormTabValue] = useState(LOGIN_TYPE_VALUES.BASIC);
 
     const passwordRef = useRef(null);
     const usernameRef = useRef(null);
@@ -28,7 +34,7 @@ export default function useVaultLoginForm({
      */
     const canSubmit = () => {
         // For Integrated login, must have originating DNS and session
-        if (loginFormTabIndex === 2) {
+        if (loginFormTabValue === LOGIN_TYPE_VALUES.INTEGRATED) {
             if (!originatingUrl || !originatingVaultSession) {
                 return false;
             }
@@ -53,85 +59,94 @@ export default function useVaultLoginForm({
      * @param originatingVaultSession - (optional) session ID of the Vault which Toolbox was launched from
      * @returns {Promise<void>}
      */
-    const handleSubmit = async ({ originatingVaultDNS = '', originatingVaultSession = '' }) => {
-        setError({ hasError: false, errorMessage: '' });
-        const cleanVaultDNS = vaultDNS?.replace(/^https?:\/\//, ''); // Remove http(s)://
+    const handleSubmit = useCallback(
+        async ({ originatingVaultDNS = '', originatingVaultSession = '' }) => {
+            setError({ hasError: false, errorMessage: '' });
+            const cleanVaultDNS = vaultDNS?.replace(/^https?:\/\//, ''); // Remove http(s)://
 
-        const vaultAuthenticatingDNS = originatingVaultDNS || cleanVaultDNS;
-        const vaultAuthenticatingSessionId = originatingVaultSession || loginSessionId;
+            const vaultAuthenticatingDNS = originatingVaultDNS || cleanVaultDNS;
+            const vaultAuthenticatingSessionId = originatingVaultSession || loginSessionId;
 
-        const params = {
-            userName,
-            password,
-            vaultDNS: vaultAuthenticatingDNS,
-            sessionId: vaultAuthenticatingSessionId,
-        };
+            const params = {
+                userName,
+                password,
+                vaultDNS: vaultAuthenticatingDNS,
+                sessionId: vaultAuthenticatingSessionId,
+            };
 
-        setLoading(true);
-        const authResponse = await login(params);
+            setLoading(true);
+            const authResponse = await login(params);
 
-        if (authResponse?.responseStatus === 'SUCCESS') {
-            sessionStorage.setItem('vaultDNS', vaultAuthenticatingDNS);
-            setIsLoggedIn(true);
+            if (authResponse?.responseStatus === 'SUCCESS') {
+                sessionStorage.setItem('vaultDNS', vaultAuthenticatingDNS);
+                setIsLoggedIn(true);
 
-            // Basic auth
-            if (authResponse?.sessionId) {
-                setSessionId(authResponse.sessionId);
-                sessionStorage.setItem('vaultId', authResponse?.vaultId);
-                sessionStorage.setItem('userId', authResponse?.userId);
+                // Basic auth
+                if (authResponse?.sessionId) {
+                    setSessionId(authResponse.sessionId);
+                    sessionStorage.setItem('vaultId', authResponse?.vaultId);
+                    sessionStorage.setItem('userId', authResponse?.userId);
+                } else {
+                    // Session auth
+                    setSessionId(vaultAuthenticatingSessionId);
+                }
             } else {
-                // Session auth
-                setSessionId(vaultAuthenticatingSessionId);
+                let errMessage = '';
+                // Vault errors
+                if (authResponse?.errors?.length > 0) {
+                    errMessage = authResponse?.errors[0]?.type + ' : ' + authResponse?.errors[0]?.message;
+                }
+                setError({ hasError: true, errorMessage: errMessage });
             }
-        } else {
-            let errMessage = '';
-            // Vault errors
-            if (authResponse?.errors?.length > 0) {
-                errMessage = authResponse?.errors[0]?.type + ' : ' + authResponse?.errors[0]?.message;
-            }
-            setError({ hasError: true, errorMessage: errMessage });
-        }
-        setLoading(false);
-    };
+            setLoading(false);
+        }, // eslint-disable-next-line react-hooks/exhaustive-deps -- setIsLoggedIn & setSessionId are stable setState functions
+        [password, userName, vaultDNS, loginSessionId],
+    );
 
     /**
      * Handles clearing previous inputs when user switches auth types
-     * @param {Number} tabIndex : 0 = Basic Auth, 1 = Session, 2 = Integrated Login
+     * @param {String} tabValue : basic, session, integrated
      */
-    const handleAuthTypeChange = (tabIndex) => {
-        if (tabIndex === 0) {
-            // Switched to basic auth : clear session input
-            setLoginSessionId('');
-        } else if (tabIndex === 1) {
-            // Switched to session auth : clear username/password inputs
-            setUserName('');
-            setPassword('');
+    const handleAuthTypeChange = useCallback(
+        (tabValue) => {
+            if (tabValue === LOGIN_TYPE_VALUES.BASIC) {
+                // Switched to basic auth : clear session input
+                setLoginSessionId('');
 
-            // After slight delay, move the focus to the session input field
-            setTimeout(setFocusToSessionInput, 100);
-        }
+                // After slight delay, move the focus to the session input field
+                setTimeout(setFocusToUsernameInput, 100);
+            } else if (tabValue === LOGIN_TYPE_VALUES.SESSION) {
+                // Switched to session auth : clear username/password inputs
+                setUserName('');
+                setPassword('');
 
-        setLoginFormTabIndex(tabIndex);
-        setError({ hasError: false, errorMessage: '' });
-    };
+                // After slight delay, move the focus to the session input field
+                setTimeout(setFocusToSessionInput, 100);
+            }
+
+            setLoginFormTabValue(tabValue);
+            setError({ hasError: false, errorMessage: '' });
+        },
+        [setFocusToUsernameInput],
+    );
 
     /**
      * Sets the input focus on the password field.
      */
-    const setFocusToPasswordInput = () => {
+    const setFocusToPasswordInput = useCallback(() => {
         if (passwordRef.current) {
             passwordRef.current.focus();
         }
-    };
+    }, []);
 
     /**
      * Sets the input focus on the username field.
      */
-    const setFocusToUsernameInput = () => {
+    const setFocusToUsernameInput = useCallback(() => {
         if (usernameRef.current) {
             usernameRef.current.focus();
         }
-    };
+    }, []);
 
     /**
      * Sets the input focus on the sessionId field.
@@ -155,11 +170,11 @@ export default function useVaultLoginForm({
 
     /**
      * Determines if the Integrated login tab of the login form is selected.
-     * (loginFormTabIndex: 0 = Basic Auth, 1 = Session, 2 = Integrated Login)
+     * (loginFormTabValue: basic, session, integrated)
      * @returns {boolean} true if the Integrated tab is selected, otherwise false
      */
     const isIntegratedLoginTabSelected = () => {
-        return loginFormTabIndex === 2;
+        return loginFormTabValue === LOGIN_TYPE_VALUES.INTEGRATED;
     };
 
     /*
@@ -171,10 +186,10 @@ export default function useVaultLoginForm({
                 handleSubmit({ originatingVaultDNS: originatingUrl, originatingVaultSession });
             }
 
-            // Integrated login = tabIndex 2
-            handleAuthTypeChange(2);
+            // Integrated login = tabValue 'integrated'
+            handleAuthTypeChange(LOGIN_TYPE_VALUES.INTEGRATED);
         }
-    }, [originatingVaultSession]);
+    }, [originatingVaultSession, originatingUrl, integratedLoginIsEnabled, handleSubmit, handleAuthTypeChange]);
 
     return {
         loading,
@@ -187,7 +202,7 @@ export default function useVaultLoginForm({
         setLoginSessionId,
         vaultDNS,
         setVaultDNS,
-        loginFormTabIndex,
+        loginFormTabValue,
         isIntegratedLoginTabSelected,
         canSubmit,
         handleSubmit,

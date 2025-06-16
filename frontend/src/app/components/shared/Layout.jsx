@@ -1,15 +1,15 @@
-'use client';
-
-import React from 'react';
 import { Flex, Box } from '@chakra-ui/react';
-import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
 import { ErrorBoundary } from 'react-error-boundary';
-import ErrorPage from '../../pages/ErrorPage';
+import { Outlet } from 'react-router-dom';
+import useIdleTimer from '../../hooks/shared/useIdleTimer';
 import useVaultSessionKeepAlive from '../../hooks/shared/useVaultSessionKeepAlive';
+import ErrorPage from '../../pages/ErrorPage';
+import Sidebar from './Sidebar';
+import IdleWarningDialog from './IdleWarningDialog';
 
 export default function Layout() {
-    useVaultSessionKeepAlive();
+    const { timeoutState, promptOpen, remainingTime, activate } = useIdleTimer();
+    useVaultSessionKeepAlive({ timeoutState });
 
     return (
         <Flex height='100vh'>
@@ -21,6 +21,9 @@ export default function Layout() {
                     <Outlet />
                 </ErrorBoundary>
             </Box>
+            {promptOpen ? (
+                <IdleWarningDialog promptOpen={promptOpen} activate={activate} remainingTime={remainingTime} />
+            ) : null}
         </Flex>
     );
 }

@@ -1,23 +1,17 @@
-import {
-    Button,
-    Center,
-    Icon,
-    Modal,
-    ModalBody,
-    ModalCloseButton,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    ModalOverlay,
-    Select,
-    Spinner,
-    Text,
-} from '@chakra-ui/react';
+import { Button, Center, Spinner, Box } from '@chakra-ui/react';
 import { PiFloppyDisk } from 'react-icons/pi';
 import useEditApiVersion from '../../hooks/shared/useEditApiVersion';
 import ApiErrorMessageCard from './ApiErrorMessageCard';
-
-export default function EditApiVersionModal({ isOpen, onClose }) {
+import CustomSelect from './CustomSelect';
+import {
+    DialogRoot,
+    DialogContent,
+    DialogHeader,
+    DialogCloseTrigger,
+    DialogBody,
+    DialogFooter,
+} from './ui-components/dialog';
+export default function EditApiVersionModal({ open, onClose }) {
     const {
         selectedApiVersion,
         setSelectedApiVersion,
@@ -29,28 +23,23 @@ export default function EditApiVersionModal({ isOpen, onClose }) {
     } = useEditApiVersion({ onClose });
 
     return (
-        <Modal isOpen={isOpen} onClose={handleModalClose} size='sm'>
-            <ModalOverlay />
-            <ModalContent backgroundColor='white.color_mode'>
-                <ModalHeader>Set Vault API Version</ModalHeader>
-                <ModalCloseButton />
-                <ModalBody>
+        <DialogRoot open={open} onOpenChange={handleModalClose} size='sm'>
+            <DialogContent backgroundColor='white_color_mode'>
+                <DialogHeader fontSize='lg' fontWeight='bold'>
+                    Set Vault API Version
+                </DialogHeader>
+                <DialogCloseTrigger />
+                <DialogBody>
                     {!vaultApiVersionsError.hasError ? (
                         <>
                             {!loadingVaultApiVersions ? (
-                                <Select
-                                    size='sm'
-                                    value={selectedApiVersion}
-                                    onChange={(e) => setSelectedApiVersion(e.target.value)}
-                                >
-                                    {apiVersions.map((apiVersion) => {
-                                        return (
-                                            <option value={apiVersion} key={apiVersion}>
-                                                {apiVersion}
-                                            </option>
-                                        );
-                                    })}
-                                </Select>
+                                <Box width='100%'>
+                                    <CustomSelect
+                                        options={apiVersions}
+                                        value={selectedApiVersion}
+                                        onChange={(newValue) => setSelectedApiVersion(newValue)}
+                                    />
+                                </Box>
                             ) : (
                                 <Center>
                                     <Spinner />
@@ -63,22 +52,22 @@ export default function EditApiVersionModal({ isOpen, onClose }) {
                             errorMessage={vaultApiVersionsError.errorMessage}
                         />
                     )}
-                </ModalBody>
-                <ModalFooter>
+                </DialogBody>
+                <DialogFooter>
                     <Button onClick={handleSave} {...SaveButtonStyle}>
-                        <Icon as={PiFloppyDisk} boxSize={5} marginRight='5px' />
-                        <Text>Save</Text>
+                        <PiFloppyDisk style={{ width: 24, height: 24, marginRight: '5px' }} />
+                        Save
                     </Button>
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
+                </DialogFooter>
+            </DialogContent>
+        </DialogRoot>
     );
 }
 
 const SaveButtonStyle = {
     variant: 'solid',
     size: 'sm',
-    colorScheme: 'blue',
+    colorPalette: 'blue',
     margin: '5px',
     padding: '10px',
 };

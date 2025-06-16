@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { VAULT_SUBDOMAINS } from '../../services/SharedServices';
 
 const SAVED_VAULTS = 'savedVaults';
@@ -41,7 +41,7 @@ export default function useSavedVaultData({
     /**
      * Handler for loading Saved Vaults. Also loads defaults when launching from a Vault.
      */
-    const setDefaultsOnLoad = async () => {
+    const setDefaultsOnLoad = useCallback(async () => {
         // Load saved Vaults from storage
         await loadSavedVaults();
 
@@ -69,7 +69,8 @@ export default function useSavedVaultData({
                 }
             }
         });
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     useEffect(() => {
         savedVaultDataRef.current = savedVaultData;
@@ -80,7 +81,7 @@ export default function useSavedVaultData({
      */
     useEffect(() => {
         setDefaultsOnLoad();
-    }, []);
+    }, [setDefaultsOnLoad]);
 
     return { savedVaultData, setSavedVaultData };
 }

@@ -1,22 +1,22 @@
-import { Th, Thead, Tr } from '@chakra-ui/react';
+import { Table } from '@chakra-ui/react';
 import { isSandboxVault } from '../../services/SharedServices';
 
 export default function FileStagingBrowserTableHeader() {
     const headerData = ['kind', 'name', 'size', 'modified_date', ''];
 
     return (
-        <Thead
+        <Table.Header
             {...ThStyle}
             backgroundColor={isSandboxVault() ? 'veeva_sandbox_green.500' : 'veeva_midnight_indigo.500'}
         >
-            <Tr>
+            <Table.Row>
                 {headerData.map((headerValue, headerCount) => (
-                    <Th key={headerCount} {...ThStyle}>
+                    <Table.ColumnHeader key={headerCount} {...ThStyle}>
                         {headerValue}
-                    </Th>
+                    </Table.ColumnHeader>
                 ))}
-            </Tr>
-        </Thead>
+            </Table.Row>
+        </Table.Header>
     );
 }
 

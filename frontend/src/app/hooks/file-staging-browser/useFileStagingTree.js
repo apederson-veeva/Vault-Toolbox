@@ -5,6 +5,7 @@ export default function useFileStagingTree() {
     const [fileStagingTree, setFileStagingTree] = useState({});
     const [fileStagingTreeError, setFileStagingTreeError] = useState('');
     const [loadingFileStagingTree, setLoadingFileStagingTree] = useState(false);
+    const [loadingFileStagingTreeFolder, setLoadingFileStagingTreeFolder] = useState(false);
     const fileStagingTreeEnvironmentRef = useRef();
     const fileStagingTreeRef = useRef();
     const fileStagingRoot = {
@@ -53,13 +54,18 @@ export default function useFileStagingTree() {
                 setFileStagingTree(tmpFileStagingTree);
             }
         } catch (error) {
-            setFileStagingTreeError(error?.message || error?.toString() || 'An unexpected error occurred');
+            setFileStagingTreeError(error?.message || error?.toString() || 'Error retrieving file staging tree');
         } finally {
             setLoadingFileStagingTree(false);
         }
     };
 
-    const retrieveNextPage = async (nextPage, tmpFileStagingTree) => {
+    /**
+     * Calls the Vault REST API List Items at a Path endpoint with next_page url
+     * @param {String} nextPage - Next page URL
+     * @returns {Promise<void>}
+     */
+    const retrieveNextPage = async (nextPage) => {
         try {
             const nextPageResponse = await listItemsAtAPathByPage(nextPage);
 
@@ -72,11 +78,46 @@ export default function useFileStagingTree() {
                 return;
             }
 
-            if (nextPageResponse.data) {
-                await buildFileStagingTree(nextPageResponse, tmpFileStagingTree);
-            }
+            return nextPageResponse;
         } catch (error) {
-            setFileStagingTreeError(error?.message || error?.toString() || 'An unexpected error occurred');
+            setFileStagingTreeError(error?.message || error?.toString() || 'Error retrieving next page results');
+        }
+    };
+
+    /**
+     * Method that is called recursively to add a File Staging item to the tree, and also check for and add
+     * the nested folders leading up to the item (IE: /folder1/folder2/file.txt)
+     * @param item - File Staging item
+     * @param parts - Array of individual parts from a full path
+     * @param parent - Parent to the current part being added
+     * @param tree - File Staging tree
+     */
+    const addToTree = (item, parts, parent, tree) => {
+        // Adjust the parent path to prevent double slashes
+        const parentPath = parent === '/' ? '' : parent;
+        const partKey = `${parentPath}/${parts[0]}`; // Construct unique key without double slash
+        const isFolder = parts.length > 1 || item.kind === 'folder';
+
+        if (!tree[partKey]) {
+            tree[partKey] = {
+                index: partKey,
+                isFolder: isFolder,
+                children: [],
+                data: {
+                    name: parts[0],
+                    path: partKey,
+                    ...(!isFolder && {
+                        size: item.size,
+                        modified_date: item.modified_date,
+                    }),
+                },
+            };
+            tree[parent].children.push(partKey);
+        }
+
+        if (parts.length > 1) {
+            parts.shift();
+            addToTree(item, parts, partKey, tree);
         }
     };
 
@@ -86,42 +127,6 @@ export default function useFileStagingTree() {
      * @param {Object} tmpFileStagingTree - Temporary file staging tree
      */
     const buildFileStagingTree = async (listItemsResponse, tmpFileStagingTree) => {
-        /**
-         * Recursive function to add an item to the tree
-         * @param {Object} item - File Staging Tree Item (file or folder)
-         * @param {string[]} parts - Array of individual parts from a full path
-         * @param {String} parent - Item's parent path
-         * @param {Object} tree - File Staging Tree
-         */
-        const addToTree = (item, parts, parent, tree) => {
-            // Adjust the parent path to prevent double slashes
-            const parentPath = parent === '/' ? '' : parent;
-            const partKey = `${parentPath}/${parts[0]}`; // Construct unique key without double slash
-            const isFolder = parts.length > 1 || item.kind === 'folder';
-
-            if (!tree[partKey]) {
-                tree[partKey] = {
-                    index: partKey,
-                    isFolder: isFolder,
-                    children: [],
-                    data: {
-                        name: parts[0],
-                        path: partKey,
-                        ...(!isFolder && {
-                            size: item.size,
-                            modified_date: item.modified_date,
-                        }),
-                    },
-                };
-                tree[parent].children.push(partKey);
-            }
-
-            if (parts.length > 1) {
-                parts.shift();
-                addToTree(item, parts, partKey, tree);
-            }
-        };
-
         listItemsResponse.data.forEach((item) => {
             const parts = item.path.split('/').filter(Boolean);
             addToTree(item, parts, '/', tmpFileStagingTree);
@@ -129,7 +134,13 @@ export default function useFileStagingTree() {
 
         // Check for next_page and fetch more data if it exists
         if (listItemsResponse.responseDetails?.next_page) {
-            await retrieveNextPage(listItemsResponse.responseDetails.next_page, tmpFileStagingTree);
+            const listItemsPageResponse = await retrieveNextPage(
+                listItemsResponse.responseDetails.next_page,
+                tmpFileStagingTree,
+            );
+            if (listItemsPageResponse?.data) {
+                await buildFileStagingTree(listItemsPageResponse, tmpFileStagingTree);
+            }
         }
     };
 
@@ -168,6 +179,77 @@ export default function useFileStagingTree() {
         }
     };
 
+    /**
+     * Calls Vault REST API List Items at a path endpoint for a specific path and updates that folder
+     * and all sub components in the file staging tree
+     * @param {String} selectedFolderPath - Folder path to call the API for and update the tree
+     * @returns {Promise<void>}
+     */
+    const handleReloadFileStagingTreeFolder = async (selectedFolderPath) => {
+        try {
+            setLoadingFileStagingTreeFolder(true);
+
+            // Fetch latest items for the folder
+            const listItemsResponse = await listItemsAtAPath(selectedFolderPath, true);
+
+            if (listItemsResponse?.responseStatus === 'FAILURE') {
+                let error = '';
+                if (listItemsResponse?.errors?.length > 0) {
+                    error = `${listItemsResponse.errors[0].type} : ${listItemsResponse.errors[0].message}`;
+                }
+                setFileStagingTreeError(error);
+                return;
+            }
+
+            const updatedPath = selectedFolderPath.startsWith('/') ? selectedFolderPath : `/${selectedFolderPath}`;
+            const tmpFileStagingTree = { ...fileStagingTree };
+
+            // Remove each item listed in `children` before resetting
+            if (tmpFileStagingTree[updatedPath]?.children) {
+                tmpFileStagingTree[updatedPath].children.forEach((child) => {
+                    delete tmpFileStagingTree[child];
+                });
+            }
+
+            // Reset `children` before repopulating with the new response
+            tmpFileStagingTree[updatedPath] = {
+                ...tmpFileStagingTree[updatedPath],
+                children: [],
+            };
+            await updateFileStagingTreeFolder(listItemsResponse, tmpFileStagingTree);
+            setFileStagingTree(tmpFileStagingTree);
+        } catch (error) {
+            setFileStagingTreeError(error?.message || error?.toString() || 'Error reloading file staging tree folder');
+        } finally {
+            setLoadingFileStagingTreeFolder(false);
+        }
+    };
+
+    /**
+     * Updates the file staging tree with the list items response and calls for next page results if required
+     * @param listItemsResponse - Response from the listItemsAtAPath API
+     * @param tmpFileStagingTree - Temporary file staging tree as it's being built
+     * @returns {Promise<null>}
+     */
+    const updateFileStagingTreeFolder = async (listItemsResponse, tmpFileStagingTree = null) => {
+        listItemsResponse.data.forEach((item) => {
+            const parts = item.path.split('/').filter(Boolean);
+            addToTree(item, parts, '/', tmpFileStagingTree);
+        });
+
+        // Check for next_page and fetch more data if it exists
+        if (listItemsResponse.responseDetails?.next_page) {
+            const listItemsPageResponse = await retrieveNextPage(
+                listItemsResponse.responseDetails.next_page,
+                tmpFileStagingTree,
+            );
+            if (listItemsPageResponse?.data) {
+                await updateFileStagingTreeFolder(listItemsPageResponse, tmpFileStagingTree);
+            }
+        }
+        return tmpFileStagingTree;
+    };
+
     useEffect(() => {
         retrieveFileStagingTree();
     }, []);
@@ -176,6 +258,8 @@ export default function useFileStagingTree() {
         fileStagingTree,
         handleReloadFileStagingTree,
         loadingFileStagingTree,
+        handleReloadFileStagingTreeFolder,
+        loadingFileStagingTreeFolder,
         fileStagingTreeError,
         fileStagingTreeEnvironmentRef,
         fileStagingTreeRef,

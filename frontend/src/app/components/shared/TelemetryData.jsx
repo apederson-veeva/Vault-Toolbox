@@ -1,8 +1,7 @@
 import { Text, Box } from '@chakra-ui/react';
 
 export default function TelemetryData({ telemetryData }) {
-    const textColor =
-        telemetryData?.responseStatus === 200 ? 'veeva_green_pasture.color_mode' : 'red.500';
+    const textColor = telemetryData?.responseStatus === 200 ? 'veeva_green_pasture_color_mode' : 'red.500';
 
     return (
         <>
@@ -44,6 +43,7 @@ const BoxStyle = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    whiteSpace: 'nowrap',
 };
 
 const TextStyle = {

@@ -1,25 +1,15 @@
-import {
-    Modal,
-    ModalOverlay,
-    ModalContent,
-    ModalBody,
-    Button,
-    ModalFooter,
-    Flex,
-    Spacer,
-    Box,
-    ModalHeader,
-    ModalCloseButton,
-    Text,
-} from '@chakra-ui/react';
+import { Button, Flex, Spacer, Box, Text } from '@chakra-ui/react';
 import { useRef } from 'react';
+import {
+    DialogRoot,
+    DialogContent,
+    DialogHeader,
+    DialogCloseTrigger,
+    DialogBody,
+    DialogFooter,
+} from '../shared/ui-components/dialog';
 
-export default function VqlConfirmQueryDeletionModal({
-    isOpen,
-    onClose,
-    onSubmit,
-    savedQueryName,
-}) {
+export default function VqlConfirmQueryDeletionModal({ open, onClose, onSubmit, savedQueryName }) {
     const deleteQueryButtonRef = useRef(null);
     const submitQueryDeletion = () => {
         onClose();
@@ -27,33 +17,30 @@ export default function VqlConfirmQueryDeletionModal({
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} size='sm' initialFocusRef={deleteQueryButtonRef}>
-            <ModalOverlay />
-            <ModalContent backgroundColor='white.color_mode'>
-                <ModalHeader paddingY='10px'>Delete Saved Query?</ModalHeader>
-                <ModalCloseButton {...ModelCloseButtonStyle} />
-                <ModalBody paddingY='10px'>
+        <DialogRoot open={open} onOpenChange={onClose} size='sm' initialFocusEl={deleteQueryButtonRef}>
+            <DialogContent backgroundColor='white_color_mode'>
+                <DialogHeader paddingY='20px' fontSize='lg' fontWeight='bold'>
+                    Delete Saved Query?
+                </DialogHeader>
+                <DialogCloseTrigger {...ModelCloseButtonStyle} />
+                <DialogBody paddingY='10px'>
                     <Text fontSize='sm'>This will delete your saved query '{savedQueryName}'</Text>
-                </ModalBody>
-                <ModalFooter paddingY='10px'>
+                </DialogBody>
+                <DialogFooter paddingY='10px'>
                     <Flex width='100%'>
                         <Spacer />
                         <Box>
                             <Button onClick={onClose} {...CancelButtonStyle}>
                                 Cancel
                             </Button>
-                            <Button
-                                onClick={submitQueryDeletion}
-                                ref={deleteQueryButtonRef}
-                                {...DeleteButtonStyle}
-                            >
+                            <Button onClick={submitQueryDeletion} ref={deleteQueryButtonRef} {...DeleteButtonStyle}>
                                 Delete
                             </Button>
                         </Box>
                     </Flex>
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
+                </DialogFooter>
+            </DialogContent>
+        </DialogRoot>
     );
 }
 
@@ -66,9 +53,10 @@ const ModelCloseButtonStyle = {
 const CancelButtonStyle = {
     marginRight: '5px',
     size: 'sm',
+    variant: 'subtle',
 };
 
 const DeleteButtonStyle = {
     size: 'sm',
-    colorScheme: 'red',
+    colorPalette: 'red',
 };

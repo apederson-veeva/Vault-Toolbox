@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import VqlQueryMetadata from '../../components/vql-editor/query-builder/VqlQueryMetadata';
 import {
-    retrieveAllComponentMetadata,
     retrieveAllDocumentFields,
     retrieveComponentRecordXmlJson,
     retrieveDocumentSignatureMetadata,
@@ -10,6 +9,7 @@ import {
     retrievePicklistValues,
     retrieveUserMetadata,
 } from '../../services/ApiService';
+import { convertArrayToSelectOptions } from '../../services/SharedServices';
 
 export default function useQueryBuilder({ setCode, previousQueryResults, setPreviousQueryResults }) {
     const [selectedQueryCategory, setSelectedQueryCategory] = useState();
@@ -66,7 +66,7 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
      * Retrieves object metadata for the selected object. Creates selectable field/relationship options and loads them
      * into state.
      */
-    const fetchObjectMetadata = async () => {
+    const fetchObjectMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
         setPreviousQueryResults((prevState) => ({
@@ -164,29 +164,32 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         }
 
         setLoadingFieldMetadata(false);
-    };
+    }, [selectedQueryTarget, attachmentsQueryTarget, setPreviousQueryResults, checkRelationshipToPreviousResults]);
 
-    const checkRelationshipToPreviousResults = (objectRelationships) => {
-        objectRelationships.forEach((relationship) => {
-            if (
-                relationship?.relationship_type === 'parent' ||
-                relationship?.relationship_type === 'reference_outbound'
-            ) {
-                if (relationship?.object?.name === previousQueryResults?.queryTarget) {
-                    setPreviousQueryResults((prevState) => ({
-                        ...prevState,
-                        relationship: relationship?.field,
-                        isMatch: true,
-                    }));
+    const checkRelationshipToPreviousResults = useCallback(
+        (objectRelationships) => {
+            objectRelationships.forEach((relationship) => {
+                if (
+                    relationship?.relationship_type === 'parent' ||
+                    relationship?.relationship_type === 'reference_outbound'
+                ) {
+                    if (relationship?.object?.name === previousQueryResults?.queryTarget) {
+                        setPreviousQueryResults((prevState) => ({
+                            ...prevState,
+                            relationship: relationship?.field,
+                            isMatch: true,
+                        }));
+                    }
                 }
-            }
-        });
-    };
+            });
+        },
+        [previousQueryResults, setPreviousQueryResults],
+    );
 
     /**
      * Retrieves the Vault document query target options and loads them into state
      */
-    const loadDocumentQueryTargetOptions = () => {
+    const loadDocumentQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -200,9 +203,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(documentQueryTargets.sort((a, b) => a?.label.localeCompare(b?.label)));
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadDocumentQueryTargetMetadata = async () => {
+    const loadDocumentQueryTargetMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -309,9 +312,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         }
 
         setLoadingFieldMetadata(false);
-    };
+    }, [attachmentsQueryTarget, queryTargets, loadDocumentSignatureFieldOptions]);
 
-    const loadDocumentRoleQueryTargetOptions = () => {
+    const loadDocumentRoleQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -325,9 +328,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(docRoleQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadDocumentRoleQueryTargetMetadata = () => {
+    const loadDocumentRoleQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -366,9 +369,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadDocumentRelationshipsQueryTargetOptions = () => {
+    const loadDocumentRelationshipsQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -382,9 +385,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(docRelationshipQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadDocumentRelationshipsQueryTargetMetadata = () => {
+    const loadDocumentRelationshipsQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -423,9 +426,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadBinderQueryTargetOptions = () => {
+    const loadBinderQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -439,9 +442,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(docRelationshipQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadBinderQueryTargetMetadata = async () => {
+    const loadBinderQueryTargetMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -517,9 +520,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         }
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadBinderNodesQueryTargetMetadata = async () => {
+    const loadBinderNodesQueryTargetMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -583,9 +586,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadDocumentSignatureFieldOptions = async () => {
+    const loadDocumentSignatureFieldOptions = useCallback(async () => {
         const response = await retrieveDocumentSignatureMetadata();
 
         if (response?.responseStatus === 'SUCCESS') {
@@ -609,9 +612,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
                 docSignaturesQueryTarget.label,
             );
         }
-    };
+    }, [queryTargets]);
 
-    const loadUsersQueryTargetOptions = () => {
+    const loadUsersQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -624,9 +627,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setQueryTargetOptions(usersQueryTargets);
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadUsersQueryTargetMetadata = async () => {
+    const loadUsersQueryTargetMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -664,9 +667,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         }
 
         setLoadingFieldMetadata(false);
-    };
+    }, []);
 
-    const loadRenditionsQueryTargetOptions = () => {
+    const loadRenditionsQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -680,9 +683,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(renditionsQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadRenditionsQueryTargetMetadata = async () => {
+    const loadRenditionsQueryTargetMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -707,9 +710,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadMatchedDocumentsQueryTargetOptions = () => {
+    const loadMatchedDocumentsQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -723,9 +726,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(matchedDocumentsQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadMatchedDocumentsQueryTargetMetadata = async () => {
+    const loadMatchedDocumentsQueryTargetMetadata = useCallback(async () => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -764,9 +767,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadJobsQueryTargetOptions = () => {
+    const loadJobsQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -780,9 +783,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(jobsQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadJobInstanceQueryTargetMetadata = () => {
+    const loadJobInstanceQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -807,9 +810,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadJobHistoryQueryTargetMetadata = () => {
+    const loadJobHistoryQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -844,9 +847,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadJobTaskHistoryQueryTargetMetadata = () => {
+    const loadJobTaskHistoryQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -881,9 +884,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadGroupsQueryTargetOptions = () => {
+    const loadGroupsQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -897,9 +900,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setQueryTargetOptions(groupsQueryTargets);
 
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadGroupQueryTargetMetadata = () => {
+    const loadGroupQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -934,9 +937,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadGroupMembershipQueryTargetMetadata = () => {
+    const loadGroupMembershipQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -975,9 +978,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         setFieldOptions(allFieldOptions);
 
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadWorkflowQueryTargetOptions = () => {
+    const loadWorkflowQueryTargetOptions = useCallback(() => {
         setLoadingQueryTargets(true);
         setQueryTargetsError('');
 
@@ -990,9 +993,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setQueryTargetOptions(workflowQueryTargets);
         setLoadingQueryTargets(false);
-    };
+    }, [queryTargets]);
 
-    const loadActiveWorkflowObjectsQueryTargetMetadata = () => {
+    const loadActiveWorkflowObjectsQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1050,9 +1053,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadInactiveWorkflowObjectsQueryTargetMetadata = () => {
+    const loadInactiveWorkflowObjectsQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1110,9 +1113,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadActiveWorkflowItemsQueryTargetMetadata = () => {
+    const loadActiveWorkflowItemsQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1164,9 +1167,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadInactiveWorkflowItemsQueryTargetMetadata = () => {
+    const loadInactiveWorkflowItemsQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1218,9 +1221,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadActiveWorkflowTaskQueryTargetMetadata = () => {
+    const loadActiveWorkflowTaskQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1298,9 +1301,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadInactiveWorkflowTaskQueryTargetMetadata = () => {
+    const loadInactiveWorkflowTaskQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1378,9 +1381,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadActiveWorkflowTaskItemQueryTargetMetadata = () => {
+    const loadActiveWorkflowTaskItemQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1432,9 +1435,9 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
-    const loadInactiveWorkflowTaskItemQueryTargetMetadata = () => {
+    const loadInactiveWorkflowTaskItemQueryTargetMetadata = useCallback(() => {
         setLoadingFieldMetadata(true);
         setFieldOptionsError('');
 
@@ -1486,7 +1489,7 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
 
         setFieldOptions(allFieldOptions);
         setLoadingFieldMetadata(false);
-    };
+    }, [queryTargets]);
 
     /**
      * Helper function that determines if provided object field is a lookup field. Used to exclude
@@ -1833,7 +1836,7 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         }
 
         if (selectedFilters?.length > 0) {
-            selectedFilters.forEach((filter, index) => {
+            selectedFilters.forEach((filter) => {
                 if (!filter?.field || !filter?.operator || !filter?.value) {
                     canBuild = false;
                 }
@@ -1841,19 +1844,6 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
         }
 
         return canBuild;
-    };
-
-    /**
-     * Converts an array of values to an array of options in the format supported by React-Select components.
-     * E.g. ['='] becomes [{ value: '=', label: '=' }]
-     * @param array - array of values
-     * @returns {Array}
-     */
-    const convertArrayToSelectOptions = (array) => {
-        return array.map((item) => ({
-            value: item,
-            label: item,
-        }));
     };
 
     /**
@@ -2076,7 +2066,32 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
                 default:
             }
         }
-    }, [selectedQueryTarget]);
+    }, [
+        selectedQueryTarget,
+        fetchObjectMetadata,
+        loadDocumentQueryTargetMetadata,
+        loadDocumentRoleQueryTargetMetadata,
+        loadDocumentRelationshipsQueryTargetMetadata,
+        loadMatchedDocumentsQueryTargetMetadata,
+        loadBinderQueryTargetMetadata,
+        loadBinderNodesQueryTargetMetadata,
+        loadUsersQueryTargetMetadata,
+        loadRenditionsQueryTargetMetadata,
+        loadJobInstanceQueryTargetMetadata,
+        loadJobHistoryQueryTargetMetadata,
+        loadJobTaskHistoryQueryTargetMetadata,
+        loadGroupQueryTargetMetadata,
+        loadGroupMembershipQueryTargetMetadata,
+        loadActiveWorkflowObjectsQueryTargetMetadata,
+        loadInactiveWorkflowObjectsQueryTargetMetadata,
+        loadActiveWorkflowItemsQueryTargetMetadata,
+        loadInactiveWorkflowItemsQueryTargetMetadata,
+        loadActiveWorkflowTaskQueryTargetMetadata,
+        loadInactiveWorkflowTaskQueryTargetMetadata,
+        loadActiveWorkflowTaskItemQueryTargetMetadata,
+        loadInactiveWorkflowTaskItemQueryTargetMetadata,
+        selectedQueryCategory,
+    ]);
 
     /**
      * When the selected query category changes, clear the query target and reload the query target options
@@ -2123,7 +2138,19 @@ export default function useQueryBuilder({ setCode, previousQueryResults, setPrev
                 default:
             }
         }
-    }, [selectedQueryCategory]);
+    }, [
+        selectedQueryCategory,
+        loadDocumentQueryTargetOptions,
+        loadDocumentRoleQueryTargetOptions,
+        loadDocumentRelationshipsQueryTargetOptions,
+        loadMatchedDocumentsQueryTargetOptions,
+        loadBinderQueryTargetOptions,
+        loadUsersQueryTargetOptions,
+        loadRenditionsQueryTargetOptions,
+        loadJobsQueryTargetOptions,
+        loadGroupsQueryTargetOptions,
+        loadWorkflowQueryTargetOptions,
+    ]);
 
     return {
         queryCategoryOptions,

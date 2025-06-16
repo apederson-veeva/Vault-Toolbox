@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 let originatingUrl = '';
 
 chrome.action.onClicked.addListener((tab) => {

@@ -99,9 +99,10 @@ export async function downloadItemContent(item) {
  * Upload files or folders up to 50MB to the File Staging Server.
  * @param {String} kind - the type of the item, either FILE or FOLDER
  * @param {String} path - path of the item
+ * @param {File} file - file object when kind is FILE
  * @returns - FileStagingItemResponse, ResponseHeaders
  */
-export async function createFolderOrFile(kind, path) {
+export async function createFolderOrFile(kind, path, file = null) {
     const url = getAPIEndpoint(URL_FILE_STAGING_CREATE_FILE_OR_FOLDER);
     const authorizationHeader = await getAuthorizationHeader();
 
@@ -114,6 +115,10 @@ export async function createFolderOrFile(kind, path) {
     const formdata = new FormData();
     formdata.append('kind', kind);
     formdata.append('path', path);
+
+    if (file !== null) {
+        formdata.append('file', file);
+    }
 
     const requestOptions = {
         headers,

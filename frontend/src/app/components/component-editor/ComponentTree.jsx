@@ -1,13 +1,9 @@
-import { List, ListItem, Flex, Text, Icon, useColorMode } from '@chakra-ui/react';
+import { List, Flex, Text, Box } from '@chakra-ui/react';
 import { useMemo } from 'react';
-import {
-    UncontrolledTreeEnvironment,
-    Tree,
-    StaticTreeDataProvider,
-    InteractionMode,
-} from 'react-complex-tree';
+import { UncontrolledTreeEnvironment, Tree, StaticTreeDataProvider, InteractionMode } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
 import { PiFolder, PiCaretDownBold, PiCaretRightBold, PiGear, PiCode } from 'react-icons/pi';
+import { useColorMode } from '../shared/ui-components/color-mode';
 
 export default function ComponentTree({ componentTree, onSelect }) {
     const { colorMode } = useColorMode();
@@ -31,47 +27,54 @@ export default function ComponentTree({ componentTree, onSelect }) {
      */
     const itemArrowRenderer = ({ item, context }) =>
         item.children.length > 0 ? (
-            <Icon
-                as={context.isExpanded ? PiCaretDownBold : PiCaretRightBold}
-                marginRight='5px'
-                width='20px'
-                height='20px'
-            />
+            <Box as='button' marginRight='5px'>
+                {context.isExpanded ? (
+                    <PiCaretDownBold style={{ width: 20, height: 20 }} />
+                ) : (
+                    <PiCaretRightBold style={{ width: 20, height: 20 }} />
+                )}
+            </Box>
         ) : null;
 
     /**
      * Provides custom styling and dynamically sets the appropriate icon for each item.
      */
     const itemRenderer = ({ item, title, arrow, context, children }) => (
-        <List whiteSpace='nowrap'>
-            <ListItem>
+        <List.Root variant='plain'>
+            <List.Item>
                 <Flex
                     alignItems='center'
                     justifyContent='left'
-                    width='min-content'
-                    backgroundColor={
-                        context.isSelected && !item.children.length > 0 ? selectedColor : undefined
-                    }
+                    width='auto'
+                    backgroundColor={context.isSelected && !item.children.length > 0 ? selectedColor : undefined}
                     {...context.itemContainerWithoutChildrenProps}
                     {...context.interactiveElementProps}
                 >
                     {arrow}
-                    <Icon
-                        as={item.isCode ? PiCode : item.isFolder ? PiFolder : PiGear}
-                        marginLeft={item.isFolder ? '0' : '25px'}
-                        width='20px'
-                        height='20px'
-                        style={{
-                            transform: !item.isCode && !item.isFolder ? 'rotate(20deg)' : null,
-                        }}
-                    />
+                    <List.Indicator asChild>
+                        <Box
+                            as='button'
+                            marginLeft={item.isFolder ? '0' : '25px'}
+                            style={{
+                                transform: !item.isCode && !item.isFolder ? 'rotate(20deg)' : null,
+                            }}
+                        >
+                            {item.isCode ? (
+                                <PiCode style={{ width: 20, height: 20 }} />
+                            ) : item.isFolder ? (
+                                <PiFolder style={{ width: 20, height: 20 }} />
+                            ) : (
+                                <PiGear style={{ width: 20, height: 20 }} />
+                            )}
+                        </Box>
+                    </List.Indicator>
                     <Text marginY={2} marginX='5px' fontSize='15px' _hover={{ cursor: 'pointer' }}>
                         {title}
                     </Text>
                 </Flex>
-                {children}
-            </ListItem>
-        </List>
+            </List.Item>
+            {children}
+        </List.Root>
     );
 
     /**
@@ -114,16 +117,10 @@ export default function ComponentTree({ componentTree, onSelect }) {
                 renderItemTitle={itemTitleRenderer}
                 renderItemArrow={itemArrowRenderer}
                 renderItem={itemRenderer}
-                renderTreeContainer={({ children, containerProps }) => (
-                    <div {...containerProps}>{children}</div>
-                )}
-                renderItemsContainer={({ children, containerProps }) => (
-                    <ul {...containerProps}>{children}</ul>
-                )}
+                renderTreeContainer={({ children, containerProps }) => <div {...containerProps}>{children}</div>}
+                renderItemsContainer={({ children, containerProps }) => <ul {...containerProps}>{children}</ul>}
             >
-                {componentTree && (
-                    <Tree treeId='component-tree' rootItem='root' treeLabel='Component Tree' />
-                )}
+                {componentTree && <Tree treeId='component-tree' rootItem='root' treeLabel='Component Tree' />}
             </UncontrolledTreeEnvironment>
         </>
     );

@@ -63,17 +63,6 @@ export default function useSavedQueries({ onClose, setCode }) {
     };
 
     /**
-     * Helper function to keep the selectable options when saving a query in-sync with the currently saved queries.
-     */
-    const updateSavedQueryOptions = () => {
-        const currentSavedQueryOptions = [];
-        savedQueries?.forEach((savedQuery) => {
-            currentSavedQueryOptions.push(createSavedQueryOption(savedQuery));
-        });
-        setSavedQueryOptions(currentSavedQueryOptions);
-    };
-
-    /**
      * Helper function to generate selectable options for react-select
      * @param savedQuery
      * @returns {{label: String, value: String}}
@@ -108,12 +97,23 @@ export default function useSavedQueries({ onClose, setCode }) {
         );
 
         setIsDefaultQuery(nameIsCurrentDefault);
-    }, [selectedQueryName]);
+    }, [selectedQueryName, savedQueryOptions]);
 
     /**
      * Whenever the saved queries update, also update the selectable query options for the drop-down
      */
     useEffect(() => {
+        /**
+         * Helper function to keep the selectable options when saving a query in-sync with the currently saved queries.
+         */
+        function updateSavedQueryOptions() {
+            const currentSavedQueryOptions = [];
+            savedQueries?.forEach((savedQuery) => {
+                currentSavedQueryOptions.push(createSavedQueryOption(savedQuery));
+            });
+            setSavedQueryOptions(currentSavedQueryOptions);
+        }
+
         updateSavedQueryOptions();
     }, [savedQueries]);
 

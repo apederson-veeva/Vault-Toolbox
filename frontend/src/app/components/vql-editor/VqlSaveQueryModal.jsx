@@ -1,23 +1,20 @@
-import {
-    Button,
-    Checkbox,
-    Icon,
-    Modal,
-    ModalBody,
-    ModalCloseButton,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    ModalOverlay,
-    Text,
-} from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
+import { CreatableSelect } from 'chakra-react-select';
 import { useRef } from 'react';
 import { PiFloppyDisk } from 'react-icons/pi';
-import { CreatableSelect } from 'chakra-react-select';
+import { Checkbox } from '../shared/ui-components/checkbox';
+import {
+    DialogRoot,
+    DialogContent,
+    DialogHeader,
+    DialogCloseTrigger,
+    DialogBody,
+    DialogFooter,
+} from '../shared/ui-components/dialog';
 
 export default function VqlSaveQueryModal({
     code,
-    isOpen,
+    open,
     handleModalClose,
     savedQueryOptions,
     selectedQueryName,
@@ -29,12 +26,13 @@ export default function VqlSaveQueryModal({
     const saveQueryInputRef = useRef(null);
 
     return (
-        <Modal isOpen={isOpen} onClose={handleModalClose} initialFocusRef={saveQueryInputRef} size='sm'>
-            <ModalOverlay />
-            <ModalContent backgroundColor='white.color_mode'>
-                <ModalHeader paddingY='10px'>Save Query</ModalHeader>
-                <ModalCloseButton {...ModalCloseButtonStyle} />
-                <ModalBody paddingY='0px'>
+        <DialogRoot open={open} onOpenChange={handleModalClose} initialFocusEl={saveQueryInputRef} size='sm'>
+            <DialogContent backgroundColor='white_color_mode'>
+                <DialogHeader paddingY='20px' fontSize='lg' fontWeight='bold'>
+                    Save Query
+                </DialogHeader>
+                <DialogCloseTrigger {...ModalCloseButtonStyle} />
+                <DialogBody paddingY='0px'>
                     <CreatableSelect
                         size='sm'
                         isClearable
@@ -43,25 +41,26 @@ export default function VqlSaveQueryModal({
                         value={selectedQueryName}
                         onChange={(newValue) => setSelectedQueryName(newValue)}
                         formatCreateLabel={(selectedQueryName) => `Save as: ${selectedQueryName}`}
-                        ref={saveQueryInputRef}
+                        forwardRef={saveQueryInputRef}
                     />
-                </ModalBody>
-                <ModalFooter paddingY='10px'>
+                </DialogBody>
+                <DialogFooter paddingY='10px'>
                     <Checkbox
+                        variant='subtle'
                         size='sm'
                         marginRight='10px'
-                        isChecked={isDefaultQuery}
-                        onChange={() => setIsDefaultQuery(!isDefaultQuery)}
+                        checked={isDefaultQuery}
+                        onCheckedChange={() => setIsDefaultQuery(!isDefaultQuery)}
                     >
                         Default?
                     </Checkbox>
-                    <Button onClick={() => handleSave(code)} isDisabled={!selectedQueryName} {...SaveButtonStyle}>
-                        <Icon as={PiFloppyDisk} boxSize={5} marginRight='5px' />
-                        <Text>Save</Text>
+                    <Button onClick={() => handleSave(code)} disabled={!selectedQueryName} {...SaveButtonStyle}>
+                        <PiFloppyDisk style={{ width: 24, height: 24 }} />
+                        Save
                     </Button>
-                </ModalFooter>
-            </ModalContent>
-        </Modal>
+                </DialogFooter>
+            </DialogContent>
+        </DialogRoot>
     );
 }
 
@@ -74,6 +73,6 @@ const ModalCloseButtonStyle = {
 const SaveButtonStyle = {
     variant: 'solid',
     size: 'sm',
-    colorScheme: 'blue',
+    colorPalette: 'blue',
     padding: '10px',
 };

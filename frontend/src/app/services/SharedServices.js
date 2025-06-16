@@ -146,3 +146,16 @@ export function formatBytesToUserFriendlyFormat(bytes) {
         return `${gb.toLocaleString()} GB`;
     }
 }
+
+/**
+ * Converts an array of values to an array of options in the format supported by React-Select components.
+ * E.g. ['='] becomes [{ value: '=', label: '=' }]
+ * @param array - array of values
+ * @returns {Array}
+ */
+export const convertArrayToSelectOptions = (array) => {
+    return array.map((item) => ({
+        value: item,
+        label: item,
+    }));
+};

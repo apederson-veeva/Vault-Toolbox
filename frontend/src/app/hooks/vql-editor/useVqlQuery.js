@@ -9,9 +9,9 @@ export default function useVqlQuery({ updateQueryHistory }) {
     const [queryDescribe, setQueryDescribe] = useState();
     const [isExecutingQuery, setIsExecutingQuery] = useState(false);
     const [isDownloading, setIsDownloading] = useState(false);
-    const [queryEditorTabIndex, setQueryEditorTabIndex] = useState(0);
     const [queryTelemetryData, setQueryTelemetryData] = useState({});
     const [previousQueryResults, setPreviousQueryResults] = useState({});
+    const queryEditorTabIndex = 0;
 
     const OBJECT = 'object';
     const PICKLIST = 'Picklist';
@@ -108,30 +108,6 @@ export default function useVqlQuery({ updateQueryHistory }) {
      */
     const loadQueryIntoEditor = useCallback((queryString) => {
         setCode(queryString);
-    }, []);
-
-    /**
-     * Reads previous_page from the VQL query response and loads it into state.
-     * @param {Object} response - VQL query response
-     */
-    const loadPreviousPage = useCallback((response) => {
-        if (response?.responseDetails?.previous_page) {
-            setPreviousPage(response?.responseDetails?.previous_page);
-        } else {
-            setPreviousPage();
-        }
-    }, []);
-
-    /**
-     * Reads next_page from the VQL query response and loads it into state.
-     * @param {Object} response - VQL query response
-     */
-    const loadNextPage = useCallback((response) => {
-        if (response?.responseDetails?.next_page) {
-            setNextPage(response?.responseDetails?.next_page);
-        } else {
-            setNextPage();
-        }
     }, []);
 
     /**
@@ -565,6 +541,30 @@ export default function useVqlQuery({ updateQueryHistory }) {
      * Whenever the console output changes, re-load previous/next page
      */
     useEffect(() => {
+        /**
+         * Reads previous_page from the VQL query response and loads it into state.
+         * @param {Object} response - VQL query response
+         */
+        function loadPreviousPage(response) {
+            if (response?.responseDetails?.previous_page) {
+                setPreviousPage(response?.responseDetails?.previous_page);
+            } else {
+                setPreviousPage();
+            }
+        }
+
+        /**
+         * Reads next_page from the VQL query response and loads it into state.
+         * @param {Object} response - VQL query response
+         */
+        function loadNextPage(response) {
+            if (response?.responseDetails?.next_page) {
+                setNextPage(response?.responseDetails?.next_page);
+            } else {
+                setNextPage();
+            }
+        }
+
         loadPreviousPage(consoleOutput[queryEditorTabIndex]);
         loadNextPage(consoleOutput[queryEditorTabIndex]);
     }, [consoleOutput]);

@@ -26,7 +26,7 @@ export default function QueryObjectSelector({
                         <CustomSelect
                             options={vaultObjects}
                             placeholder='Select an object...'
-                            isClearable={true}
+                            isClearable
                             value={selectedObject}
                             onChange={(newValue) => setSelectedObject(newValue)}
                         />

@@ -39,7 +39,6 @@ export default function QueryFilterRow({
                 <CustomSelect
                     options={objectFields}
                     placeholder='Field'
-                    variant='filled'
                     value={filter.field}
                     onChange={(newValue) => handleSelectedFilterEdits(newValue, filterRowIndex, 'field')}
                 />
@@ -48,7 +47,6 @@ export default function QueryFilterRow({
                 <CustomSelect
                     options={operatorOptions}
                     placeholder='Operator'
-                    variant='filled'
                     displayDropdown={false}
                     value={filter.operator}
                     onChange={(newValue) => handleSelectedFilterEdits(newValue, filterRowIndex, 'operator')}
@@ -59,7 +57,6 @@ export default function QueryFilterRow({
                     <CustomSelect
                         options={booleanValueOptions}
                         placeholder={fieldType ? `Value (${fieldType})` : 'Value'}
-                        variant='filled'
                         displayDropdown={false}
                         value={filter.value?.value}
                         onChange={(newValue) => handleSelectedFilterEdits(newValue?.value, filterRowIndex, 'value')}
@@ -73,7 +70,6 @@ export default function QueryFilterRow({
                                 options={picklistValueOptions}
                                 isMulti={operator.value === 'CONTAINS'}
                                 placeholder={fieldType ? `Value (${fieldType})` : 'Value'}
-                                variant='filled'
                                 displayDropdown={false}
                                 value={filter.value}
                                 onChange={(newValue) => handleSelectedFilterEdits(newValue, filterRowIndex, 'value')}
@@ -87,7 +83,6 @@ export default function QueryFilterRow({
                                         options={objectLifecycleStateOptions}
                                         isMulti={operator.value === 'CONTAINS'}
                                         placeholder={fieldType ? `Value (${fieldType})` : 'Value'}
-                                        variant='filled'
                                         displayDropdown={false}
                                         value={filter.value}
                                         onChange={(newValue) =>
@@ -100,12 +95,11 @@ export default function QueryFilterRow({
                                     {operator.value === 'CONTAINS' ? (
                                         <Box {...SelectValueBoxStyle}>
                                             <CustomSelect
-                                                isMulti={true}
-                                                isCreatable={true}
+                                                isMulti
+                                                isCreatable
                                                 placeholder={`Enter multiple values (${fieldType})`}
                                                 formatCreateLabel={(filter) => `Add: ${filter}`}
                                                 noOptionsMessage={() => 'Press enter to add values...'}
-                                                variant='filled'
                                                 displayDropdown={false}
                                                 value={filter.value}
                                                 onChange={(newValue) =>
@@ -129,11 +123,9 @@ export default function QueryFilterRow({
                     )}
                 </>
             )}
-            <IconButton
-                {...DeleteRowButtonStyle}
-                icon={<PiMinusCircleBold size={18} />}
-                onClick={() => removeFilterRow(filterRowIndex)}
-            />
+            <IconButton {...DeleteRowButtonStyle} onClick={() => removeFilterRow(filterRowIndex)}>
+                <PiMinusCircleBold size={18} />
+            </IconButton>
         </Flex>
     );
 }
@@ -163,10 +155,10 @@ const SelectValueBoxStyle = {
 
 const DeleteRowButtonStyle = {
     variant: 'ghost',
-    isRound: true,
+    borderRadius: 'full',
     align: 'left',
     marginRight: '5px',
-    color: 'veeva_sunset_red.color_mode',
+    color: 'veeva_sunset_red_color_mode',
     size: 'sm',
     'aria-label': 'Delete filter row',
 };
@@ -174,6 +166,7 @@ const DeleteRowButtonStyle = {
 const InputStyle = {
     height: '100%',
     size: 'sm',
-    variant: 'filled',
+    variant: 'outline',
+    borderColor: 'light_gray_color_mode',
     marginRight: '5px',
 };

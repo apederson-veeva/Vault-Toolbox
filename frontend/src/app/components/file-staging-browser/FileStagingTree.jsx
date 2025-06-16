@@ -1,4 +1,4 @@
-import { Box, Flex, Icon, List, ListItem, Text } from '@chakra-ui/react';
+import { Box, Flex, List, Text } from '@chakra-ui/react';
 import { useMemo } from 'react';
 import { InteractionMode, StaticTreeDataProvider, Tree, UncontrolledTreeEnvironment } from 'react-complex-tree';
 import 'react-complex-tree/lib/style-modern.css';
@@ -48,7 +48,11 @@ export default function FileStagingTree({
                 height='28px'
                 _hover={{ cursor: 'pointer' }}
             >
-                <Icon as={context.isExpanded ? PiCaretDownBold : PiCaretRightBold} width='20px' height='20px' />
+                {context.isExpanded ? (
+                    <PiCaretDownBold style={{ width: 20, height: 20 }} />
+                ) : (
+                    <PiCaretRightBold style={{ width: 20, height: 20 }} />
+                )}
             </Flex>
         );
     };
@@ -66,30 +70,30 @@ export default function FileStagingTree({
         return (
             <>
                 {item.isFolder ? (
-                    <ListItem onClick={() => onSelect(item)} onKeyDown={handleKeyDown}>
+                    <List.Item onClick={() => onSelect(item)} onKeyDown={handleKeyDown}>
                         <Flex
                             alignItems='center'
                             justifyContent='left'
                             width='100%'
-                            borderRadius='8px'
+                            borderRadius='6px'
                             paddingLeft={`${depth * 28}px`} // Adjust padding for folder depth
-                            backgroundColor={context.isSelected ? 'veeva_orange.500' : undefined}
+                            backgroundColor={context.isSelected ? 'veeva_orange_color_mode' : undefined}
                             color={context.isSelected ? 'white' : 'inherit'} // Set font color based on selection
                             _hover={{
                                 cursor: 'pointer',
-                                backgroundColor: context.isSelected ? undefined : 'light_gray.color_mode',
+                                backgroundColor: context.isSelected ? undefined : 'light_gray_color_mode',
                             }}
                             {...context.itemContainerWithChildrenProps}
                             {...context.itemContainerWithoutChildrenProps}
                             {...context.interactiveElementProps}
                         >
                             <Box>{arrow}</Box>
-                            <Flex align='center' justify='center' width='28px' height='28px'>
-                                <Icon as={PiFolder} width='28px' height='20px' />
-                            </Flex>
+                            <List.Indicator>
+                                <PiFolder style={{ width: 28, height: 20 }} />
+                            </List.Indicator>
                             <Text {...TextStyle}>{title}</Text>
                         </Flex>
-                    </ListItem>
+                    </List.Item>
                 ) : null}
                 {children}
             </>
@@ -124,9 +128,9 @@ export default function FileStagingTree({
                     renderItemArrow={itemArrowRenderer}
                     renderTreeContainer={({ children, containerProps }) => <Box {...containerProps}>{children}</Box>}
                     renderItemsContainer={({ children, containerProps }) => (
-                        <List whiteSpace='nowrap' {...containerProps}>
+                        <List.Root variant='plain' whiteSpace='nowrap' {...containerProps}>
                             {children}
-                        </List>
+                        </List.Root>
                     )}
                 >
                     {fileStagingTree && (
@@ -145,7 +149,7 @@ export default function FileStagingTree({
 
 const TextStyle = {
     flex: '1', // Take up the remaining space in the Flex
-    isTruncated: true, // Truncate text with ellipsis if it overflows
+    truncate: true, // Truncate text with ellipsis if it overflows
     marginY: 2,
     marginX: '5px',
     fontSize: '15px',

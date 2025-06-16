@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { useToast } from '@chakra-ui/react';
+import { toaster } from '../../components/shared/ui-components/toaster';
 import { downloadItemContent } from '../../services/ApiService';
 
 export default function useFileStagingBrowser({ fileStagingRoot, fileStagingTreeRef }) {
     const [selectedFolder, setSelectedFolder] = useState(fileStagingRoot);
-    const toast = useToast();
 
     /**
      * Returns an array of nested paths from a given full path.
@@ -49,7 +48,7 @@ export default function useFileStagingBrowser({ fileStagingRoot, fileStagingTree
             if (downloadItemResponse?.errors?.length > 0) {
                 errorString = `${downloadItemResponse.errors[0].type} : ${downloadItemResponse.errors[0].message}`;
             }
-            toast({
+            toaster.create({
                 title: `${downloadItemResponse.errors[0].type}`,
                 description: `${downloadItemResponse.errors[0].message}`,
                 status: 'error',

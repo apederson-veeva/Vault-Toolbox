@@ -1,4 +1,4 @@
-import { Thead, Tr, Th } from '@chakra-ui/react';
+import { Table } from '@chakra-ui/react';
 import { isSandboxVault } from '../../services/SharedServices';
 
 export default function VqlTableHeader({
@@ -15,11 +15,11 @@ export default function VqlTableHeader({
     const OBJECT = 'object';
 
     return (
-        <Thead
+        <Table.Header
             {...ThStyle}
             backgroundColor={isSandboxVault() ? 'veeva_sandbox_green.500' : 'veeva_midnight_indigo.500'}
         >
-            <Tr>
+            <Table.Row>
                 {
                     // Iterate through the first data object to get the headers (in the correct order)
                     Object.keys(consoleOutput.data[0]).map((dataKey, dataKeyCount) => {
@@ -32,7 +32,7 @@ export default function VqlTableHeader({
                             isPrimaryFieldString(dataKey)
                         ) {
                             return (
-                                <Th
+                                <Table.ColumnHeader
                                     key={dataKeyCount}
                                     rowSpan={headerRowSpan}
                                     {...ThStyle}
@@ -41,13 +41,13 @@ export default function VqlTableHeader({
                                     }
                                 >
                                     {dataKey}
-                                </Th>
+                                </Table.ColumnHeader>
                             );
                         } // Subquery headers
                         else if (hasSubqueries) {
                             const subqueryFieldCount = getSubqueryFieldCount(dataKey);
                             return (
-                                <Th
+                                <Table.ColumnHeader
                                     key={dataKeyCount}
                                     colSpan={subqueryFieldCount}
                                     {...ThStyle}
@@ -56,14 +56,14 @@ export default function VqlTableHeader({
                                     }
                                 >
                                     {dataKey}
-                                </Th>
+                                </Table.ColumnHeader>
                             );
                         }
                     })
                 }
-            </Tr>
+            </Table.Row>
             {hasSubqueries && (
-                <Tr>
+                <Table.Row>
                     {Object.keys(consoleOutput.data[0]).map((dataKey, dataKeyCount) => {
                         if (typeof consoleOutput.data[0][dataKey] === OBJECT && !isPicklist(dataKey)) {
                             // Get subquery fields from query describe
@@ -71,7 +71,7 @@ export default function VqlTableHeader({
                                 .find((subquery) => subquery.relationship === dataKey || subquery.alias === dataKey)
                                 ?.fields.map((field, fieldCount) => {
                                     return (
-                                        <Th
+                                        <Table.ColumnHeader
                                             key={`${dataKeyCount}-${fieldCount}`}
                                             {...ThStyle}
                                             backgroundColor={
@@ -81,14 +81,14 @@ export default function VqlTableHeader({
                                             }
                                         >
                                             {field.name}
-                                        </Th>
+                                        </Table.ColumnHeader>
                                     );
                                 });
                         }
                     })}
-                </Tr>
+                </Table.Row>
             )}
-        </Thead>
+        </Table.Header>
     );
 }
 

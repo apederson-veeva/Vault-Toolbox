@@ -1,9 +1,9 @@
 const path = require('path');
-const webpack = require('webpack');
-const dotenv = require('dotenv');
-const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const dotenv = require('dotenv');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const webpack = require('webpack');
 
 dotenv.config();
 

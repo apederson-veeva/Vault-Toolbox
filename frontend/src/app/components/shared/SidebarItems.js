@@ -5,26 +5,31 @@ const SidebarItems = [
         name: 'Vault Information',
         icon: PiInfo,
         route: '/',
+        alwaysShow: true, // Home page is always shown
     },
     {
         name: 'Component Editor',
         icon: PiCodesandboxLogo,
         route: 'component-editor',
+        pageId: 'componentEditor',
     },
     {
         name: 'VQL Editor',
         icon: PiMagnifyingGlass,
         route: 'vql-editor',
+        pageId: 'vqlEditor',
     },
     {
-        name: 'Vault Data Tools',
+        name: 'Data Tools',
         icon: PiDatabase,
-        route: 'vault-data-tools',
+        route: 'data-tools',
+        pageId: 'dataTools',
     },
     {
         name: 'File Staging Browser',
         icon: PiFolder,
-        route: 'file-staging-browser'
+        route: 'file-staging-browser',
+        pageId: 'fileBrowser',
     },
 ];
 

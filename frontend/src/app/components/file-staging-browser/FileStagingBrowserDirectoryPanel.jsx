@@ -1,13 +1,11 @@
-import { Box, Divider, Heading, IconButton, Progress, Stack, Tooltip } from '@chakra-ui/react';
+import { Box, Heading, Progress, Separator, Stack } from '@chakra-ui/react';
 import { Panel } from 'react-resizable-panels';
-import { PiArrowClockwise } from 'react-icons/pi';
 import FileStagingTree from './FileStagingTree';
 import ApiErrorMessageCard from '../shared/ApiErrorMessageCard';
 
 export default function FileStagingBrowserDirectoryPanel({
     fileStagingTree,
     loadingFileStagingTree,
-    handleReloadFileStagingTree,
     fileStagingTreeError,
     fileStagingTreeEnvironmentRef,
     fileStagingTreeRef,
@@ -19,21 +17,16 @@ export default function FileStagingBrowserDirectoryPanel({
             <Stack maxHeight='100vh'>
                 <Box position='sticky' paddingX={3}>
                     <Heading {...HeadingStyle}>File Staging Directory</Heading>
-                    <Divider {...HorizontalDividerStyle} />
-                    <Tooltip label='Reload File Staging Directory' placement='right'>
-                        <IconButton
-                            icon={<PiArrowClockwise size={20} style={{ margin: '4px' }} />}
-                            onClick={() =>
-                                handleReloadFileStagingTree(() => selectedFolder && onSelect?.(selectedFolder))
-                            }
-                            {...RefreshIconButtonStyle}
-                        />
-                    </Tooltip>
+                    <Separator {...HorizontalDividerStyle} />
                 </Box>
                 {fileStagingTreeError ? (
                     <ApiErrorMessageCard content='file staging directory' errorMessage={fileStagingTreeError} />
                 ) : loadingFileStagingTree ? (
-                    <Progress size='sm' isIndeterminate />
+                    <Progress.Root size='sm' value={null}>
+                        <Progress.Track>
+                            <Progress.Range />
+                        </Progress.Track>
+                    </Progress.Root>
                 ) : (
                     <Box {...FileStagingTreeBoxStyle}>
                         <FileStagingTree
@@ -51,20 +44,15 @@ export default function FileStagingBrowserDirectoryPanel({
 }
 
 const HeadingStyle = {
-    color: 'veeva_orange.color_mode',
-    size: 'md',
+    color: 'veeva_orange_color_mode',
+    size: 'xl',
+    fontWeight: 'bold',
     margin: '5px',
 };
 
 const HorizontalDividerStyle = {
     borderColor: 'veeva_light_gray.500',
     borderWidth: '1px',
-};
-
-const RefreshIconButtonStyle = {
-    size: 'auto',
-    borderRadius: '8px',
-    margin: '5px',
 };
 
 const FileStagingTreeBoxStyle = {

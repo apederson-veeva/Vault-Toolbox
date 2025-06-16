@@ -12,7 +12,7 @@ export default function QueryFieldsSelector({
     return (
         <Flex {...FlexStyle}>
             <Box minWidth='75px' marginRight='5px'>
-                <Heading size='xs'>Fields:</Heading>
+                <Heading size='sm'>Fields:</Heading>
             </Box>
             {loadingObjectMetadata ? (
                 <Center>
@@ -27,29 +27,12 @@ export default function QueryFieldsSelector({
                             options={fieldOptions}
                             placeholder='Select fields...'
                             size='sm'
-                            isClearable={true}
+                            isClearable
                             isMulti
                             closeMenuOnSelect={false}
-                            hasStickyGroupHeaders
                             value={selectedFields}
                             onChange={(newValue) => setSelectedFields(newValue)}
                             formatGroupLabel={formatGroupLabel}
-                            chakraStyles={{
-                                valueContainer: (provided) => ({
-                                    ...provided,
-                                    maxHeight: '50vh',
-                                    overflowY: 'auto',
-                                }),
-                                menuList: (provided) => ({
-                                    ...provided,
-                                    height: '70vh',
-                                    minHeight: '70vh',
-                                }),
-                                groupHeading: (provided) => ({
-                                    ...provided,
-                                    backgroundColor: 'veeva_light_gray.color_mode',
-                                }),
-                            }}
                         />
                     )}
                 </Box>

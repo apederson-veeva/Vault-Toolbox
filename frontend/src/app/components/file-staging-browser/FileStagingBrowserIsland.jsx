@@ -1,15 +1,18 @@
-import { Center, Flex, Spinner, Table, TableContainer } from '@chakra-ui/react';
-import FileStagingBrowserTableHeader from './FileStagingBrowserTableHeader';
-import FileStagingBrowserTableBody from './FileStagingBrowserTableBody';
+import { Center, Flex, Spinner, Table } from '@chakra-ui/react';
 import VerticalResizeHandle from '../shared/VerticalResizeHandle';
 import FileStagingBrowserBreadcrumb from './FileStagingBrowserBreadcrumb';
+import FileStagingBrowserTableBody from './FileStagingBrowserTableBody';
+import FileStagingBrowserTableHeader from './FileStagingBrowserTableHeader';
 
 export default function FileStagingBrowserIsland({
     fileStagingTree,
     loadingFileStagingTree,
+    handleReloadFileStagingTreeFolder,
+    loadingFileStagingTreeFolder,
     selectedFolder,
     onSelect,
     handleDownloadItemClick,
+    fileUploadRootProviderAttributes,
 }) {
     return (
         <Flex {...ParentFlexStyle}>
@@ -18,16 +21,18 @@ export default function FileStagingBrowserIsland({
                 <FileStagingBrowserBreadcrumb
                     fileStagingTree={fileStagingTree}
                     selectedFolder={selectedFolder}
+                    handleReloadFileStagingTreeFolder={handleReloadFileStagingTreeFolder}
                     onSelect={onSelect}
+                    fileUploadRootProviderAttributes={fileUploadRootProviderAttributes}
                 />
                 <Flex overflow='auto' marginRight='16px'>
-                    {loadingFileStagingTree ? (
+                    {loadingFileStagingTree || loadingFileStagingTreeFolder ? (
                         <Center>
                             <Spinner />
                         </Center>
                     ) : (
-                        <TableContainer {...TableContainerStyle}>
-                            <Table
+                        <Flex {...TableContainerStyle}>
+                            <Table.Root
                                 backgroundColor='veeva_sunset_yellow.five_percent_opacity'
                                 size='md'
                                 variant='simple'
@@ -39,8 +44,8 @@ export default function FileStagingBrowserIsland({
                                     onSelect={onSelect}
                                     handleDownloadItemClick={handleDownloadItemClick}
                                 />
-                            </Table>
-                        </TableContainer>
+                            </Table.Root>
+                        </Flex>
                     )}
                 </Flex>
             </Flex>
@@ -55,7 +60,7 @@ const ParentFlexStyle = {
     width: 'calc(100% - 20px)',
     margin: '0px',
     borderRadius: '8px',
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
@@ -63,5 +68,5 @@ const TableContainerStyle = {
     width: '100%',
     overflowX: 'unset',
     overflowY: 'unset',
-    color: 'text.color_mode',
+    color: 'text_color_mode',
 };

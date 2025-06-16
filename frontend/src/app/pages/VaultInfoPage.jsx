@@ -1,8 +1,8 @@
 import { Stack, Flex, Center, Spinner, Box } from '@chakra-ui/react';
-import VaultInfoTable from '../components/vault-info/VaultInfoTable';
 import ApiErrorMessageCard from '../components/shared/ApiErrorMessageCard';
 import NotOfficialVeevaProductAlert from '../components/shared/NotOfficialVeevaProductAlert';
 import VaultInfoHeader from '../components/vault-info/VaultInfoHeader';
+import VaultInfoTable from '../components/vault-info/VaultInfoTable';
 import useVaultInfo from '../hooks/vault-info/useVaultInfo';
 
 export default function VaultInfoPage() {
@@ -38,12 +38,12 @@ const PageFlexStyle = {
     minHeight: '100vh',
     align: 'center',
     justify: 'center',
-    backgroundColor: 'veeva_light_gray.color_mode',
+    backgroundColor: 'veeva_light_gray_color_mode',
     boxShadow: 'inset -5px 0 8px -8px rgba(0,0,0,0.3), inset 5px 0 8px -8px rgba(0,0,0,0.3)',
 };
 
 const PageStackStyle = {
-    spacing: 8,
+    gap: 8,
     marginX: 'auto',
     maxWidth: '80%',
     paddingY: 12,

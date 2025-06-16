@@ -1,13 +1,5 @@
 import { getAuthorizationHeader } from '../ApiService.js';
-import {
-    getAPIEndpoint,
-    HTTP_CONTENT_TYPE_JSON,
-    HTTP_CONTENT_TYPE_PLAINTEXT,
-    HTTP_HEADER_ACCEPT,
-    HTTP_HEADER_CONTENT_TYPE,
-    request,
-    RequestMethod,
-} from './VaultRequest.js';
+import { getAPIEndpoint, request, RequestMethod } from './VaultRequest.js';
 
 const URL_METADATA = '/metadata/objects/users';
 

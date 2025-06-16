@@ -12,10 +12,10 @@ import com.opencsv.CSVReader;
 import com.opencsv.CSVReaderBuilder;
 import com.opencsv.CSVWriter;
 import com.veeva.vault.client.Client;
-import com.veeva.vault.vapil.api.model.response.FileStagingItemBulkResponse;
-import com.veeva.vault.vapil.api.model.response.FileStagingItemResponse;
-import com.veeva.vault.vapil.api.model.response.VaultResponse;
+import com.veeva.vault.vapil.api.model.response.*;
 import com.veeva.vault.vapil.api.request.FileStagingRequest;
+import com.veeva.vault.vapil.api.request.MetaDataRequest;
+import com.veeva.vault.vapil.api.request.QueryRequest;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -131,8 +131,8 @@ public class FileUtil {
     public static void writeToFileStaging(String outputFileName, String folder) {
         try {
             String newFileName = outputFileName.substring(4); // Remove /tmp from file name
-            String folderPath = String.format("u%s/VaultToolbox/%s", Client.getVaultClient().getUserId(), folder);
-
+            String vaultToolboxPath = getVaultToolboxFileStagingFolderPath();
+            String folderPath = String.format("%s/%s", vaultToolboxPath, folder);
 
             File outputFile = new File(outputFileName);
             byte[] bytes = Files.readAllBytes(outputFile.toPath());
@@ -166,7 +166,7 @@ public class FileUtil {
      * @return - true for success, false for failure
      */
     public static boolean createVaultDataToolsFileStagingFolders() {
-        String vaultToolboxPath = String.format("u%s/VaultToolbox", Client.getVaultClient().getUserId());
+        String vaultToolboxPath = getVaultToolboxFileStagingFolderPath();
         String countPath = String.format("%s/count", vaultToolboxPath);
         String deletePath = String.format("%s/delete", vaultToolboxPath);
 
@@ -187,6 +187,31 @@ public class FileUtil {
 
         // All folders created successfully
         return true;
+    }
+
+    /**
+     * Determines the path to the Vault Toolbox folder on File Staging. For admin users this is under their user folder
+     * (e.g. u123456/VaultToolbox); for non-admin users this is at the root.
+     * @return - VaultToolbox folder path
+     */
+    private static String getVaultToolboxFileStagingFolderPath() {
+        String userId = Client.getVaultClient().getUserId();
+
+        // If we can't determine it or get an error, default to using the folder path for Admins
+        String vaultToolboxPath = String.format("u%s/VaultToolbox", userId);
+
+        String query = String.format("SELECT security_profile__v FROM users WHERE id = '%s'", userId);
+        QueryResponse queryResponse = Client.getVaultClient().newRequest(QueryRequest.class)
+                .query(query);
+
+        if (queryResponse != null && !queryResponse.isFailure() && !queryResponse.getData().isEmpty()) {
+            String securityProfile = queryResponse.getData().get(0).get("security_profile__v").toString();
+            if (!securityProfile.equalsIgnoreCase("vault_owner__v") && !securityProfile.equalsIgnoreCase("system_admin__v")) {
+                vaultToolboxPath = "VaultToolbox";
+            }
+        }
+
+        return vaultToolboxPath;
     }
 
     /**

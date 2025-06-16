@@ -1,28 +1,12 @@
-import {
-    Flex,
-    Box,
-    Tabs,
-    TabList,
-    Tab,
-    TabIndicator,
-    Divider,
-    Skeleton,
-    Text,
-    Spacer,
-    useColorMode,
-} from '@chakra-ui/react';
-import { PanelGroup, Panel } from 'react-resizable-panels';
+import { Flex, Box, Tabs, Separator, Skeleton, Text, Spacer } from '@chakra-ui/react';
 import { useState } from 'react';
+import { PanelGroup, Panel } from 'react-resizable-panels';
 import CodeEditor from '../shared/CodeEditor';
-import VqlSavedQueriesContainer from './VqlSavedQueriesContainer';
-import {
-    setupVqlLanguage,
-    vqlLanguageID,
-    VqlLightModeTheme,
-    VqlDarkModeTheme,
-} from './VqlLanguageDefinition';
 import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
+import { useColorMode } from '../shared/ui-components/color-mode';
 import VqlConsole from './VqlConsole';
+import { setupVqlLanguage, vqlLanguageID, VqlLightModeTheme, VqlDarkModeTheme } from './VqlLanguageDefinition';
+import VqlSavedQueriesContainer from './VqlSavedQueriesContainer';
 
 export default function VqlEditorIsland({
     consoleOutput,
@@ -53,21 +37,21 @@ export default function VqlEditorIsland({
             <PanelGroup direction='vertical' autoSaveId='VqlEditorIsland-PanelGroup'>
                 <Panel defaultSize={40} minSize={10}>
                     <Flex flexDirection='column' height='100%' width='100%'>
-                        <Flex alignItems='center' {...TabListStyle}>
-                            <Tabs {...TabsStyle}>
-                                <TabList>
-                                    <Flex flexGrow={1} alignItems='center'>
-                                        <Box width='180px'>
-                                            <Tab {...TabStyle}>VQL</Tab>
-                                        </Box>
-                                    </Flex>
-                                </TabList>
-                                <TabIndicator {...TabIndicatorStyle} />
-                            </Tabs>
+                        <Flex alignItems='center' borderBottom='solid 3px' borderBottomColor='gray.400'>
+                            <Tabs.Root {...TabsStyle}>
+                                <Tabs.List {...TabListStyle} flexGrow={1}>
+                                    <Tabs.Trigger {...TabStyle}>
+                                        <Flex width='180px' alignItems='center' justifyContent='center'>
+                                            VQL
+                                        </Flex>
+                                    </Tabs.Trigger>
+                                </Tabs.List>
+                                <Tabs.Indicator {...TabIndicatorStyle} />
+                            </Tabs.Root>
                             <Spacer />
                             <VqlSavedQueriesContainer code={code} setCode={setCode} />
                         </Flex>
-                        <Box flex={1} overflow={'auto'}>
+                        <Box flex={1} overflow='auto'>
                             <CodeEditor
                                 code={code}
                                 setCode={setCode}
@@ -77,7 +61,7 @@ export default function VqlEditorIsland({
                         </Box>
                     </Flex>
                 </Panel>
-                <Divider border='1px solid thin' />
+                <Separator border='1px solid' borderColor='veeva_light_gray_color_mode' />
                 <HorizontalResizeHandle
                     backgroundColor='veeva_sunset_yellow.ten_percent_opacity'
                     isCollapsed={isConsoleCollapsed}
@@ -91,7 +75,7 @@ export default function VqlEditorIsland({
                 >
                     <Flex flexDirection='column' height='100%'>
                         <Box {...ConsoleBoxStyle}>
-                            <Skeleton isLoaded={!isExecutingApiCall} height='100%'>
+                            <Skeleton loading={isExecutingApiCall} height='100%'>
                                 <VqlConsole
                                     consoleOutput={consoleOutput}
                                     queryDescribe={queryDescribe}
@@ -108,9 +92,7 @@ export default function VqlEditorIsland({
                                     queryPreviousPage={queryPreviousPage}
                                 />
                             </Skeleton>
-                            {isExecutingApiCall && (
-                                <Text {...SendingRequestTextStyle}>Sending request...</Text>
-                            )}
+                            {isExecutingApiCall && <Text {...SendingRequestTextStyle}>Sending request...</Text>}
                         </Box>
                     </Flex>
                 </Panel>
@@ -124,40 +106,40 @@ const ParentFlexStyle = {
     width: 'calc(100% - 20px)',
     margin: '0px',
     borderRadius: '8px',
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.3)',
 };
 
 const TabsStyle = {
     flex: 'none',
     position: 'relative',
-    variant: 'unstyled',
+    variant: 'plain',
     size: 'lg',
-    minHeight: 'auto',
-    height: '100%',
+    height: 'auto',
 };
 
 const TabListStyle = {
     height: '60px',
-    borderBottom: 'solid 3px',
-    borderBottomColor: 'gray.400',
+    width: '100%',
 };
 
 const TabStyle = {
-    color: 'veeva_orange.color_mode',
+    color: 'veeva_orange_color_mode',
     fontSize: 'xl',
     width: '180px',
+    height: '100%',
 };
 
 const TabIndicatorStyle = {
-    marginTop: '3px',
+    width: '180px',
     height: '3px',
-    backgroundColor: 'veeva_orange.color_mode',
+    backgroundColor: 'veeva_orange_color_mode',
+    zIndex: 1,
 };
 
 const ConsoleBoxStyle = {
     flex: 1,
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     fontSize: 'medium',
     position: 'relative',
     overflow: 'auto',

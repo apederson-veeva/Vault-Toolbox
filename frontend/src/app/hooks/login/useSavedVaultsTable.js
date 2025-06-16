@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function useSavedVaultsTable({
     savedVaultData,
@@ -9,7 +9,6 @@ export default function useSavedVaultsTable({
     isEditable,
 }) {
     const [defaultVaultRowIndex, setDefaultVaultRowIndex] = useState(-1);
-    const newEditableRowRef = useRef(null);
 
     const DEFAULT = 'default';
     const VAULT_DNS = 'vaultDNS';
@@ -90,18 +89,7 @@ export default function useSavedVaultsTable({
      * @param {Number} rowToRemove - index of the row to remove
      */
     const removeRow = (rowToRemove) => {
-        setSavedVaultData(
-            savedVaultData.filter((_, savedVaultRowIndex) => savedVaultRowIndex !== rowToRemove),
-        );
-    };
-
-    /**
-     * Set focus to first Editable component in a new row.
-     */
-    const focusOnNewRow = () => {
-        if (newEditableRowRef.current) {
-            newEditableRowRef.current.focus();
-        }
+        setSavedVaultData(savedVaultData.filter((_, savedVaultRowIndex) => savedVaultRowIndex !== rowToRemove));
     };
 
     /**
@@ -113,12 +101,10 @@ export default function useSavedVaultsTable({
 
     return {
         defaultVaultRowIndex,
-        newEditableRowRef,
         handleRowClick,
         handleSavedVaultEdits,
         handleDefaultRowChanged,
         addNewEditableRow,
         removeRow,
-        focusOnNewRow,
     };
 }

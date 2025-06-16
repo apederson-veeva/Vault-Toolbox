@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
-export default function useSavedVaultsPopover({ savedVaultData, setSavedVaultData, onClose }) {
+export default function useSavedVaultsPopover({ savedVaultData, setSavedVaultData }) {
+    const [open, setOpen] = useState(false);
     const [isEditable, setIsEditable] = useState(false);
 
     const SAVED_VAULTS = 'savedVaults';
@@ -18,18 +19,19 @@ export default function useSavedVaultsPopover({ savedVaultData, setSavedVaultDat
     };
 
     /**
-     * Handles closing popover. Discards unsaved changes.
+     * Handles opening/closing popover. Discards unsaved changes.
+     * @param {Boolean} isOpen - Whether the popover is open
      */
-    const handlePopoverClosed = () => {
+    const handleOpenChange = (isOpen) => {
         // If closed without saving, discard changes
-        if (isEditable) {
+        if (!isOpen && isEditable) {
             setIsEditable(false);
             chrome.storage.local.get([SAVED_VAULTS]).then((result) => {
                 setSavedVaultData(result[SAVED_VAULTS] ? result[SAVED_VAULTS] : []);
             });
         }
-        onClose();
+        setOpen(isOpen);
     };
 
-    return { isEditable, toggleEditMode, handlePopoverClosed };
+    return { open, isEditable, toggleEditMode, handleOpenChange };
 }

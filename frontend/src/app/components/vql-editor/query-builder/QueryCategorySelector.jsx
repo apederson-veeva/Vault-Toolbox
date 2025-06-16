@@ -9,7 +9,7 @@ export default function QueryCategorySelector({
     return (
         <Flex align='center' marginX='5px'>
             <Box minWidth='75px' marginRight='5px'>
-                <Heading size='xs'>Category:</Heading>
+                <Heading size='sm'>Category:</Heading>
             </Box>
             <Box width='100%'>
                 <CustomSelect

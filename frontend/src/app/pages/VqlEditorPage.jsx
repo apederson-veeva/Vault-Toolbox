@@ -1,15 +1,15 @@
-import { Box, Flex, VStack, Spacer, IconButton, Divider } from '@chakra-ui/react';
+import { Box, Flex, VStack, Spacer, IconButton, Separator } from '@chakra-ui/react';
 import { PiClockCounterClockwiseBold, PiTreeStructureBold } from 'react-icons/pi';
 import { Panel, PanelGroup } from 'react-resizable-panels';
 import ContextualHelpButton from '../components/shared/ContextualHelpButton';
 import TelemetryData from '../components/shared/TelemetryData';
 import VaultInfoIsland from '../components/shared/VaultInfoIsland';
 import VerticalResizeHandle from '../components/shared/VerticalResizeHandle';
+import VqlEditorIsland from '../components/vql-editor/VqlEditorIsland';
+import VqlHeaderRow from '../components/vql-editor/VqlHeaderRow';
+import VqlProdVaultWarningModal from '../components/vql-editor/VqlProdVaultWarningModal';
 import QueryBuilderContainer from '../components/vql-editor/query-builder/QueryBuilderContainer';
 import QueryHistoryContainer from '../components/vql-editor/query-history/QueryHistoryContainer';
-import VqlHeaderRow from '../components/vql-editor/VqlHeaderRow';
-import VqlEditorIsland from '../components/vql-editor/VqlEditorIsland';
-import VqlProdVaultWarningModal from '../components/vql-editor/VqlProdVaultWarningModal';
 import useQueryBuilder from '../hooks/vql-editor/useQueryBuilder';
 import useQueryHistory from '../hooks/vql-editor/useQueryHistory';
 import useQuerySidePanel from '../hooks/vql-editor/useQuerySidePanel';
@@ -171,26 +171,28 @@ export default function VqlEditorPage() {
                                     />
                                 ) : null}
                             </Panel>
-                            {!sidePanelCollapsed ? <Divider {...VerticalDividerStyle} /> : null}
+                            {!sidePanelCollapsed ? <Separator {...VerticalDividerStyle} /> : null}
                         </>
                     ) : null}
                 </PanelGroup>
                 <Box height='100vh' flex='0 0'>
                     <Flex flexDirection='column' height='100%'>
                         <IconButton
-                            icon={<PiTreeStructureBold size={20} style={{ margin: '4px' }} />}
                             onClick={toggleQueryBuilder}
-                            color={displayQueryBuilder ? 'white' : 'veeva_orange.color_mode'}
-                            backgroundColor={displayQueryBuilder ? 'veeva_orange.color_mode' : 'transparent'}
-                            {...ToggleQueryBuilderButtonStyle}
-                        />
+                            color={displayQueryBuilder ? 'white' : 'veeva_orange_color_mode'}
+                            backgroundColor={displayQueryBuilder ? 'veeva_orange_color_mode' : 'transparent'}
+                            {...ToggleSidebarButtonStyle}
+                        >
+                            <PiTreeStructureBold size={20} style={{ margin: '4px' }} />
+                        </IconButton>
                         <IconButton
-                            icon={<PiClockCounterClockwiseBold size={20} style={{ margin: '4px' }} />}
                             onClick={toggleQueryHistory}
-                            color={displayQueryHistory ? 'white' : 'orange'}
-                            backgroundColor={displayQueryHistory ? 'orange' : 'transparent'}
-                            {...ToggleQueryBuilderButtonStyle}
-                        />
+                            color={displayQueryHistory ? 'white' : 'veeva_orange_color_mode'}
+                            backgroundColor={displayQueryHistory ? 'veeva_orange_color_mode' : 'transparent'}
+                            {...ToggleSidebarButtonStyle}
+                        >
+                            <PiClockCounterClockwiseBold size={20} style={{ margin: '4px' }} />
+                        </IconButton>
                         <Spacer />
                         <ContextualHelpButton tooltip='VQL Documentation' url='https://developer.veevavault.com/vql/' />
                     </Flex>
@@ -203,13 +205,13 @@ export default function VqlEditorPage() {
 
 const VqlEditorStackStyle = {
     height: '100%',
-    backgroundColor: 'veeva_light_gray.color_mode',
+    backgroundColor: 'veeva_light_gray_color_mode',
     flex: 1,
     boxShadow: 'inset -5px 0 8px -8px rgba(0,0,0,0.3), inset 5px 0 8px -8px rgba(0,0,0,0.3)',
-    spacing: 0,
+    gap: 0,
 };
 
-const ToggleQueryBuilderButtonStyle = {
+const ToggleSidebarButtonStyle = {
     size: 'auto',
     borderRadius: '6px',
     margin: '5px',

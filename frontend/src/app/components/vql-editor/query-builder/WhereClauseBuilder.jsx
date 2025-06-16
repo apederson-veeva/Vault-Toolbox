@@ -1,8 +1,8 @@
-import { Box, Button, Flex, Heading, HStack, Radio, RadioGroup, VStack } from '@chakra-ui/react';
+import { Box, Button, Flex, Heading, HStack, VStack } from '@chakra-ui/react';
 import { Fragment } from 'react';
 import { PiPlus } from 'react-icons/pi';
+import { RadioGroup, Radio } from '../../shared/ui-components/radio';
 import QueryFilterRow from './QueryFilterRow';
-
 export default function WhereClauseBuilder({
     fieldOptions,
     selectedFilters,
@@ -21,15 +21,15 @@ export default function WhereClauseBuilder({
     return (
         <Flex {...FlexStyle}>
             <Box minWidth='75px' marginRight='5px'>
-                <Heading size='xs'>Where: </Heading>
+                <Heading size='sm'>Where: </Heading>
             </Box>
             <VStack {...VStackStyle}>
                 {selectedFilters.length > 1 ? (
                     <Flex width='100%' align='center'>
                         <RadioGroup
-                            onChange={setLogicalOperator}
+                            onValueChange={(e) => setLogicalOperator(e.value)}
                             value={logicalOperator}
-                            colorScheme='veeva_midnight_indigo'
+                            colorPalette='veeva_midnight_indigo'
                         >
                             <HStack>
                                 <Radio value='AND'>AND</Radio>
@@ -56,15 +56,13 @@ export default function WhereClauseBuilder({
                     );
                 })}
                 <Flex gap='5px'>
-                    <Button {...AddFilterButtonStyle} leftIcon={<PiPlus />} onClick={addNewFilterRow}>
+                    <Button {...AddFilterButtonStyle} onClick={addNewFilterRow}>
+                        <PiPlus />
                         Add Filter
                     </Button>
                     {previousQueryResults?.isMatch && previousQueryResults?.values?.length > 0 && (
-                        <Button
-                            {...AddPreviousResultsFilterButtonStyle}
-                            leftIcon={<PiPlus />}
-                            onClick={addPreviousResultsFilterRow}
-                        >
+                        <Button {...AddPreviousResultsFilterButtonStyle} onClick={addPreviousResultsFilterRow}>
+                            <PiPlus />
                             Filter By Previous Results? {previousQueryResults?.queryTarget} (
                             {previousQueryResults?.values?.length})
                         </Button>
@@ -90,8 +88,8 @@ const VStackStyle = {
 const AddFilterButtonStyle = {
     maxWidth: 'max-content',
     borderRadius: '6px',
-    variant: 'outline',
-    colorScheme: 'blue',
+    variant: 'subtle',
+    colorPalette: 'blue',
     size: 'sm',
     'aria-label': 'Add filter row button',
 };
@@ -99,8 +97,8 @@ const AddFilterButtonStyle = {
 const AddPreviousResultsFilterButtonStyle = {
     maxWidth: 'max-content',
     borderRadius: '6px',
-    variant: 'outline',
-    colorScheme: 'yellow',
+    variant: 'subtle',
+    colorPalette: 'green',
     size: 'sm',
     'aria-label': 'Add filter row button',
 };

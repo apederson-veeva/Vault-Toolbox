@@ -1,14 +1,4 @@
-import {
-    Table,
-    TableContainer,
-    Tr,
-    Td,
-    Tbody,
-    Card,
-    CardBody,
-    Box,
-    Heading,
-} from '@chakra-ui/react';
+import { Table, Card, Box, Heading } from '@chakra-ui/react';
 import {
     getVaultDns,
     getVaultDomainType,
@@ -19,45 +9,44 @@ import {
 
 export default function VaultInfoTable() {
     return (
-        <Card {...VaultInfoCardStyle}>
-            <CardBody>
+        <Card.Root {...VaultInfoCardStyle}>
+            <Card.Body>
                 <Box>
                     <Heading {...TableHeaderStyle}>Vault Information</Heading>
-                    <TableContainer>
-                        <Table variant='simple' size='sm'>
-                            <Tbody>
-                                <Tr>
-                                    <Td {...TableColumnStyle}>Vault DNS: </Td>
-                                    <Td>{getVaultDns()}</Td>
-                                </Tr>
-                                <Tr>
-                                    <Td {...TableColumnStyle}>Vault ID: </Td>
-                                    <Td>{getVaultId()}</Td>
-                                </Tr>
-                                <Tr>
-                                    <Td {...TableColumnStyle}>Vault Name: </Td>
-                                    <Td>{getVaultName()}</Td>
-                                </Tr>
-                                <Tr>
-                                    <Td {...TableColumnStyle}>Domain Type: </Td>
-                                    <Td>{getVaultDomainType()}</Td>
-                                </Tr>
-                                <Tr>
-                                    <Td {...TableColumnStyle}>User: </Td>
-                                    <Td>{getVaultUsername()}</Td>
-                                </Tr>
-                            </Tbody>
-                        </Table>
-                    </TableContainer>
+                    <Table.Root variant='simple' size='sm'>
+                        <Table.Body>
+                            <Table.Row>
+                                <Table.Cell {...TableColumnStyle}>Vault DNS: </Table.Cell>
+                                <Table.Cell>{getVaultDns()}</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Cell {...TableColumnStyle}>Vault ID: </Table.Cell>
+                                <Table.Cell>{getVaultId()}</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Cell {...TableColumnStyle}>Vault Name: </Table.Cell>
+                                <Table.Cell>{getVaultName()}</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Cell {...TableColumnStyle}>Domain Type: </Table.Cell>
+                                <Table.Cell>{getVaultDomainType()}</Table.Cell>
+                            </Table.Row>
+                            <Table.Row>
+                                <Table.Cell {...TableColumnStyle}>User: </Table.Cell>
+                                <Table.Cell>{getVaultUsername()}</Table.Cell>
+                            </Table.Row>
+                        </Table.Body>
+                    </Table.Root>
                 </Box>
-            </CardBody>
-        </Card>
+            </Card.Body>
+        </Card.Root>
     );
 }
 
 const VaultInfoCardStyle = {
-    backgroundColor: 'white.color_mode',
+    backgroundColor: 'white_color_mode',
     marginY: '25',
+    border: 'transparent',
     boxShadow: '0 0 5px rgba(0,0,0,0.2)',
 };
 
