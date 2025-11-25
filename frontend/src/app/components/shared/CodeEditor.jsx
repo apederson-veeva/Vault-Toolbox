@@ -1,7 +1,7 @@
 import * as monaco from 'monaco-editor-core';
 import { useEffect, useRef } from 'react';
 
-export default function CodeEditor({ code, setCode, language, theme }) {
+export default function CodeEditor({ code, setCode, language, theme, readOnly = false }) {
     const containerRef = useRef();
     const editorRef = useRef();
 
@@ -30,7 +30,7 @@ export default function CodeEditor({ code, setCode, language, theme }) {
             },
             selectOnLineNumbers: true,
             roundedSelection: false,
-            readOnly: false,
+            readOnly: readOnly,
             cursorStyle: 'line',
             automaticLayout: true,
             'bracketPairColorization.enabled': false,

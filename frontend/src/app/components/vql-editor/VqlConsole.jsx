@@ -24,9 +24,11 @@ export default memo(
         const defaultTab = responseStatus === 'FAILURE' ? 'json' : 'table';
         const hasSubqueries = queryDescribe?.subqueries?.length > 0;
         const headerRowSpan = hasSubqueries ? 2 : 1;
-        const currentPage =
-            Math.floor(consoleOutput?.responseDetails?.pageoffset / consoleOutput?.responseDetails?.pagesize) + 1;
-        const totalPages = Math.ceil(consoleOutput?.responseDetails?.total / consoleOutput?.responseDetails?.pagesize);
+
+        const startingResultRange = consoleOutput?.responseDetails?.pageoffset + 1 || 1;
+        const endingResultRange = consoleOutput?.responseDetails?.pageoffset + consoleOutput?.responseDetails?.size;
+        const totalResults = consoleOutput?.responseDetails?.total;
+        const hasResults = startingResultRange && endingResultRange && totalResults;
 
         const [activeTab, setActiveTab] = useState(defaultTab);
 
@@ -45,7 +47,7 @@ export default memo(
                     {consoleOutput ? (
                         <Box overflow='auto'>
                             <Tabs.Content padding={0} value='table'>
-                                {consoleOutput?.data && consoleOutput.data.length > 0 && queryDescribe ? (
+                                {consoleOutput?.data && consoleOutput.data.length > 0 ? (
                                     <Table.Root size='md' variant='simple' stickyHeader>
                                         <VqlTableHeader
                                             consoleOutput={consoleOutput}
@@ -66,7 +68,7 @@ export default memo(
                                     </Table.Root>
                                 ) : (
                                     <Box height='100%'>
-                                        {consoleOutput?.data && queryDescribe && (
+                                        {consoleOutput?.data && (
                                             <JsonSyntaxHighlighter dataToDisplay='No results to display' />
                                         )}
                                     </Box>
@@ -89,16 +91,16 @@ export default memo(
                                 JSON
                             </Flex>
                         </Tabs.Trigger>
-
                         <Tabs.Indicator {...TabIndicatorStyle} />
+
                         <Spacer />
                         <Button {...PaginationButtonStyle} disabled={!previousPage} onClick={queryPreviousPage}>
                             <Text truncate>Previous Page</Text>
                         </Button>
-                        {totalPages ? (
+                        {hasResults ? (
                             <Tag.Root {...PageNumberTagStyle}>
-                                <Tag.Label>
-                                    {currentPage} / {totalPages}
+                                <Tag.Label color='veeva_dark_gray_text_color_mode'>
+                                    {startingResultRange} - {endingResultRange} / {totalResults}
                                 </Tag.Label>
                             </Tag.Root>
                         ) : null}
@@ -166,13 +168,13 @@ const PaginationButtonStyle = {
 };
 
 const PageNumberTagStyle = {
-    backgroundColor: 'white_color_mode',
+    backgroundColor: 'veeva_light_gray_color_mode',
     fontSize: 'md',
     color: 'veeva_dark_gray_text_color_mode',
     boxShadow: '0 0 2px rgba(0,0,0,0.2)',
     marginLeft: '0px',
     marginRight: '10px',
-    marginY: 'auto',
+    marginY: '10px',
     width: 'auto',
     height: '40px',
     minWidth: 'max-content',

@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import VqlQueryMetadata from '../../components/vql-editor/query-builder/VqlQueryMetadata';
 import {
     retrieveAllDocumentFields,
     retrieveComponentRecordXmlJson,
@@ -10,6 +9,7 @@ import {
     retrieveUserMetadata,
 } from '../../services/ApiService';
 import { convertArrayToSelectOptions } from '../../services/SharedServices';
+import VqlQueryMetadata from '../../utils/vql-editor/VqlQueryMetadata';
 
 export default function useQueryBuilder({ setCode, previousQueryResults, setPreviousQueryResults }) {
     const [selectedQueryCategory, setSelectedQueryCategory] = useState();

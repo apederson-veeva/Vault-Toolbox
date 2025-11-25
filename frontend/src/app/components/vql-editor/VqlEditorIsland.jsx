@@ -1,11 +1,16 @@
 import { Flex, Box, Tabs, Separator, Skeleton, Text, Spacer } from '@chakra-ui/react';
 import { useState } from 'react';
 import { PanelGroup, Panel } from 'react-resizable-panels';
+import {
+    setupVqlLanguage,
+    vqlLanguageID,
+    VqlLightModeTheme,
+    VqlDarkModeTheme,
+} from '../../utils/vql-editor/VqlLanguageDefinition';
 import CodeEditor from '../shared/CodeEditor';
 import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
 import { useColorMode } from '../shared/ui-components/color-mode';
 import VqlConsole from './VqlConsole';
-import { setupVqlLanguage, vqlLanguageID, VqlLightModeTheme, VqlDarkModeTheme } from './VqlLanguageDefinition';
 import VqlSavedQueriesContainer from './VqlSavedQueriesContainer';
 
 export default function VqlEditorIsland({
@@ -104,7 +109,7 @@ export default function VqlEditorIsland({
 const ParentFlexStyle = {
     height: '100%',
     width: 'calc(100% - 20px)',
-    margin: '0px',
+    margin: '0px 0px 5px 0px',
     borderRadius: '8px',
     backgroundColor: 'white_color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.3)',

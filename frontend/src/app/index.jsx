@@ -2,7 +2,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { Provider } from './components/shared/ui-components/provider';
 import { AuthProvider } from './context/AuthContext';
-import veevaTheme from './utils/VeevaTheme';
+import veevaTheme from './utils/shared/VeevaTheme';
 
 const index = (
     <Provider theme={veevaTheme}>

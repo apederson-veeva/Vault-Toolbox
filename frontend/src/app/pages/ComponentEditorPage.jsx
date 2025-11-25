@@ -1,6 +1,7 @@
 import { Box, Flex, IconButton, Spacer, VStack } from '@chakra-ui/react';
 import { PiTreeStructureBold } from 'react-icons/pi';
 import { Panel, PanelGroup } from 'react-resizable-panels';
+import { useLocation } from 'react-router-dom';
 import ComponentDirectoryPanel from '../components/component-editor/ComponentDirectoryPanel';
 import ComponentEditorHeaderRow from '../components/component-editor/ComponentEditorHeaderRow';
 import ComponentEditorIsland from '../components/component-editor/ComponentEditorIsland';
@@ -12,13 +13,18 @@ import useComponentEditor from '../hooks/component-editor/useComponentEditor';
 import useComponentTree from '../hooks/component-editor/useComponentTree';
 
 export default function ComponentEditorPage() {
+    const location = useLocation();
+    const defaultComponent = location?.state?.component || null;
+
     const { componentTree, componentTreeError, retrieveComponentTree, loadingComponentTree } = useComponentTree();
+
     const {
         code,
         setCode,
         selectedComponent,
         setSelectedComponent,
         consoleOutput,
+        getComponentMdlHandler,
         executeMdl,
         executeMdlAsync,
         retrieveMdlAsyncResults,
@@ -36,7 +42,7 @@ export default function ComponentEditorPage() {
         sidePanelCollapsed,
         setSidePanelCollapsed,
         componentDirectoryPanelRef,
-    } = useComponentEditor();
+    } = useComponentEditor(defaultComponent);
 
     return (
         <>
@@ -45,7 +51,7 @@ export default function ComponentEditorPage() {
                     <Panel id='component-editor-panel' order={1}>
                         <VStack {...ComponentEditorStackStyle}>
                             <ComponentEditorHeaderRow
-                                setSelectedComponent={setSelectedComponent}
+                                getComponentMdlHandler={getComponentMdlHandler}
                                 executeMdl={executeMdl}
                                 executeMdlAsync={executeMdlAsync}
                                 retrieveMdlAsyncResults={retrieveMdlAsyncResults}

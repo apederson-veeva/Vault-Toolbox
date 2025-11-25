@@ -4,8 +4,8 @@ import { Outlet } from 'react-router-dom';
 import useIdleTimer from '../../hooks/shared/useIdleTimer';
 import useVaultSessionKeepAlive from '../../hooks/shared/useVaultSessionKeepAlive';
 import ErrorPage from '../../pages/ErrorPage';
-import Sidebar from './Sidebar';
 import IdleWarningDialog from './IdleWarningDialog';
+import Sidebar from './Sidebar';
 
 export default function Layout() {
     const { timeoutState, promptOpen, remainingTime, activate } = useIdleTimer();

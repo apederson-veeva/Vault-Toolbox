@@ -6,7 +6,7 @@ import { InputGroup } from '../shared/ui-components/input-group';
 import { MenuContent, MenuRoot, MenuTrigger, MenuItem } from '../shared/ui-components/menu';
 
 export default function ComponentEditorHeaderRow({
-    setSelectedComponent,
+    getComponentMdlHandler,
     executeMdl,
     executeMdlAsync,
     retrieveMdlAsyncResults,
@@ -35,7 +35,7 @@ export default function ComponentEditorHeaderRow({
             <Button
                 disabled={!userInputComponent}
                 onClick={() => {
-                    setSelectedComponent(userInputComponent);
+                    getComponentMdlHandler(userInputComponent);
                 }}
                 {...GetComponentButtonStyle}
             >

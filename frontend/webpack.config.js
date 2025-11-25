@@ -25,6 +25,11 @@ module.exports = {
                 },
             },
             {
+                test: /\.(ts|tsx)$/,
+                exclude: /node_modules/,
+                loader: 'ts-loader',
+            },
+            {
                 use: ['style-loader', 'css-loader'],
                 test: /\.css$/,
             },
@@ -35,6 +40,7 @@ module.exports = {
                     outputPath: 'images',
                 },
             },
+            { enforce: 'pre', test: /\.js$/, exclude: /node_modules/, loader: 'source-map-loader' },
         ],
     },
     plugins: [
@@ -57,7 +63,7 @@ module.exports = {
         }),
     ],
     resolve: {
-        extensions: ['*', '.js', '.jsx'],
+        extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
     },
     output: {
         filename: '[name].js',

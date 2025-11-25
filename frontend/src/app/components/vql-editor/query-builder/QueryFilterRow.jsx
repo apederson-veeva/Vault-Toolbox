@@ -38,7 +38,7 @@ export default function QueryFilterRow({
             <Box {...FieldBoxStyle}>
                 <CustomSelect
                     options={objectFields}
-                    placeholder='Field'
+                    placeholder='VaultRecordField'
                     value={filter.field}
                     onChange={(newValue) => handleSelectedFilterEdits(newValue, filterRowIndex, 'field')}
                 />

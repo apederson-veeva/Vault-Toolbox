@@ -6,9 +6,9 @@ import {
     retrieveComponentRecordMdl,
 } from '../../services/ApiService';
 
-export default function useComponentEditor() {
+export default function useComponentEditor(defaultComponent) {
     const [code, setCode] = useState('Select a component record from the tree to view its MDL code');
-    const [selectedComponent, setSelectedComponent] = useState('');
+    const [selectedComponent, setSelectedComponent] = useState(defaultComponent || '');
     const [consoleOutput, setConsoleOutput] = useState();
     const [isExecutingApiCall, setIsExecutingApiCall] = useState(false);
     const [isExecutingMdl, setIsExecutingMdl] = useState(false);
@@ -16,7 +16,7 @@ export default function useComponentEditor() {
     const [showOutstandingAsyncJobWarning, setShowOutstandingAsyncJobWarning] = useState(false);
     const [selectedComponentPendingConfirmation, setSelectedComponentPendingConfirmation] = useState('');
     const [displayComponentTree, setDisplayComponentTree] = useState(true);
-    const [sidePanelCollapsed, setSidePanelCollapsed] = useState(false);
+    const [sidePanelCollapsed, setSidePanelCollapsed] = useState(defaultComponent ? true : false);
     const [mdlTelemetryData, setMdlTelemetryData] = useState({});
 
     const componentDirectoryPanelRef = useRef(null);
@@ -24,18 +24,21 @@ export default function useComponentEditor() {
     /**
      * Retrieve MDL code for current component record
      */
-    const retrieveCode = useCallback(async () => {
-        const { response, responseTelemetry } = await retrieveComponentRecordMdl(selectedComponent);
+    const retrieveCode = useCallback(
+        async (component) => {
+            const { response, responseTelemetry } = await retrieveComponentRecordMdl(component || selectedComponent);
 
-        if (typeof response === 'string') {
-            setCode(response);
-        } else {
-            setConsoleOutput(response);
-            setCode('Error. Could not retrieve MDL code for this component.');
-        }
+            if (typeof response === 'string') {
+                setCode(response);
+            } else {
+                setConsoleOutput(response);
+                setCode('Error. Could not retrieve MDL code for this component.');
+            }
 
-        setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
-    }, [selectedComponent]);
+            setMdlTelemetryData(responseTelemetry ? responseTelemetry : {});
+        },
+        [selectedComponent],
+    );
 
     /**
      * Execute current MDL code
@@ -123,6 +126,12 @@ export default function useComponentEditor() {
         setDisplayComponentTree(!displayComponentTree);
     };
 
+    const getComponentMdlHandler = (userInputComponent) => {
+        if (userInputComponent) {
+            retrieveCode(userInputComponent);
+        }
+    };
+
     useEffect(() => {
         if (sidePanelCollapsed) {
             componentDirectoryPanelRef.current?.collapse();
@@ -132,7 +141,7 @@ export default function useComponentEditor() {
         }
     }, [sidePanelCollapsed]);
 
-    // When a component record is selected, clear out the previously-selected code/console and fetch the current code
+    // When a new component record is selected, clear out the previously-selected code/console and fetch the current code
     useEffect(() => {
         if (selectedComponent) {
             setCode('');
@@ -147,6 +156,7 @@ export default function useComponentEditor() {
         selectedComponent,
         setSelectedComponent,
         consoleOutput,
+        getComponentMdlHandler,
         executeMdl,
         executeMdlAsync,
         retrieveMdlAsyncResults,

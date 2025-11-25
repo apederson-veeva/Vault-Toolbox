@@ -157,37 +157,40 @@ export default function useVqlQuery({ updateQueryHistory }) {
      */
     const downloadQueryResults = async () => {
         setIsDownloading(true);
-        const csvData = await getCsvData();
+        try {
+            const csvData = await getCsvData();
 
-        let csvContent = '';
-        csvData.forEach((rowArray) => {
-            if (typeof rowArray === 'string') {
-                csvContent += `${rowArray}\r\n`;
-            } else {
-                const tmpRow = rowArray.map((item) => {
-                    if (item !== null) {
-                        item = item.toString();
-                        item = item.replace(/"/g, '""'); // Escape double quotes within a field
-                    }
-                    return item;
-                });
-                const row = '"' + tmpRow.join('","') + '"'; // Wrap each value in double quotes
-                csvContent += `${row}\r\n`;
-            }
-        });
+            let csvContent = '';
+            csvData.forEach((rowArray) => {
+                if (typeof rowArray === 'string') {
+                    csvContent += `${rowArray}\r\n`;
+                } else {
+                    const tmpRow = rowArray.map((item) => {
+                        if (item !== null) {
+                            item = item.toString();
+                            item = item.replace(/"/g, '""'); // Escape double quotes within a field
+                        }
+                        return item;
+                    });
+                    const row = '"' + tmpRow.join('","') + '"'; // Wrap each value in double quotes
+                    csvContent += `${row}\r\n`;
+                }
+            });
 
-        const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
-        const link = document.createElement('a');
-        const filename = queryDescribe?.object?.name
-            ? `query_results (${queryDescribe.object.name}).csv`
-            : 'query_results.csv';
+            const encodedUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csvContent);
+            const link = document.createElement('a');
+            const filename = queryDescribe?.object?.name
+                ? `query_results (${queryDescribe.object.name}).csv`
+                : 'query_results.csv';
 
-        link.setAttribute('href', encodedUri);
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', filename);
+            document.body.appendChild(link);
 
-        link.click(); // Downloads the data to CSV
-        setIsDownloading(false);
+            link.click(); // Downloads the data to CSV
+        } finally {
+            setIsDownloading(false);
+        }
     };
 
     /**
@@ -240,19 +243,22 @@ export default function useVqlQuery({ updateQueryHistory }) {
         const headers = [];
         // Get the headers from the first row of data (so the order is correct)
         Object.keys(consoleOutput[queryEditorTabIndex].data[0]).map((dataKey) => {
+            const firstRowResultValue = consoleOutput[queryEditorTabIndex].data[0][dataKey];
+
             // Picklists and standard field headers
             if (
                 isPicklist(dataKey) ||
                 isObjectReference(dataKey) ||
-                typeof consoleOutput[queryEditorTabIndex].data[0][dataKey] !== OBJECT ||
-                consoleOutput[queryEditorTabIndex].data[0][dataKey] === null
+                Array.isArray(firstRowResultValue) || // Doc-object relationships (e.g. document_expense_report__cr.name__v) can return arrays, similar to Picklist values
+                typeof firstRowResultValue !== OBJECT ||
+                firstRowResultValue === null
             ) {
                 headers.push(dataKey);
             } else {
                 // Subquery headers
                 // Get subquery fields from query describe (in case there isn't subquery data in the first row)
-                return queryDescribe.subqueries
-                    .find((subquery) => subquery.relationship === dataKey)
+                return queryDescribe?.subqueries
+                    ?.find((subquery) => subquery.relationship === dataKey)
                     ?.fields.map((field) => {
                         headers.push(`${dataKey}.${field.name}`);
                     });

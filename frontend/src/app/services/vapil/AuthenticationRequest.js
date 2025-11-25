@@ -19,8 +19,8 @@ const VAULT_DNS = 'vaultDNS';
 
 /**
  * Retrieves api versions supported by the current Vault
- * @param {String} sessionId
- * @param {String} vaultDNS
+ * @param {String | null} sessionId
+ * @param {String | null} vaultDNS
  * @returns ApiVersionResponse, ResponseHeaders
  */
 export async function retrieveApiVersions(sessionId, vaultDNS = null) {
@@ -133,7 +133,7 @@ async function validateLoginResponse(response, userSuppliedApiEndpoint = null) {
         response?.vaultIds?.forEach((vault) => {
             if (authenticatedVaultId === vault?.id) {
                 responseUrl = vault?.url + '/' + getVaultApiVersion();
-                if (userSuppliedApiEndpoint.startsWith(responseUrl)) {
+                if (userSuppliedApiEndpoint.startsWith(responseUrl?.toLowerCase())) {
                     validatedLoginResponse = true;
                     return;
                 }

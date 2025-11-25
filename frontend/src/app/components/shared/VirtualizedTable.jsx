@@ -135,7 +135,6 @@ export default function VirtualizedTable({ headers, data, loading, chakraTableSi
 const BoxStyle = {
     overflow: 'auto',
     width: '100%',
-    borderWidth: '1px',
     fontSize: 'md',
 };
 

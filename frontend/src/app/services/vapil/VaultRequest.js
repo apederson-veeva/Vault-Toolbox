@@ -1,18 +1,22 @@
 import { VAULT_CLIENT_ID, getVaultDNS } from '../ApiService.js';
 import { getVaultApiVersion } from '../SharedServices';
 
-export const VAULT_API_VERSION = 'v25.1';
-export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v25.1.0';
+export const VAULT_API_VERSION = 'v25.2';
+export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v25.2.0';
 
 export const HTTP_HEADER_CONTENT_TYPE = 'Content-Type';
 export const HTTP_HEADER_ACCEPT = 'Accept';
 export const HTTP_HEADER_VAULT_CLIENT_ID = 'X-VaultAPI-ClientID';
 export const HTTP_HEADER_REFERENCE_ID = 'X-VaultAPI-ReferenceId';
 export const HTTP_HEADER_AUTHORIZATION = 'Authorization';
+export const HTTP_HEADER_CONTENT_LENGTH = 'Content-Length';
+export const HTTP_HEADER_CONTENT_MD5 = 'Content-MD5';
+export const HTTP_HEADER_FILEPART_NUMBER = 'X-VaultAPI-FilePartNumber';
 
 export const HTTP_CONTENT_TYPE_JSON = 'application/json';
 export const HTTP_CONTENT_TYPE_XFORM = 'application/x-www-form-urlencoded';
 export const HTTP_CONTENT_TYPE_PLAINTEXT = 'text/plain';
+export const HTTP_CONTENT_TYPE_OCTET_STREAM = 'application/octet-stream';
 
 /**
  * Request wrapper that sets default headers and omits cookies.

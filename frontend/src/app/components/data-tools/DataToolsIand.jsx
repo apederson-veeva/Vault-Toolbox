@@ -5,7 +5,13 @@ import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
 import DataFilesPanel from './DataFilesPanel';
 import DataSelectionPanel from './DataSelectionPanel';
 
-export default function DataToolsIsland({ dataType, setDataType, selectedOptions, setSelectedOptions }) {
+export default function DataToolsIsland({
+    dataType,
+    setDataType,
+    selectedOptions,
+    setSelectedOptions,
+    vaultToolboxPath,
+}) {
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
@@ -47,7 +53,7 @@ export default function DataToolsIsland({ dataType, setDataType, selectedOptions
                 >
                     <Flex flexDirection='column' height='100%'>
                         <Box style={ConsoleBoxStyle}>
-                            <DataFilesPanel />
+                            <DataFilesPanel vaultToolboxPath={vaultToolboxPath} />
                         </Box>
                     </Flex>
                 </Panel>
@@ -59,7 +65,7 @@ export default function DataToolsIsland({ dataType, setDataType, selectedOptions
 const ParentFlexStyle = {
     height: '100%',
     width: 'calc(100% - 20px)',
-    margin: '0px',
+    margin: '0px 0px 5px 0px',
     borderRadius: '8px',
     backgroundColor: 'white_color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.3)',

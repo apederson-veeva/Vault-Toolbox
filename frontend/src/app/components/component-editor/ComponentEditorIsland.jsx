@@ -1,12 +1,17 @@
 import { Flex, Box, Tabs, Separator, Text } from '@chakra-ui/react';
 import { useState } from 'react';
 import { PanelGroup, Panel } from 'react-resizable-panels';
+import {
+    setupMdlLanguage,
+    mdlLanguageID,
+    MdlLightModeTheme,
+    MdlDarkModeTheme,
+} from '../../utils/component-editor/MdlLanguageDefinition';
 import CodeEditor from '../shared/CodeEditor';
 import HorizontalResizeHandle from '../shared/HorizontalResizeHandle';
 import { useColorMode } from '../shared/ui-components/color-mode';
 import { Skeleton } from '../shared/ui-components/skeleton';
 import ComponentConsole from './ComponentConsole';
-import { setupMdlLanguage, mdlLanguageID, MdlLightModeTheme, MdlDarkModeTheme } from './MdlLanguageDefinition';
 
 export default function ComponentEditorIsland({ consoleOutput, code, setCode, isExecutingApiCall }) {
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -69,7 +74,7 @@ export default function ComponentEditorIsland({ consoleOutput, code, setCode, is
 const ParentFlexStyle = {
     height: '100%',
     width: 'calc(100% - 20px)',
-    margin: '0px',
+    margin: '0px 0px 5px 0px',
     borderRadius: '8px',
     backgroundColor: 'white_color_mode',
     boxShadow: '0 0 5px rgba(0,0,0,0.3)',

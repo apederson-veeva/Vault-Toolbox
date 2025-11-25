@@ -20,12 +20,16 @@ export default function DataFilesTableBody({ countFiles, deleteFiles, handleClic
                     } else if (dataFile?.filePath?.includes(OPERATIONS.COUNT.toLowerCase())) {
                         operation = OPERATIONS.COUNT;
                     }
+
+                    const filePathParts = dataFile?.filePath?.split('/');
+                    const fileName = filePathParts[filePathParts.length - 1];
+
                     return (
                         <Table.Row key={dataFileCount}>
                             <Table.Cell {...TdStyle}>{formatDateTime(dataFile.fileTimestamp)}</Table.Cell>
                             <Table.Cell {...TdStyle}>{operation}</Table.Cell>
                             <Table.Cell {...HyperlinkStyle} onClick={() => handleClick(dataFile.filePath)}>
-                                <Link color='hyperlink_blue_color_mode'>{dataFile.filePath.split('/')[4]}</Link>
+                                <Link color='hyperlink_blue_color_mode'>{fileName}</Link>
                             </Table.Cell>
                         </Table.Row>
                     );

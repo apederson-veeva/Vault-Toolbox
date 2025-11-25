@@ -7,17 +7,23 @@ import {
     sessionKeepAlive as vapilSessionKeepAlive,
 } from './vapil/AuthenticationRequest';
 import {
-    retrieveAllDocumentTypes as vapilRetrieveAllDocumentTypes,
+    downloadDirectDataFile as vapilDownloadDirectDataFile,
+    retrieveAvailableDirectDataFiles as vapilRetrieveAvailableDirectDataFiles,
+} from './vapil/DirectDataRequest';
+import {
     retrieveAllDocumentFields as vapilRetrieveAllDocumentFields,
+    retrieveAllDocumentTypes as vapilRetrieveAllDocumentTypes,
 } from './vapil/DocumentRequest';
 import { retrieveDocumentSignatureMetadata as vapilRetrieveDocumentSignatureMetadata } from './vapil/DocumentSignatureRequest';
 import { retrieveDomainInformation as vapilRetrieveDomainInformation } from './vapil/DomainRequest';
 import {
     createFolderOrFile as vapilCreateFolderOrFile,
+    deleteFolderOrFile as vapilDeleteFolderOrFile,
     downloadItemContent as vapilDownloadItemContent,
     listItemsAtAPath as vapilListItemsAtAPath,
     listItemsAtAPathByPage as vapilListItemsAtAPathByPage,
 } from './vapil/FileStagingRequest';
+import { retrieveJobStatus as vapilRetrieveJobStatus } from './vapil/JobsRequest';
 import {
     executeMdlScript as vapilExecuteMdlScript,
     executeMdlScriptAsync as vapilExecuteMdlScriptAsync,
@@ -131,7 +137,7 @@ export async function query(queryString) {
 
         return { queryResponse: response, responseTelemetry, responseHeaders };
     } catch (error) {
-        return handleErrors(error);
+        return { queryResponse: handleErrors(error) };
     }
 }
 
@@ -206,6 +212,51 @@ export async function createFolderOrFile(kind, path, file) {
         const { response } = await vapilCreateFolderOrFile(kind, path, file);
         return response;
     } catch (error) {
+        return handleErrors(error);
+    }
+}
+
+/**
+ * Calls the Vault API's Delete Folder or File endpoint.
+ * @returns Vault Response
+ */
+export async function handleDeleteFileStagingItem(path, recursive = true) {
+    try {
+        const { response } = await vapilDeleteFolderOrFile(path, recursive);
+
+        return response;
+    } catch (error) {
+        handleErrors(error);
+    }
+}
+
+/**
+ * Calls the Vault API's Retrieve Available Direct Data Files endpoint.
+ * @returns VaultResponse
+ */
+export async function retrieveAvailableDirectDataFiles(extractType, startTime, stopTime) {
+    try {
+        const { response, responseHeaders } = await vapilRetrieveAvailableDirectDataFiles(
+            extractType,
+            startTime,
+            stopTime,
+        );
+        return { response, responseHeaders };
+    } catch (error) {
+        return handleErrors(error);
+    }
+}
+
+/**
+ * Calls the Vault API's Download Direct Data File endpoint.
+ * @returns VaultResponse
+ */
+export async function downloadDirectDataFile(name) {
+    try {
+        const { response } = await vapilDownloadDirectDataFile(name);
+        return response;
+    } catch (error) {
+        console.error(error);
         return handleErrors(error);
     }
 }
@@ -382,6 +433,19 @@ export async function retrievePicklistValues(picklistName) {
 }
 
 /**
+ * Calls the Vault API's Retrieve Job Status endpoint.
+ * @returns Vault Response
+ */
+export async function retrieveJobStatus(jobId) {
+    try {
+        const { response } = await vapilRetrieveJobStatus(jobId);
+        return response;
+    } catch (error) {
+        return handleErrors(error);
+    }
+}
+
+/**
  * Calls the Vault API's Session Keep Alive endpoint.
  * @returns Vault Response
  */
@@ -407,7 +471,7 @@ export async function login(params) {
 
                 if (response?.responseStatus === 'SUCCESS') {
                     if (Object.keys(response?.values)?.length > 0) {
-                        const responseUrl = response.values[getVaultApiVersion()];
+                        const responseUrl = response.values[getVaultApiVersion()]?.toLowerCase();
                         isValid = responseUrl === getAPIEndpoint('', true, params.vaultDNS);
 
                         if (isValid) {

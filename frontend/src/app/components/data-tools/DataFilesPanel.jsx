@@ -7,7 +7,7 @@ import DataFilesTableBody from './DataFilesTableBody';
 import DataFilesTableHeader from './DataFilesTableHeader';
 import FileContentsModal from './FileContentsModal';
 
-export default function DataFilesPanel() {
+export default function DataFilesPanel({ vaultToolboxPath }) {
     const {
         countFiles,
         deleteFiles,
@@ -16,7 +16,7 @@ export default function DataFilesPanel() {
         secondsRemaining,
         activePolling,
         handleFileRefresh,
-    } = useDataFiles();
+    } = useDataFiles({ vaultToolboxPath });
     const { isModalOpen, selectedCellData, closeModal, handleFileClick } = useDataFileModal();
 
     return (

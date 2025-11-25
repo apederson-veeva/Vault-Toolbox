@@ -7,7 +7,7 @@ export default function SidebarItem({ item, currentRoute, children, onClose }) {
     const { settings } = useSettings();
 
     // Don't render if page is disabled, unless it's marked as alwaysShow (e.g. Vault Info)
-    if (item.pageId && !item.alwaysShow && !settings[item.pageId]?.enabled) {
+    if (item.pageId && !item.alwaysShow && settings[item.pageId]?.enabled === false) {
         return null;
     }
 

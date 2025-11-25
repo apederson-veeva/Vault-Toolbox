@@ -1,15 +1,16 @@
 import { VStack, Flex, Box, Spacer } from '@chakra-ui/react';
 import { PanelGroup, Panel } from 'react-resizable-panels';
-import ContextualHelpButton from '../components/shared/ContextualHelpButton';
-import VaultInfoIsland from '../components/shared/VaultInfoIsland';
 import DataToolsHeaderRow from '../components/data-tools/DataToolsHeaderRow';
 import DataToolsIsland from '../components/data-tools/DataToolsIand';
+import ContextualHelpButton from '../components/shared/ContextualHelpButton';
+import VaultInfoIsland from '../components/shared/VaultInfoIsland';
 import useVaultDataTools from '../hooks/data-tools/useDataTools';
 
 export default function DataToolsPage() {
     const {
         countData,
         deleteData,
+        vaultToolboxPath,
         submittingCountJob,
         submittingDeleteJob,
         dataType,
@@ -36,6 +37,7 @@ export default function DataToolsPage() {
                             setDataType={setDataType}
                             selectedOptions={selectedOptions}
                             setSelectedOptions={setSelectedOptions}
+                            vaultToolboxPath={vaultToolboxPath}
                         />
                         <VaultInfoIsland />
                     </VStack>

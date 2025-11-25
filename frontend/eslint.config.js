@@ -31,9 +31,11 @@ module.exports = [
                 Response: true,
                 setInterval: true,
                 clearInterval: true,
+                clearTimeout: true,
                 setTimeout: true,
                 navigator: true,
                 console: true,
+                Blob: true,
             },
             parser: babelParser,
             parserOptions: {

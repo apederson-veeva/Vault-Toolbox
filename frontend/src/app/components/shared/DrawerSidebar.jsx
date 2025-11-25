@@ -2,8 +2,8 @@ import { Button, Separator, Flex, Image, Link, Spacer, Stack, Text } from '@chak
 import { PiSignOut, PiGear } from 'react-icons/pi';
 import { Link as RouteLink } from 'react-router-dom';
 import logo from '../../../images/veeva-logo.png';
+import SidebarItems from '../../utils/shared/SidebarItems';
 import SidebarItem from './SidebarItem';
-import SidebarItems from './SidebarItems';
 import { DrawerBackdrop, DrawerBody, DrawerContent, DrawerRoot } from './ui-components/drawer';
 import { Tooltip } from './ui-components/tooltip';
 

@@ -1,7 +1,7 @@
 import { Text, List } from '@chakra-ui/react';
 import { useRef } from 'react';
-import useRemainingHeight from '../../hooks/shared/useRemainingHeight';
 import useFileContents from '../../hooks/data-tools/useFileContents';
+import useRemainingHeight from '../../hooks/shared/useRemainingHeight';
 import ApiErrorMessageCard from '../shared/ApiErrorMessageCard';
 import VirtualizedTable from '../shared/VirtualizedTable';
 import {

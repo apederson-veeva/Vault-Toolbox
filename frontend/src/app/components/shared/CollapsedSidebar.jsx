@@ -1,8 +1,8 @@
 import { Separator, Flex, IconButton, Spacer, Link } from '@chakra-ui/react';
 import { PiListBold, PiSignOut, PiGear } from 'react-icons/pi';
 import { Link as RouteLink } from 'react-router-dom';
+import SidebarItems from '../../utils/shared/SidebarItems';
 import SidebarItem from './SidebarItem';
-import SidebarItems from './SidebarItems';
 import { Tooltip } from './ui-components/tooltip';
 
 export default function CollapsedSidebar({ onOpen, onClose, currentRoute, logout }) {
@@ -43,6 +43,7 @@ const CollapsedSidebarFlexStyle = {
     flexDirection: 'column',
     height: '100%',
     width: 'auto',
+    overflowY: 'auto',
     alignItems: 'center',
 };
 

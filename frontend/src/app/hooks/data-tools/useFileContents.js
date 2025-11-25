@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { downloadItemContent } from '../../services/ApiService';
 
 export default function useFileContents({ cellData }) {
@@ -10,7 +10,7 @@ export default function useFileContents({ cellData }) {
     /**
      * Retrieves content of the file from File Staging
      */
-    const fetchFileData = async () => {
+    const fetchFileData = useCallback(async () => {
         setLoading(true);
         const fetchFileResponse = await downloadItemContent(cellData.replace(/^\//, '')); // Remove the leading / from the cellData
 
@@ -49,11 +49,11 @@ export default function useFileContents({ cellData }) {
 
         setFileData(tmpFileDataArray);
         setLoading(false);
-    };
+    }, [cellData]);
 
     useEffect(() => {
         fetchFileData();
-    }, [cellData]);
+    }, [cellData, fetchFileData]);
 
     return {
         loading,
