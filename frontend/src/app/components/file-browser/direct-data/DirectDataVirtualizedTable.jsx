@@ -134,13 +134,11 @@ export default function DirectDataVirtualizedTable({
             const rowIndex = rows.findIndex((row) => row.original.index === selectedDirectDataSearchResult.index);
 
             if (rowIndex !== -1) {
-                if (rows[rowIndex].id !== highlightedRowId) {
-                    virtualizer.scrollToIndex(rowIndex, { align: 'start', behavior: 'smooth' });
-                    setHighlightedRowId(rows[rowIndex].id);
-                }
+                virtualizer.scrollToIndex(rowIndex, { align: 'start', behavior: 'smooth' });
+                setHighlightedRowId(rows[rowIndex].id);
             }
         }
-    }, [selectedDirectDataSearchResult, virtualizer, rows, selectedDirectDataFolder, highlightedRowId]);
+    }, [selectedDirectDataSearchResult, virtualizer, rows, selectedDirectDataFolder]);
 
     useEffect(() => {
         if (highlightedRowId != null) {

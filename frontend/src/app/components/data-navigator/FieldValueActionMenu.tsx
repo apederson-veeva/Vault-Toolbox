@@ -37,7 +37,7 @@ export default function FieldValueActionMenu({
     viewMdlComponent,
 }: FieldValueActionMenuProps) {
     const { settings } = useSettings();
-    const showVaultAdminLinks = !!settings?.dataNavigator?.featureSettings?.showVaultAdminLinks;
+    const showVaultAdminLinks = settings?.dataNavigator?.featureSettings?.showVaultAdminLinks !== false;
 
     if (!showVaultAdminLinks && !openDocumentInVaultHref && !viewMdlComponent) {
         return null;

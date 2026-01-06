@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "Vault Toolbox",
-    "version": "25.2.0",
+    "version": "25.3.0",
     "description": "Vault Toolbox",
     "icons": {
         "16": "veeva-logo.png",

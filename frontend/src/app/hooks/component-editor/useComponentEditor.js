@@ -128,7 +128,14 @@ export default function useComponentEditor(defaultComponent) {
 
     const getComponentMdlHandler = (userInputComponent) => {
         if (userInputComponent) {
-            retrieveCode(userInputComponent);
+            // Remove leading & trailing spaces
+            // Replace any other spaces with periods, so users can input components naturally "Object address__c"
+            const cleanedUserInputComponent = userInputComponent?.trim()?.replaceAll(' ', '.');
+
+            setCode('');
+            setConsoleOutput();
+
+            retrieveCode(cleanedUserInputComponent);
         }
     };
 

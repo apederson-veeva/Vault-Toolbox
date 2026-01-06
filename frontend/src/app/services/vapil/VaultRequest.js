@@ -1,8 +1,8 @@
 import { VAULT_CLIENT_ID, getVaultDNS } from '../ApiService.js';
 import { getVaultApiVersion } from '../SharedServices';
 
-export const VAULT_API_VERSION = 'v25.2';
-export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v25.2.0';
+export const VAULT_API_VERSION = 'v25.3';
+export const VAULT_DEVELOPER_TOOLBOX_VERSION = 'v25.3.0';
 
 export const HTTP_HEADER_CONTENT_TYPE = 'Content-Type';
 export const HTTP_HEADER_ACCEPT = 'Accept';

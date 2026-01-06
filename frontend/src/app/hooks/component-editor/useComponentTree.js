@@ -118,14 +118,14 @@ export default function useComponentTree() {
                             if (componentTypeObject?.name === componentType && componentTypeObject.label) {
                                 componentTypeLabel = `${componentTypeObject?.label} (${componentTypeObject?.name})`;
 
-                                if (componentTypeObject?.class === 'code') {
+                                if (componentTypeObject?.class === 'code' || componentTypeObject?.class === 'uicode') {
                                     isCode = true;
                                 }
                             }
                         });
                     }
 
-                    // Exclude code components for 24R1
+                    // Exclude code components
                     if (isCode) {
                         return null;
                     }
