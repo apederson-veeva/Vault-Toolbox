@@ -1,5 +1,5 @@
 import { IconType } from 'react-icons';
-import { PiInfo, PiCodesandboxLogo, PiMagnifyingGlass, PiDatabase, PiFolder, PiCompass } from 'react-icons/pi';
+import { PiInfo, PiCodesandboxLogo, PiMagnifyingGlass, PiDatabase, PiFolder, PiCompass, PiChartBar } from 'react-icons/pi';
 
 interface SidebarItem {
     name: string;
@@ -45,6 +45,12 @@ const SidebarItems: SidebarItem[] = [
         icon: PiCompass,
         route: 'data-navigator',
         pageId: 'dataNavigator',
+    },
+    {
+        name: 'Vault Health Check',
+        icon: PiChartBar,
+        route: 'domain-admin',
+        alwaysShow: true,
     },
 ];
 
