@@ -17,7 +17,7 @@ export default function SettingsPage() {
             <Box height='100vh' flex='0 0'>
                 <Flex flexDirection='column' height='100%'>
                     <Spacer />
-                    <ContextualHelpButton tooltip='Vault Toolbox' url='https://github.com/veeva/Vault-Toolbox' />
+                    <ContextualHelpButton tooltip='Vault Toolbox - Unhinged Edition' url='https://github.com/veeva/Vault-Toolbox' />
                 </Flex>
             </Box>
         </Flex>

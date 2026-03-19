@@ -1,15 +1,15 @@
 {
     "manifest_version": 3,
-    "name": "Vault Toolbox",
+    "name": "Vault Toolbox - Unhinged Edition",
     "version": "25.3.0",
-    "description": "Vault Toolbox",
+    "description": "Vault Toolbox - Unhinged Edition",
     "icons": {
         "16": "veeva-logo.png",
         "48": "veeva-logo.png",
         "128": "veeva-logo.png"
     },
     "action": {
-        "default_title": "Vault Toolbox"
+        "default_title": "Vault Toolbox - Unhinged Edition"
     },
     "permissions": ["storage", "cookies"],
     "host_permissions": [

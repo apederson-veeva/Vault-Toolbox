@@ -81,7 +81,7 @@ export default function useDataTools() {
     };
 
     /**
-     * Determines the path to the Vault Toolbox folder on File Staging. For admin users this is under their user folder
+     * Determines the path to the Vault Toolbox - Unhinged Edition folder on File Staging. For admin users this is under their user folder
      * (e.g. u123456/VaultToolbox); for non-admin users this is at the root.
      * @param userId - ID of current user
      * @returns {Promise<string>}

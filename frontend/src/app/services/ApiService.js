@@ -567,7 +567,7 @@ export const getVaultDNS = () => {
 
 /**
  * Converts Javascript Error object into the Vault API response format
- * which Vault Toolbox expects for errors.
+ * which Vault Toolbox - Unhinged Edition expects for errors.
  * @param {Object} error object
  * @returns
  */

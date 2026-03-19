@@ -1,12 +1,12 @@
 import { Text, Heading, Flex, Image, HeadingProps, TextProps, ImageProps } from '@chakra-ui/react';
-import logo from '../../../images/veeva-logo.png';
+import logo from '../../../images/unhinged-logo.svg';
 
 export default function VaultInfoHeader() {
     return (
         <>
             <Flex alignItems='center'>
                 <Image src={logo} {...ToolboxIconStyle} />
-                <Heading {...PageHeaderStyle}>Welcome to Vault Toolbox</Heading>
+                <Heading {...PageHeaderStyle}>Welcome to Vault Toolbox - Unhinged Edition</Heading>
             </Flex>
             <Text {...TextStyle}>Select a tool from the left to get started.</Text>
         </>
@@ -15,7 +15,7 @@ export default function VaultInfoHeader() {
 
 const ToolboxIconStyle: ImageProps = {
     boxSize: '42px',
-    alt: 'Vault Toolbox Icon',
+    alt: 'Vault Toolbox - Unhinged Edition Icon',
     marginRight: '10px',
 };
 

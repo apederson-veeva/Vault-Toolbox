@@ -16,6 +16,6 @@ export default function useLogout() {
 
         // Set a flag, so we don't log you back in automatically if you launched Toolbox from a Vault
         sessionStorage.setItem('hasLoggedOutThisSession', 'true');
-        document.title = 'Vault Toolbox';
+        document.title = 'Vault Toolbox - Unhinged Edition';
     }, [setIsLoggedIn, setSessionId]);
 }

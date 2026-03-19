@@ -57,7 +57,7 @@ module.exports = {
             ],
         }),
         new HtmlWebpackPlugin({
-            title: 'Vault Toolbox',
+            title: 'Vault Toolbox - Unhinged Edition',
             filename: 'index.html',
             chunks: ['index'],
         }),

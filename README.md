@@ -1,17 +1,17 @@
-# Vault Toolbox
+# Vault Toolbox - Unhinged Edition
 
-Vault Toolbox is a Chrome Extension designed to make the everyday life of Vault Admins and Developers easier. It has a built-in set of "Tools" that leverage the power of the [Vault REST API](https://developer.veevavault.com/docs/) through a clean and responsive User Interface.
+Vault Toolbox - Unhinged Edition is a Chrome Extension designed to make the everyday life of Vault Admins and Developers easier. It has a built-in set of "Tools" that leverage the power of the [Vault REST API](https://developer.veevavault.com/docs/) through a clean and responsive User Interface.
 
 ## Getting started
 
-Vault Toolbox is available for installation via the [Chrome Web Store](https://chromewebstore.google.com/detail/vault-toolbox/mnhgljfhifhchamigkieeghmcdjaahdg).
+Vault Toolbox - Unhinged Edition is available for installation via the [Chrome Web Store](https://chromewebstore.google.com/detail/vault-toolbox/mnhgljfhifhchamigkieeghmcdjaahdg).
 
 For information on the technical architecture and instructions for extending or self-hosting this project, please refer to the [project wiki](https://github.com/veeva/Vault-Toolbox/wiki).
 
 ## Features
 
 ### Login (24.1.0)
-Vault Toolbox requires you to authenticate into a Vault. You can do this using the <b>Vault DNS</b>
+Vault Toolbox - Unhinged Edition requires you to authenticate into a Vault. You can do this using the <b>Vault DNS</b>
 (```yourvaultname.veevavault.com```) and either the combination of your <b>Username</b> and <b>Password</b> or you can
 supply an active <b>Session ID</b>.
 
@@ -48,13 +48,13 @@ If you are in a <i>non-production</i> environment, the <b>Component Editor</b> a
 ![Component Editor.png](uploads/Component%20Editor.png)
 
 #### Component Editor: Component Directory (24.1.0)
-Vault Toolbox will get all MDL-based components from the system and load them into the right-hand-side <b>Component Directory</b>.
+Vault Toolbox - Unhinged Edition will get all MDL-based components from the system and load them into the right-hand-side <b>Component Directory</b>.
 </br>
 </br>
 The <b>Component Directory</b> will be organized by [Component Types](https://developer.veevavault.com/mdl/components/) and once a Component Type is expanded, the list will reveal the <i>Component Records</i>. When clicked, the <i>Component Record</i> MDL will be retrieved and loaded into the <b>Monaco Editor</b>.
 
 #### Component Editor: Monaco Editor (24.1.0)
-Vault Toolbox uses the open-source [Monaco Editor](https://microsoft.github.io/monaco-editor/) (used by VS Code) which has been customized with <i>Syntax Highlighting for MDL</i> and <i>Sticky Scroll</i> enabled.
+Vault Toolbox - Unhinged Edition uses the open-source [Monaco Editor](https://microsoft.github.io/monaco-editor/) (used by VS Code) which has been customized with <i>Syntax Highlighting for MDL</i> and <i>Sticky Scroll</i> enabled.
 </br>
 </br>
 You can <b>Zoom In/Out</b> to set the desired display size by <i>Ctrl/Command + Mouse Scroll</i> or the <i>Pinch Zoom</i> on touchpads. You can access the <i>Monaco Editor Command Palette</i> by pressing the <b>F1</b> key while focused on the editor.
@@ -83,14 +83,14 @@ Once a job is completed, a summary of the results will be posted on the Vault's 
 ![Vault Data Tools.png](uploads/Vault%20Data%20Tools.png)
 
 ## Required Permissions
-Vault Toolbox uses the published and validated API endpoints, and does not provide any overrides to documented functionalities.
+Vault Toolbox - Unhinged Edition uses the published and validated API endpoints, and does not provide any overrides to documented functionalities.
 
 In order to use Developer Toolbox, users must have the following permissions:
-* <b>Application > API > Access API</b> is required to be able to access Vault Toolbox and use the VQL Editor
+* <b>Application > API > Access API</b> is required to be able to access Vault Toolbox - Unhinged Edition and use the VQL Editor
 * <b>Application > API > Metadata API</b> is required to be able to use the Component Editor
 * <b>Application > File Staging > Access</b> is required for Data Tools to be able to put the results of the jobs into the File Staging Server
 
-Access to Objects and Documents is subject to the relevant permissions and potential Lifecycle Role restrictions, or to simply put, users will only see data using Vault Toolbox, which they would be able to access via the Vault UI.
+Access to Objects and Documents is subject to the relevant permissions and potential Lifecycle Role restrictions, or to simply put, users will only see data using Vault Toolbox - Unhinged Edition, which they would be able to access via the Vault UI.
 
 ## Support
-Support for Vault Toolbox is handled exclusively through the [Vault for Developers community](https://veevaconnect.com/communities/ATeJ3k8lgAA/about) on Veeva Connect.
+Support for Vault Toolbox - Unhinged Edition is handled exclusively through the [Vault for Developers community](https://veevaconnect.com/communities/ATeJ3k8lgAA/about) on Veeva Connect.
