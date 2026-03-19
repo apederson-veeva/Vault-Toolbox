@@ -4,7 +4,49 @@ Vault Toolbox - Unhinged Edition is a Chrome Extension designed to make the ever
 
 ## Getting started
 
-Vault Toolbox - Unhinged Edition is available for installation via a series of hacks and bad ideas. 
+Vault Toolbox - Unhinged Edition is available for installation via a series of hacks and bad ideas.
+
+### Installation
+
+To install Vault Toolbox - Unhinged Edition from source:
+
+1. **Build the extension**:
+   Navigate to the `frontend/` directory and run:
+   ```bash
+   npm install
+   npm run build
+   ```
+   This will generate a `dist` folder within `frontend/`.
+
+2. **Load into Chrome**:
+   - Open Chrome and navigate to `chrome://extensions/`.
+   - In the top right corner, enable **Developer mode**.
+   - Click the **Load unpacked** button.
+   - Select the `frontend/dist` folder from this repository.
+
+### Updating the Extension
+
+Whenever you make changes to the source code, you need to rebuild the extension and reload it in Chrome.
+
+#### Automating the Update (macOS)
+
+If you are on a Mac, you can use the included `update_extension.sh` script to automate the build and reload process:
+
+```bash
+./update_extension.sh
+```
+
+This script will:
+- Navigate to the `frontend` directory.
+- Install dependencies (if needed).
+- Run the build process.
+- Use AppleScript to find and refresh any open `chrome://extensions` tab in Google Chrome.
+
+#### Manual Update (All Platforms)
+
+1. Re-run `npm run build` in the `frontend/` directory.
+2. Go to `chrome://extensions/`.
+3. Find **Vault Toolbox - Unhinged Edition** and click the **Reload** icon.
 
 For information on the technical architecture and instructions for extending or self-hosting this project, please reconsider your life choices. 
 
