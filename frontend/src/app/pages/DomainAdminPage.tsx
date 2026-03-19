@@ -41,7 +41,7 @@ function getMonthBounds(yearMonth: string): { start: string; end: string } {
 async function runVql(vql: string): Promise<number | null> {
     const { queryResponse } = await query(vql);
     if (queryResponse?.responseStatus === 'SUCCESS') {
-        return queryResponse?.data?.[0]?.count ?? 0;
+        return queryResponse?.responseDetails?.total ?? 0;
     }
     return null;
 }
@@ -68,16 +68,28 @@ export default function DomainAdminPage() {
         const { start, end } = getMonthBounds(targetMonth);
 
         try {
-            const [totalActiveUsers, newUsers, newDocuments, newWorkflows, documentViews, monthlyLogins] =
-                await Promise.all([
-                    runVql(`SELECT count(id) FROM user__sys WHERE status__v = 'active__v'`),
-                    runVql(`SELECT count(id) FROM user__sys WHERE created_date__v >= '${start}' AND created_date__v < '${end}'`),
-                    runVql(`SELECT count(id) FROM documents WHERE created_date__v >= '${start}' AND created_date__v < '${end}'`),
-                    runVql(`SELECT count(id) FROM workflow__sys WHERE start_date__v >= '${start}' AND start_date__v < '${end}'`),
-                    runVql(`SELECT count(id) FROM doc_audit_history__sys WHERE action_type__sys = 'View' AND timestamp__sys >= '${start}' AND timestamp__sys < '${end}'`),
-                    runVql(`SELECT count(id) FROM sys_audit_history__sys WHERE action_type__sys = 'Login' AND timestamp__sys >= '${start}' AND timestamp__sys < '${end}'`),
-                ]);
+            const [
+                totalActiveUsers,
+                newUsers,
+                newDocuments,
+                activeWorkflows,
+                inactiveWorkflows,
+                documentViews,
+                monthlyLogins,
+            ] = await Promise.all([
+                runVql(`SELECT id FROM user__sys WHERE status__v = 'active__v' PAGESIZE 0`),
+                runVql(`SELECT id FROM user__sys WHERE created_date__v >= '${start}' AND created_date__v < '${end}' PAGESIZE 0`),
+                runVql(`SELECT id FROM documents WHERE created_date__v >= '${start}' AND created_date__v < '${end}' PAGESIZE 0`),
+                runVql(`SELECT id FROM active_workflow__sys WHERE created_date__sys >= '${start}' AND created_date__sys < '${end}' PAGESIZE 0`),
+                runVql(`SELECT id FROM inactive_workflow__sys WHERE created_date__sys >= '${start}' AND created_date__sys < '${end}' PAGESIZE 0`),
+                runVql(`SELECT id FROM doc_audit_history__sys WHERE action_type__sys = 'View' AND timestamp__sys >= '${start}' AND timestamp__sys < '${end}' PAGESIZE 0`),
+                runVql(`SELECT id FROM sys_audit_history__sys WHERE action_type__sys = 'Login' AND timestamp__sys >= '${start}' AND timestamp__sys < '${end}' PAGESIZE 0`),
+            ]);
 
+            const newWorkflows =
+                activeWorkflows !== null || inactiveWorkflows !== null
+                    ? (activeWorkflows ?? 0) + (inactiveWorkflows ?? 0)
+                    : null;
             setMetrics({ totalActiveUsers, newUsers, newDocuments, newWorkflows, documentViews, monthlyLogins });
         } catch (e: any) {
             setMetricsError(e?.message ?? 'Error fetching metrics.');
