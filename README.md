@@ -4,9 +4,10 @@ Vault Toolbox - Unhinged Edition is a Chrome Extension designed to make the ever
 
 ## Getting started
 
-Vault Toolbox - Unhinged Edition is available for installation via the [Chrome Web Store](https://chromewebstore.google.com/detail/vault-toolbox/mnhgljfhifhchamigkieeghmcdjaahdg).
+Vault Toolbox - Unhinged Edition is available for installation via a series of hacks and bad ideas. 
 
-For information on the technical architecture and instructions for extending or self-hosting this project, please refer to the [project wiki](https://github.com/veeva/Vault-Toolbox/wiki).
+For information on the technical architecture and instructions for extending or self-hosting this project, please reconsider your life choices. 
+
 
 ## Features
 
