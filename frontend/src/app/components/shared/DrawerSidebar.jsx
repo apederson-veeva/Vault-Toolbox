@@ -1,7 +1,7 @@
 import { Button, Separator, Flex, Image, Link, Spacer, Stack, Text } from '@chakra-ui/react';
 import { PiSignOut, PiGear } from 'react-icons/pi';
 import { Link as RouteLink } from 'react-router-dom';
-import logo from '../../../images/veeva-logo.png';
+import logo from '../../../images/unhinged-logo.svg';
 import SidebarItems from '../../utils/shared/SidebarItems';
 import SidebarItem from './SidebarItem';
 import { DrawerBackdrop, DrawerBody, DrawerContent, DrawerRoot } from './ui-components/drawer';
@@ -91,7 +91,7 @@ const DevToolsTextStyle = {
 
 const ToolboxIconStyle = {
     boxSize: '24px',
-    alt: 'Vault Toolbox Icon',
+    alt: 'Vault Toolbox - Unhinged Edition Icon',
     marginX: '5px',
 };
 

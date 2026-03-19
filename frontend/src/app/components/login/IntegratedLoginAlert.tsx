@@ -6,10 +6,10 @@ export default function IntegratedLoginAlert() {
             <Heading {...AlertTitleStyle}>Integrated Login with Vault UI</Heading>
             <Flex flexDirection='row' align='center'>
                 <Text {...AlertDescriptionStyle}>
-                    Vault Toolbox now supports Integrated Login when launched from a browser tab with an active Vault UI
+                    Vault Toolbox - Unhinged Edition now supports Integrated Login when launched from a browser tab with an active Vault UI
                     session. This option supports all Vault user authentication types including{' '}
                     <i>Basic Username/Password</i> and <i>Single Sign-on</i>. By enabling Integrated Login, you
-                    authorize Vault Toolbox to automatically authenticate and read Vault data using your existing Vault
+                    authorize Vault Toolbox - Unhinged Edition to automatically authenticate and read Vault data using your existing Vault
                     session.
                 </Text>
             </Flex>

@@ -34,7 +34,7 @@ module.exports = {
                 test: /\.css$/,
             },
             {
-                test: /\.(png|jpe?g|gif)$/i,
+                test: /\.(png|jpe?g|gif|svg)$/i,
                 loader: 'file-loader',
                 options: {
                     outputPath: 'images',
@@ -51,7 +51,7 @@ module.exports = {
             ],
         }),
         new HtmlWebpackPlugin({
-            title: 'Vault Toolbox',
+            title: 'Vault Toolbox - Unhinged Edition',
             filename: 'index.html',
             chunks: ['index'],
         }),

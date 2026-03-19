@@ -7,7 +7,7 @@ export default function LoginPage() {
         <Flex {...PageFlexStyle}>
             <Stack {...PageStackStyle}>
                 <Stack align='center'>
-                    <Heading {...PageHeaderStyle}>Welcome to Vault Toolbox</Heading>
+                    <Heading {...PageHeaderStyle}>Welcome to Vault Toolbox - Unhinged Edition</Heading>
                     <Text {...TextStyle}>To get started, log in to a Vault.</Text>
                 </Stack>
                 <LoginCard />

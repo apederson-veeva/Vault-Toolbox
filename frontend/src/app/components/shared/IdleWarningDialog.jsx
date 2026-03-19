@@ -9,7 +9,7 @@ export default function IdleWarningDialog({ promptOpen, activate, remainingTime 
                     Are you still here?
                 </DialogHeader>
                 <DialogBody paddingY='0px'>
-                    You have been inactive for a while. To protect your account, Vault Toolbox will stop renewing your
+                    You have been inactive for a while. To protect your account, Vault Toolbox - Unhinged Edition will stop renewing your
                     session in {remainingTime} seconds.
                 </DialogBody>
                 <DialogFooter paddingY='10px'>

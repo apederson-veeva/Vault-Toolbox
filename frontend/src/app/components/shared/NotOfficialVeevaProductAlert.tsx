@@ -8,7 +8,7 @@ export default function NotOfficialVeevaProductAlert() {
             <Icon as={PiInfoFill} boxSize='30px' color='blue_color_mode' marginRight='10px' />
             <Flex {...AlertDescriptionStyle}>
                 <Text>
-                    Vault Toolbox is a collection of open-source tools created and maintained by the Vault Developer
+                    Vault Toolbox - Unhinged Edition is a collection of open-source tools created and maintained by the Vault Developer
                     Support Team. While not official Veeva products, dedicated support for these tools can be accessed
                     exclusively through the{' '}
                     <Link

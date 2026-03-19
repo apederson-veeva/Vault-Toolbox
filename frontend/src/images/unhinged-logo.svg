@@ -1,0 +1,9 @@
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- Red base circle -->
+  <circle cx="64" cy="64" r="50" fill="#FF4500" />
+  <!-- White V -->
+  <path d="M40 40 L64 90 L88 40" stroke="white" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Devil Horns -->
+  <path d="M45 25 Q35 10 25 15" stroke="#FF4500" stroke-width="8" fill="none" stroke-linecap="round" />
+  <path d="M83 25 Q93 10 103 15" stroke="#FF4500" stroke-width="8" fill="none" stroke-linecap="round" />
+</svg>

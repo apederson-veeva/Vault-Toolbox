@@ -62,7 +62,7 @@ export default function GeneralSettingsTab() {
                                 <Text color='veeva_dark_gray_text_color_mode' fontSize='xs'>
                                     <b>Automatically</b> login using your existing Vault session when launched from a
                                     browser tab with an active Vault UI session. By enabling <b>Integrated Login</b>,
-                                    you authorize Vault Toolbox to automatically authenticate and read Vault data using
+                                    you authorize Vault Toolbox - Unhinged Edition to automatically authenticate and read Vault data using
                                     your existing Vault session.
                                 </Text>
                             </Flex>
